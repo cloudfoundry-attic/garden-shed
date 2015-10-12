@@ -2,10 +2,8 @@ package repository_fetcher
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/cloudfoundry-incubator/garden-linux/process"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/image"
 	"github.com/pivotal-golang/lager"
@@ -175,12 +173,12 @@ func (provider *RemoteV1Fetcher) fetchMetadata(request *FetchRequest) (*ImageV1M
 		Endpoints: repoData.Endpoints}, nil
 }
 
-func imgEnv(img *image.Image, logger lager.Logger) process.Env {
+func imgEnv(img *image.Image, logger lager.Logger) []string {
 	if img.Config == nil {
-		return process.Env{}
+		return nil
 	}
 
-	return filterEnv(img.Config.Env, logger)
+	return img.Config.Env
 }
 
 func imgVolumes(img *image.Image) []string {
@@ -193,23 +191,4 @@ func imgVolumes(img *image.Image) []string {
 	}
 
 	return volumes
-}
-
-func filterEnv(env []string, logger lager.Logger) process.Env {
-	var filtered []string
-	for _, e := range env {
-		segs := strings.SplitN(e, "=", 2)
-		if len(segs) != 2 {
-			// malformed docker image metadata?
-			logger.Info("Unrecognised environment variable", lager.Data{"e": e})
-			continue
-		}
-		filtered = append(filtered, e)
-	}
-
-	filteredWithNoDups, err := process.NewEnv(filtered)
-	if err != nil {
-		logger.Error("Invalid environment", err)
-	}
-	return filteredWithNoDups
 }

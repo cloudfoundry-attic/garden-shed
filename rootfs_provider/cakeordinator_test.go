@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/cloudfoundry-incubator/garden-linux/process"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_retainer"
@@ -44,11 +43,11 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			It("creates a container layer on top of the fetched layer", func() {
 				image := &repository_fetcher.Image{ImageID: "my cool image"}
 				fakeFetcher.FetchReturns(image, nil)
-				fakeLayerCreator.CreateReturns("potato", process.Env{"foo": "bar"}, errors.New("cake"))
+				fakeLayerCreator.CreateReturns("potato", []string{"foo=bar"}, errors.New("cake"))
 
 				rootfsPath, envs, err := cakeOrdinator.Create("container-id", &url.URL{Path: "parent"}, true, 55)
 				Expect(rootfsPath).To(Equal("potato"))
-				Expect(envs).To(Equal(process.Env{"foo": "bar"}))
+				Expect(envs).To(Equal([]string{"foo=bar"}))
 				Expect(err).To(MatchError("cake"))
 
 				Expect(fakeLayerCreator.CreateCallCount()).To(Equal(1))

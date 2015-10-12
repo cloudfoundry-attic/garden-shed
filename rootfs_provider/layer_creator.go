@@ -3,7 +3,6 @@ package rootfs_provider
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-linux/process"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 )
@@ -30,7 +29,7 @@ func NewLayerCreator(
 	}
 }
 
-func (provider *ContainerLayerCreator) Create(id string, parentImage *repository_fetcher.Image, shouldNamespace bool, quota int64) (string, process.Env, error) {
+func (provider *ContainerLayerCreator) Create(id string, parentImage *repository_fetcher.Image, shouldNamespace bool, quota int64) (string, []string, error) {
 	var err error
 	var imageID layercake.ID = layercake.DockerImageID(parentImage.ImageID)
 	if shouldNamespace {

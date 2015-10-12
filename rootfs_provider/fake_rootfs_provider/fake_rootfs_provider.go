@@ -5,13 +5,12 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-linux/process"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
 )
 
 type FakeRootFSProvider struct {
-	CreateStub        func(id string, rootfs *url.URL, namespaced bool, quota int64) (mountpoint string, envvar process.Env, err error)
+	CreateStub        func(id string, rootfs *url.URL, namespaced bool, quota int64) (mountpoint string, envvar []string, err error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		id         string
@@ -21,7 +20,7 @@ type FakeRootFSProvider struct {
 	}
 	createReturns struct {
 		result1 string
-		result2 process.Env
+		result2 []string
 		result3 error
 	}
 	RemoveStub        func(id layercake.ID) error
@@ -34,7 +33,7 @@ type FakeRootFSProvider struct {
 	}
 }
 
-func (fake *FakeRootFSProvider) Create(id string, rootfs *url.URL, namespaced bool, quota int64) (mountpoint string, envvar process.Env, err error) {
+func (fake *FakeRootFSProvider) Create(id string, rootfs *url.URL, namespaced bool, quota int64) (mountpoint string, envvar []string, err error) {
 	fake.createMutex.Lock()
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		id         string
@@ -62,11 +61,11 @@ func (fake *FakeRootFSProvider) CreateArgsForCall(i int) (string, *url.URL, bool
 	return fake.createArgsForCall[i].id, fake.createArgsForCall[i].rootfs, fake.createArgsForCall[i].namespaced, fake.createArgsForCall[i].quota
 }
 
-func (fake *FakeRootFSProvider) CreateReturns(result1 string, result2 process.Env, result3 error) {
+func (fake *FakeRootFSProvider) CreateReturns(result1 string, result2 []string, result3 error) {
 	fake.CreateStub = nil
 	fake.createReturns = struct {
 		result1 string
-		result2 process.Env
+		result2 []string
 		result3 error
 	}{result1, result2, result3}
 }

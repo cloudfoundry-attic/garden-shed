@@ -6,7 +6,6 @@ import (
 	"net/url"
 
 	"github.com/cloudfoundry-incubator/garden"
-	"github.com/cloudfoundry-incubator/garden-linux/process"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/registry"
 )
@@ -73,10 +72,10 @@ type dockerImage struct {
 	layers []*dockerLayer
 }
 
-func (d dockerImage) Env() process.Env {
-	envs := process.Env{}
+func (d dockerImage) Env() []string {
+	var envs []string
 	for _, l := range d.layers {
-		envs = envs.Merge(l.env)
+		envs = append(envs, l.env...)
 	}
 
 	return envs
@@ -92,7 +91,7 @@ func (d dockerImage) Vols() []string {
 }
 
 type dockerLayer struct {
-	env  process.Env
+	env  []string
 	vols []string
 	size int64
 }

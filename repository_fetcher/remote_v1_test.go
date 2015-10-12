@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/cloudfoundry-incubator/garden-linux/process"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	. "github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
@@ -79,7 +78,7 @@ var _ = Describe("RemoteV1", func() {
 				fetchResponse, err := fetcher.Fetch(fetchRequest)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fetchResponse.Env).To(Equal(process.Env{"env1": "env1Value", "env2": "env2NewValue"}))
+				Expect(fetchResponse.Env).To(Equal([]string{"env3=env3Value", "env1=env1Value", "env2=env2NewValue"}))
 				Expect(fetchResponse.Volumes).To(ConsistOf([]string{"/tmp", "/another"}))
 				Expect(fetchResponse.ImageID).To(Equal("id-1"))
 			})
@@ -244,7 +243,7 @@ var _ = Describe("RemoteV1", func() {
 				fetchResponse, err := fetcher.Fetch(fetchRequest)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(fetchResponse.Env).To(Equal(process.Env{"env2": "env2Value"}))
+				Expect(fetchResponse.Env).To(Equal([]string{"env2=env2Value"}))
 				Expect(fetchResponse.ImageID).To(Equal("id-1"))
 			})
 		})
@@ -310,7 +309,7 @@ func setupSuccessfulFetch(server *ghttp.Server) {
 			ghttp.VerifyRequest("GET", "/v1/images/layer-3/json"),
 			http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 				w.Header().Add("X-Docker-Size", "123")
-				w.Write([]byte(`{"id":"layer-3","parent":"parent-3","Config":{"env": ["env2=env2Value", "malformedenvvar"]}}`))
+				w.Write([]byte(`{"id":"layer-3","parent":"parent-3","Config":{"env": ["env3=env3Value"]}}`))
 			}),
 		),
 		ghttp.CombineHandlers(

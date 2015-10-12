@@ -3,7 +3,6 @@ package rootfs_provider_test
 import (
 	"errors"
 
-	"github.com/cloudfoundry-incubator/garden-linux/process"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
@@ -62,7 +61,7 @@ var _ = Describe("Layer Creator", func() {
 					"some-id",
 					&repository_fetcher.Image{
 						ImageID: "some-image-id",
-						Env:     process.Env{"env1": "env1value", "env2": "env2value"},
+						Env:     []string{"env1=env1value", "env2=env2value"},
 					},
 					false,
 					0,
@@ -76,9 +75,9 @@ var _ = Describe("Layer Creator", func() {
 
 				Expect(mountpoint).To(Equal("/some/graph/driver/mount/point"))
 				Expect(envvars).To(Equal(
-					process.Env{
-						"env1": "env1value",
-						"env2": "env2value",
+					[]string{
+						"env1=env1value",
+						"env2=env2value",
 					},
 				))
 			})
@@ -101,7 +100,7 @@ var _ = Describe("Layer Creator", func() {
 						"some-id",
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
-							Env:     process.Env{"env1": "env1value", "env2": "env2value"},
+							Env:     []string{"env1=env1value", "env2=env2value"},
 						},
 						true,
 						0,
@@ -123,9 +122,9 @@ var _ = Describe("Layer Creator", func() {
 
 					Expect(mountpoint).To(Equal("/mount/point/" + layercake.ContainerID("some-id").GraphID()))
 					Expect(envvars).To(Equal(
-						process.Env{
-							"env1": "env1value",
-							"env2": "env2value",
+						[]string{
+							"env1=env1value",
+							"env2=env2value",
 						},
 					))
 				})
@@ -154,7 +153,7 @@ var _ = Describe("Layer Creator", func() {
 						"some-id",
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
-							Env:     process.Env{"env1": "env1value", "env2": "env2value"},
+							Env:     []string{"env1=env1value", "env2=env2value"},
 						},
 						true,
 						0,
@@ -170,9 +169,9 @@ var _ = Describe("Layer Creator", func() {
 
 					Expect(mountpoint).To(Equal("/mount/point/" + layercake.ContainerID("some-id").GraphID()))
 					Expect(envvars).To(Equal(
-						process.Env{
-							"env1": "env1value",
-							"env2": "env2value",
+						[]string{
+							"env1=env1value",
+							"env2=env2value",
 						},
 					))
 				})

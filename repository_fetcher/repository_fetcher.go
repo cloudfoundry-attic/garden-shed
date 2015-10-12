@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/cloudfoundry-incubator/garden-linux/process"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/distribution/digest"
 	"github.com/docker/docker/registry"
@@ -59,7 +58,7 @@ type FetchRequest struct {
 
 type Image struct {
 	ImageID  string
-	Env      process.Env
+	Env      []string
 	Volumes  []string
 	LayerIDs []string
 }

@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-linux/process"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	"github.com/pivotal-golang/lager"
@@ -12,7 +11,7 @@ import (
 
 //go:generate counterfeiter . LayerCreator
 type LayerCreator interface {
-	Create(id string, parentImage *repository_fetcher.Image, shouldNamespace bool, quota int64) (string, process.Env, error)
+	Create(id string, parentImage *repository_fetcher.Image, shouldNamespace bool, quota int64) (string, []string, error)
 }
 
 //go:generate counterfeiter . RepositoryFetcher
@@ -42,7 +41,7 @@ func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreat
 		logger:       logger}
 }
 
-func (c *CakeOrdinator) Create(id string, parentImageURL *url.URL, translateUIDs bool, diskQuota int64) (string, process.Env, error) {
+func (c *CakeOrdinator) Create(id string, parentImageURL *url.URL, translateUIDs bool, diskQuota int64) (string, []string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
