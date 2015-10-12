@@ -4,7 +4,7 @@ package fake_mapper
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-linux/shed/rootfs_provider"
+	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
 )
 
 type FakeMapper struct {

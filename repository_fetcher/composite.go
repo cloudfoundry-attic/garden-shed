@@ -7,7 +7,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-linux/process"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/registry"
 )
 

@@ -4,7 +4,7 @@ package fake_retainer
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 )
 
 type FakeRetainer struct {

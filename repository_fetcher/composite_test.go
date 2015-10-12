@@ -3,10 +3,10 @@ package repository_fetcher_test
 import (
 	"net/url"
 
-	. "github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher/fake_fetch_request_creator"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher/fake_versioned_fetcher"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher/fakes"
+	. "github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
+	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/fake_fetch_request_creator"
+	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/fake_versioned_fetcher"
+	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/fakes"
 	"github.com/docker/docker/registry"
 
 	. "github.com/onsi/ginkgo"

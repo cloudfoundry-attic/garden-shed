@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	"github.com/cloudfoundry-incubator/garden-linux/process"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/distribution/digest"
 	"github.com/docker/docker/registry"
 	"github.com/pivotal-golang/lager"

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/url"
 
-	. "github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher/fake_pinger"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher/fake_registry_provider"
+	. "github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
+	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/fake_pinger"
+	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/fake_registry_provider"
 	"github.com/docker/docker/registry"
 	"github.com/pivotal-golang/lager/lagertest"
 

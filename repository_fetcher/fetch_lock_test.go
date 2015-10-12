@@ -8,7 +8,7 @@ import (
 
 	"runtime"
 
-	"github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher"
+	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

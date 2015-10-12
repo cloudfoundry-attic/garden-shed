@@ -3,8 +3,8 @@ package layercake_test
 import (
 	"errors"
 
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake/fake_cake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/docker/docker/image"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -7,7 +7,7 @@ import (
 	"github.com/docker/docker/cliconfig"
 	"github.com/docker/docker/registry"
 
-	. "github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher"
+	. "github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

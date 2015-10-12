@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake/fake_cake"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
+	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
 	. "github.com/onsi/ginkgo"

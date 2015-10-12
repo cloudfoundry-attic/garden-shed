@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 )
 
 type FakeRepositoryFetcher struct {

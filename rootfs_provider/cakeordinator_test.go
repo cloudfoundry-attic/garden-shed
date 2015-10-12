@@ -5,12 +5,12 @@ import (
 	"net/url"
 
 	"github.com/cloudfoundry-incubator/garden-linux/process"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake/fake_cake"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake/fake_retainer"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/repository_fetcher"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/rootfs_provider"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/rootfs_provider/fakes"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_retainer"
+	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
+	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
+	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fakes"
 	"github.com/pivotal-golang/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"

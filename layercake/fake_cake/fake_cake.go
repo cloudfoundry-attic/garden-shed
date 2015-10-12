@@ -4,7 +4,7 @@ package fake_cake
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
 )

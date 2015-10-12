@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/cloudfoundry-incubator/garden-linux/process"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 )
 
 //go:generate counterfeiter -o fake_rootfs_provider/fake_rootfs_provider.go . RootFSProvider

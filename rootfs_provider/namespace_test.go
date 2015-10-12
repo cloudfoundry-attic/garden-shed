@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/cloudfoundry-incubator/garden-linux/shed/rootfs_provider"
-	"github.com/cloudfoundry-incubator/garden-linux/shed/rootfs_provider/fake_translator"
+	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
+	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fake_translator"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-golang/lager"
