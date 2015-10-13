@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+var chownFunc = Chown
+
 type UidTranslator struct {
 	uidMappings StringMapper
 	gidMappings StringMapper
@@ -28,7 +30,7 @@ func NewUidTranslator(uidMappings StringMapper, gidMappings StringMapper) *UidTr
 		gidMappings: gidMappings,
 
 		getuidgid: getuidgid,
-		chown:     os.Lchown,
+		chown:     chownFunc,
 	}
 }
 
