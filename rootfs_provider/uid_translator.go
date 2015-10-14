@@ -46,5 +46,5 @@ func (u UidTranslator) Translate(path string, info os.FileInfo, err error) error
 }
 
 func (u UidTranslator) CacheKey() string {
-	return fmt.Sprintf("%s+%s", u.uidMappings.String(), u.gidMappings.String())
+	return fmt.Sprintf("%s+%ss", u.uidMappings.String(), u.gidMappings.String())
 }

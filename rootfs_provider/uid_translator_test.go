@@ -41,7 +41,11 @@ var _ = Describe("UidTranslator", func() {
 	})
 
 	It("returns a cachekey based on the uid and gid map", func() {
-		Expect(translator.CacheKey()).To(Equal("12-24+33-66"))
+		Expect(translator.CacheKey()).To(HavePrefix("12-24+33-66"))
+	})
+
+	It("adds 's' to the cache key to indicate that setuid bit is preserved", func() {
+		Expect(translator.CacheKey()).To(HaveSuffix("s"))
 	})
 
 	Context("when neither mapping affects the file", func() {
