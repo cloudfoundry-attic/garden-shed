@@ -38,8 +38,7 @@ func (l *Local) Fetch(repoURL *url.URL, _ int64) (*Image, error) {
 
 	id, err := l.fetch(path)
 	return &Image{
-		ImageID:  id,
-		LayerIDs: []string{id},
+		ImageID: id,
 	}, err
 }
 

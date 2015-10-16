@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/docker/distribution/digest"
+	"github.com/docker/distribution"
 	"github.com/docker/docker/registry"
 	"github.com/pivotal-golang/lager"
 )
@@ -30,10 +30,6 @@ type Registry interface {
 	GetRemoteHistory(imageID string, registry string) ([]string, error)
 	GetRemoteImageJSON(imageID string, registry string) ([]byte, int, error)
 	GetRemoteImageLayer(imageID string, registry string, size int64) (io.ReadCloser, error)
-
-	// v2 methods
-	GetV2ImageManifest(ep *registry.Endpoint, imageName, tagName string, auth *registry.RequestAuthorization) (digest.Digest, []byte, error)
-	GetV2ImageBlobReader(ep *registry.Endpoint, imageName string, dgst digest.Digest, auth *registry.RequestAuthorization) (io.ReadCloser, int64, error)
 }
 
 type RemoteFetcher interface {
@@ -49,6 +45,7 @@ type RepositoryFetcher interface {
 type FetchRequest struct {
 	Session    *registry.Session
 	Endpoint   *registry.Endpoint
+	Repository distribution.Repository
 	Path       string
 	RemotePath string
 	Tag        string
@@ -57,10 +54,9 @@ type FetchRequest struct {
 }
 
 type Image struct {
-	ImageID  string
-	Env      []string
-	Volumes  []string
-	LayerIDs []string
+	ImageID string
+	Env     []string
+	Volumes []string
 }
 
 var ErrInvalidDockerURL = errors.New("invalid docker url")

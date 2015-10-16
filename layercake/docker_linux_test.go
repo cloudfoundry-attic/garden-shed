@@ -39,14 +39,15 @@ var _ = Describe("Docker", func() {
 
 		Expect(syscall.Mount("tmpfs", root, "tmpfs", 0, "")).To(Succeed())
 
-		driver, err := graphdriver.New(root, nil)
+		driver, err := graphdriver.GetDriver("vfs", root, nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		graph, err := graph.NewGraph(root, driver)
 		Expect(err).NotTo(HaveOccurred())
 
 		cake = &layercake.Docker{
-			Graph: graph,
+			Graph:  graph,
+			Driver: driver,
 		}
 	})
 

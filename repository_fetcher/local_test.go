@@ -203,19 +203,6 @@ var _ = Describe("Local", func() {
 			Expect(response.ImageID).To(HaveSuffix("foo_bar_baz"))
 		})
 
-		It("sets up the layerids", func() {
-			tmp, err := ioutil.TempDir("", "")
-			Expect(err).NotTo(HaveOccurred())
-			defer os.RemoveAll(tmp)
-
-			Expect(os.MkdirAll(path.Join(tmp, "abc"), 0700)).To(Succeed())
-
-			image, err := fetcher.Fetch(&url.URL{Path: path.Join(tmp, "abc")}, 0)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(image.LayerIDs).To(Equal([]string{image.ImageID}))
-		})
-
 		Context("when the path is a symlink", func() {
 			It("registers the image with the correct layer data", func() {
 				fakeCake.RegisterStub = func(image *image.Image, layer archive.ArchiveReader) error {

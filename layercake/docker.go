@@ -3,6 +3,7 @@ package layercake
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -19,11 +20,12 @@ type QuotaedDriver interface {
 }
 
 type Docker struct {
-	Graph *graph.Graph
+	Graph  *graph.Graph
+	Driver graphdriver.Driver
 }
 
 func (d *Docker) DriverName() string {
-	return d.Graph.Driver().String()
+	return d.Driver.String()
 }
 
 func (d *Docker) Create(containerID ID, imageID ID) error {
@@ -35,7 +37,7 @@ func (d *Docker) Create(containerID ID, imageID ID) error {
 }
 
 func (d *Docker) Register(image *image.Image, layer archive.ArchiveReader) error {
-	return d.Graph.Register(image, layer)
+	return d.Graph.Register(&descriptor{image}, layer)
 }
 
 func (d *Docker) Get(id ID) (*image.Image, error) {
@@ -43,7 +45,7 @@ func (d *Docker) Get(id ID) (*image.Image, error) {
 }
 
 func (d *Docker) Remove(id ID) error {
-	if err := d.Graph.Driver().Put(id.GraphID()); err != nil {
+	if err := d.Driver.Put(id.GraphID()); err != nil {
 		return err
 	}
 
@@ -51,23 +53,19 @@ func (d *Docker) Remove(id ID) error {
 }
 
 func (d *Docker) Path(id ID) (string, error) {
-	return d.Graph.Driver().Get(id.GraphID(), "")
+	return d.Driver.Get(id.GraphID(), "")
 }
 
 func (d *Docker) QuotaedPath(id ID, quota int64) (string, error) {
 	if d.DriverName() == "aufs" {
-		return d.Graph.Driver().(QuotaedDriver).GetQuotaed(id.GraphID(), "", quota)
+		return d.Driver.(QuotaedDriver).GetQuotaed(id.GraphID(), "", quota)
 	} else {
 		return "", errors.New("quotas are not supported for this driver")
 	}
 }
 
 func (d *Docker) IsLeaf(id ID) (bool, error) {
-	heads, err := d.Graph.Heads()
-	if err != nil {
-		return false, err
-	}
-
+	heads := d.Graph.Heads()
 	_, ok := heads[id.GraphID()]
 	return ok, nil
 }
@@ -111,4 +109,20 @@ func shaID(id string) string {
 	}
 
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(id)))
+}
+
+type descriptor struct {
+	image *image.Image
+}
+
+func (d descriptor) ID() string {
+	return d.image.ID
+}
+
+func (d descriptor) Parent() string {
+	return d.image.Parent
+}
+
+func (d descriptor) MarshalConfig() ([]byte, error) {
+	return json.Marshal(d.image)
 }
