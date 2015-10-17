@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/docker/docker/image"
+	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/runconfig"
 
 	"github.com/cloudfoundry-incubator/garden-shed/distclient"
@@ -25,9 +26,10 @@ import (
 
 var _ = Describe("Fetching from a Remote repo", func() {
 	var (
-		fakeDialer *fakes.FakeDialer
-		fakeConn   *fake_distclient.FakeConn
-		fakeCake   *fake_cake.FakeCake
+		fakeDialer   *fakes.FakeDialer
+		fakeConn     *fake_distclient.FakeConn
+		fakeCake     *fake_cake.FakeCake
+		fakeVerifier *fakes.FakeVerifier
 
 		remote *repository_fetcher.Remote
 
@@ -88,7 +90,12 @@ var _ = Describe("Fetching from a Remote repo", func() {
 			return nil, errors.New("doesnt exist")
 		}
 
-		remote = repository_fetcher.NewRemote(lagertest.NewTestLogger("test"), "the-default-host", fakeCake, fakeDialer)
+		fakeVerifier = new(fakes.FakeVerifier)
+		fakeVerifier.VerifyStub = func(r io.Reader, d digest.Digest) (io.ReadCloser, error) {
+			return &verified{Reader: r}, nil
+		}
+
+		remote = repository_fetcher.NewRemote(lagertest.NewTestLogger("test"), "the-default-host", fakeCake, fakeDialer, fakeVerifier)
 	})
 
 	Context("when the URL has a host", func() {
@@ -194,6 +201,45 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		img, _ := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
 		Expect(img.Volumes).To(ConsistOf([]string{"vol1", "vol2"}))
 	})
+
+	It("should verify the image against its digest", func() {
+		remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+		_, reader := fakeCake.RegisterArgsForCall(0)
+
+		Expect(reader).To(BeAssignableToTypeOf(&verified{}))
+		_, digest1 := fakeVerifier.VerifyArgsForCall(0)
+		_, digest2 := fakeVerifier.VerifyArgsForCall(1)
+		Expect(string(digest1)).To(Equal("abc-def"))
+		Expect(string(digest2)).To(Equal("ghj-klm"))
+	})
+
+	It("should close the verified image reader after using it", func() {
+		var registeredBlob *verified
+		fakeCake.RegisterStub = func(img *image.Image, blob archive.ArchiveReader) error {
+			Expect(blob).To(BeAssignableToTypeOf(&verified{}))
+			Expect(blob.(*verified).closed).To(BeFalse())
+			registeredBlob = blob.(*verified)
+			return nil
+		}
+
+		remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+		Expect(registeredBlob.closed).To(BeTrue())
+	})
+
+	Context("when the layer does not match its digest", func() {
+		BeforeEach(func() {
+			fakeVerifier.VerifyReturns(nil, errors.New("boom"))
+		})
+
+		It("returns an error", func() {
+			_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+			Expect(err).To(MatchError("boom"))
+		})
+
+		It("does not register an image in the graph", func() {
+			Expect(fakeCake.RegisterCallCount()).To(Equal(0))
+		})
+	})
 })
 
 func parseURL(u string) *url.URL {
@@ -201,4 +247,14 @@ func parseURL(u string) *url.URL {
 	Expect(err).NotTo(HaveOccurred())
 
 	return r
+}
+
+type verified struct {
+	io.Reader
+	closed bool
+}
+
+func (v *verified) Close() error {
+	v.closed = true
+	return nil
 }

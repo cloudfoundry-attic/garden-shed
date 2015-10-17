@@ -17,14 +17,16 @@ type Remote struct {
 	DefaultHost string
 	Dial        Dialer
 	Cake        layercake.Cake
+	Verifier    Verifier
 }
 
-func NewRemote(logger lager.Logger, defaultHost string, cake layercake.Cake, dialer Dialer) *Remote {
+func NewRemote(logger lager.Logger, defaultHost string, cake layercake.Cake, dialer Dialer, verifier Verifier) *Remote {
 	return &Remote{
 		Logger:      logger,
 		DefaultHost: defaultHost,
 		Dial:        dialer,
 		Cake:        cake,
+		Verifier:    verifier,
 	}
 }
 
@@ -51,7 +53,13 @@ func (r *Remote) Fetch(u *url.URL, diskQuota int64) (*Image, error) {
 			return nil, err
 		}
 
-		if err := r.Cake.Register(&image.Image{ID: layer.ID, Parent: layer.Parent}, blob); err != nil {
+		verifiedBlob, err := r.Verifier.Verify(blob, layer.LayerID)
+		if err != nil {
+			return nil, err
+		}
+
+		defer verifiedBlob.Close()
+		if err := r.Cake.Register(&image.Image{ID: layer.ID, Parent: layer.Parent}, verifiedBlob); err != nil {
 			return nil, err
 		}
 	}
