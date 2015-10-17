@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/url"
+	"sync"
 
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
@@ -42,21 +43,49 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		existingLayers = map[string]bool{}
 
 		manifests = map[string]*distclient.Manifest{
-			"bad": &distclient.Manifest{
-				Layers: []image.Image{
-					{LayerID: "DOES_NOT_VERIFY"},
-				},
-			},
 			"latest": &distclient.Manifest{
-				Layers: []image.Image{
+				Layers: []distclient.Layer{
 					{},
 				},
 			},
 			"some-tag": &distclient.Manifest{
-				Layers: []image.Image{
-					{LayerID: "abc-def", ID: "abc-id", Parent: "abc-parent-id", Config: &runconfig.Config{Env: []string{"a", "b"}, Volumes: map[string]struct{}{"vol1": struct{}{}}}},
-					{LayerID: "ghj-klm", ID: "ghj-id"},
-					{LayerID: "klm-nop", ID: "klm-id", Config: &runconfig.Config{Env: []string{"d", "e", "f"}, Volumes: map[string]struct{}{"vol2": struct{}{}}}},
+				Layers: []distclient.Layer{
+					{
+						BlobSum:        "abc-def",
+						StrongID:       "sha256:abc-id",
+						ParentStrongID: "sha256:abc-parent-id",
+						Image: image.Image{
+							Config: &runconfig.Config{
+								Env:     []string{"a", "b"},
+								Volumes: map[string]struct{}{"vol1": struct{}{}},
+							},
+						},
+					},
+					{
+						BlobSum:  "ghj-klm",
+						StrongID: "sha256:ghj-id",
+					},
+					{
+						BlobSum:  "klm-nop",
+						StrongID: "sha256:klm-id",
+						Image: image.Image{
+							Config: &runconfig.Config{
+								Env:     []string{"d", "e", "f"},
+								Volumes: map[string]struct{}{"vol2": struct{}{}}},
+						},
+					},
+				},
+			},
+			"shared-layers": &distclient.Manifest{
+				Layers: []distclient.Layer{
+					{
+						BlobSum:  "not-shared",
+						StrongID: "sha256:not-shared",
+					},
+					{
+						BlobSum:  "ghj-klm",
+						StrongID: "sha256:ghj-id",
+					},
 				},
 			},
 		}
@@ -99,12 +128,12 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	})
 
 	Context("when the URL has a host", func() {
-		It("dials that host over https", func() {
+		It("dials that host", func() {
 			_, err := remote.Fetch(parseURL("docker://some-host/some/repo#some-tag"), 1234)
 			Expect(err).NotTo(HaveOccurred())
 
 			_, host, _ := fakeDialer.DialArgsForCall(0)
-			Expect(host).To(Equal("https://some-host"))
+			Expect(host).To(Equal("some-host"))
 		})
 	})
 
@@ -114,7 +143,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			_, host, _ := fakeDialer.DialArgsForCall(0)
-			Expect(host).To(Equal("https://the-default-host"))
+			Expect(host).To(Equal("the-default-host"))
 		})
 	})
 
@@ -129,12 +158,24 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	})
 
 	Context("when the path does not contain a slash", func() {
-		It("preprends the implied 'library/' to the path", func() {
-			_, err := remote.Fetch(parseURL("docker://some-host/somerepo#some-tag"), 1234)
-			Expect(err).NotTo(HaveOccurred())
+		Context("and the default registry is being used", func() {
+			It("prepends the implied 'library/' to the path, because dockerhub needs this", func() {
+				_, err := remote.Fetch(parseURL("docker://the-default-host/somerepo#some-tag"), 1234)
+				Expect(err).NotTo(HaveOccurred())
 
-			_, _, repo := fakeDialer.DialArgsForCall(0)
-			Expect(repo).To(Equal("library/somerepo"))
+				_, _, repo := fakeDialer.DialArgsForCall(0)
+				Expect(repo).To(Equal("library/somerepo"))
+			})
+		})
+
+		Context("and a custom registry is being used", func() {
+			It("does not prepend 'library/' to the path", func() {
+				_, err := remote.Fetch(parseURL("docker://some-host/somerepo#some-tag"), 1234)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, _, repo := fakeDialer.DialArgsForCall(0)
+				Expect(repo).To(Equal("somerepo"))
+			})
 		})
 	})
 
@@ -146,7 +187,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 			Expect(fakeCake.RegisterCallCount()).To(Equal(3))
 		})
 
-		It("registers the right layer contents", func() {
+		It("registers the layer contents under its Strong IDs", func() {
 			_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -238,6 +279,51 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 		It("does not register an image in the graph", func() {
 			Expect(fakeCake.RegisterCallCount()).To(Equal(0))
+		})
+	})
+
+	Describe("concurrently fetching", func() {
+		It("serializes calls to cake.get and getblobreader", func() {
+			for i := 1; i < 100; i++ {
+				got := make(map[layercake.ID]bool)
+				mu := new(sync.RWMutex)
+				fakeCake.GetStub = func(id layercake.ID) (*image.Image, error) {
+					mu.RLock()
+					had := got[id]
+					mu.RUnlock()
+
+					if had {
+						return nil, nil
+					}
+
+					return nil, errors.New("not found")
+				}
+
+				fakeCake.RegisterStub = func(img *image.Image, _ archive.ArchiveReader) error {
+					mu.Lock()
+					got[layercake.DockerImageID(img.ID)] = true
+					mu.Unlock()
+
+					return nil
+				}
+
+				wg := new(sync.WaitGroup)
+				wg.Add(2)
+				go func() {
+					defer wg.Done()
+					_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+					Expect(err).NotTo(HaveOccurred())
+				}()
+
+				go func() {
+					defer wg.Done()
+					_, err := remote.Fetch(parseURL("docker:///foo#shared-layers"), 67)
+					Expect(err).NotTo(HaveOccurred())
+				}()
+
+				wg.Wait()
+				Expect(fakeConn.GetBlobReaderCallCount()).To(Equal(4 * i))
+			}
 		})
 	})
 })
