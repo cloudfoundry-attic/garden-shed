@@ -18,7 +18,8 @@ type OvenCleaner struct {
 	images   map[string]int
 	imagesMu sync.RWMutex
 
-	mu map[ID]*sync.RWMutex
+	mu   map[ID]*sync.RWMutex
+	muMu sync.RWMutex
 }
 
 func (g *OvenCleaner) Get(id ID) (*image.Image, error) {
@@ -88,6 +89,9 @@ func (g *OvenCleaner) isHeld(id ID) bool {
 }
 
 func (g *OvenCleaner) l(id ID) *sync.RWMutex {
+	g.muMu.Lock()
+	defer g.muMu.Unlock()
+
 	if g.mu == nil {
 		g.mu = make(map[ID]*sync.RWMutex)
 	}
