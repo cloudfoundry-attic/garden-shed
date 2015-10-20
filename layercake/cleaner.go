@@ -31,7 +31,10 @@ func (g *OvenCleaner) Get(id ID) (*image.Image, error) {
 
 func (g *OvenCleaner) Remove(id ID) error {
 	g.l(id).Lock()
-	defer g.l(id).Unlock()
+	defer func() {
+		g.l(id).Unlock()
+		delete(g.mu, id)
+	}()
 
 	log := g.Logger.Session("remove", lager.Data{"ID": id})
 	log.Info("start")
