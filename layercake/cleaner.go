@@ -15,31 +15,19 @@ type OvenCleaner struct {
 
 	EnableImageCleanup bool
 
-	images   map[string]int
-	imagesMu sync.RWMutex
-
-	mu   map[ID]*sync.RWMutex
-	muMu sync.RWMutex
+	retainedImages   map[string]struct{}
+	retainedImagesMu sync.RWMutex
 }
 
 func (g *OvenCleaner) Get(id ID) (*image.Image, error) {
-	g.l(id).RLock() // avoid saying image is there if we might be in the process of deleting it
-	defer g.l(id).RUnlock()
-
 	return g.Cake.Get(id)
 }
 
 func (g *OvenCleaner) Remove(id ID) error {
-	g.l(id).Lock()
-	defer func() {
-		g.l(id).Unlock()
-		delete(g.mu, id)
-	}()
-
 	log := g.Logger.Session("remove", lager.Data{"ID": id})
 	log.Info("start")
 
-	if g.isHeld(id) {
+	if g.isRetained(id) {
 		log.Info("layer-is-held")
 		return nil
 	}
@@ -69,40 +57,24 @@ func (g *OvenCleaner) Remove(id ID) error {
 }
 
 func (g *OvenCleaner) Retain(id ID) {
-	g.imagesMu.Lock()
-	defer g.imagesMu.Unlock()
+	g.retainedImagesMu.Lock()
+	defer g.retainedImagesMu.Unlock()
 
-	if g.images == nil {
-		g.images = make(map[string]int)
+	if g.retainedImages == nil {
+		g.retainedImages = make(map[string]struct{})
 	}
 
-	g.images[id.GraphID()]++
+	g.retainedImages[id.GraphID()] = struct{}{}
 }
 
-func (g *OvenCleaner) isHeld(id ID) bool {
-	g.imagesMu.Lock()
-	defer g.imagesMu.Unlock()
+func (g *OvenCleaner) isRetained(id ID) bool {
+	g.retainedImagesMu.Lock()
+	defer g.retainedImagesMu.Unlock()
 
-	if g.images == nil {
-		g.images = make(map[string]int)
+	if g.retainedImages == nil {
+		return false
 	}
 
-	_, ok := g.images[id.GraphID()]
+	_, ok := g.retainedImages[id.GraphID()]
 	return ok
-}
-
-func (g *OvenCleaner) l(id ID) *sync.RWMutex {
-	g.muMu.Lock()
-	defer g.muMu.Unlock()
-
-	if g.mu == nil {
-		g.mu = make(map[ID]*sync.RWMutex)
-	}
-
-	if m, ok := g.mu[id]; ok {
-		return m
-	}
-
-	g.mu[id] = &sync.RWMutex{}
-	return g.mu[id]
 }
