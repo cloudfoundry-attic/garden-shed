@@ -5,6 +5,7 @@ import (
 	"github.com/docker/docker/pkg/archive"
 )
 
+//go:generate counterfeiter -o fake_id/fake_id.go . ID
 type ID interface {
 	GraphID() string
 }
