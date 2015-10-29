@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
 	"github.com/docker/docker/graph"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
@@ -41,6 +42,10 @@ func (d *Docker) Remove(id ID) error {
 
 func (d *Docker) Path(id ID) (string, error) {
 	return d.Graph.Driver().Get(id.GraphID(), "")
+}
+
+func (d *Docker) QuotaedPath(id ID, quota int64) (string, error) {
+	return d.Graph.Driver().(*aufs.QuotaedDriver).GetQuotaed(id.GraphID(), "", quota)
 }
 
 func (d *Docker) IsLeaf(id ID) (bool, error) {

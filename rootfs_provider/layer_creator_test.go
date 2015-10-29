@@ -52,7 +52,7 @@ var _ = Describe("Layer Creator", func() {
 		)
 	})
 
-	Describe("ProvideRootFS", func() {
+	Describe("Create", func() {
 		Context("when the namespace parameter is false", func() {
 			It("creates a graph entry with it as the parent", func() {
 				fakeCake.PathReturns("/some/graph/driver/mount/point", nil)
@@ -80,6 +80,79 @@ var _ = Describe("Layer Creator", func() {
 						"env2=env2value",
 					},
 				))
+			})
+		})
+
+		Context("when the quota is positive", func() {
+			It("should return the quotaed mount point path", func() {
+				quotaedPath := "/path/to/quotaed/bananas"
+
+				fakeCake.QuotaedPathReturns(quotaedPath, nil)
+
+				mountPointPath, _, err := provider.Create(
+					"some-id",
+					&repository_fetcher.Image{
+						ImageID: "some-image-id",
+					},
+					false,
+					int64(10*1024*1024),
+				)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(mountPointPath).To(Equal(quotaedPath))
+			})
+
+			It("should get the quotaed path", func() {
+				id := "some-id"
+				quota := int64(10 * 1024 * 1024)
+
+				_, _, err := provider.Create(
+					id,
+					&repository_fetcher.Image{
+						ImageID: "some-image-id",
+					},
+					false,
+					quota,
+				)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(fakeCake.QuotaedPathCallCount()).To(Equal(1))
+				reqId, reqQuota := fakeCake.QuotaedPathArgsForCall(0)
+				Expect(reqQuota).To(Equal(quota))
+				Expect(reqId).To(Equal(layercake.ContainerID(id)))
+			})
+
+			Context("when the layer cake fails to mount the quotaed volume", func() {
+				BeforeEach(func() {
+					fakeCake.QuotaedPathReturns("", errors.New("my banana tastes weird"))
+				})
+
+				It("should return an error", func() {
+					_, _, err := provider.Create(
+						"some-id",
+						&repository_fetcher.Image{
+							ImageID: "some-image-id",
+						},
+						false,
+						10*1024*1024,
+					)
+					Expect(err).To(MatchError(ContainSubstring("my banana tastes weird")))
+				})
+
+				It("should not create the volumes", func() {
+					_, _, err := provider.Create(
+						"some-id",
+						&repository_fetcher.Image{
+							ImageID: "some-image-id",
+							Volumes: []string{"/foo", "/bar"},
+						},
+						false,
+						10*1024*1024,
+					)
+					Expect(err).To(HaveOccurred())
+
+					Expect(fakeVolumeCreator.Created).To(BeEmpty())
+				})
 			})
 		})
 

@@ -1,6 +1,7 @@
 package rootfs_provider
 
 import (
+	"math"
 	"net/url"
 	"sync"
 
@@ -53,7 +54,11 @@ func (c *CakeOrdinator) Create(id string, parentImageURL *url.URL, translateUIDs
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	image, err := c.fetcher.Fetch(parentImageURL, diskQuota)
+	fetcherDiskQuota := diskQuota
+	if fetcherDiskQuota == 0 {
+		fetcherDiskQuota = math.MaxInt64
+	}
+	image, err := c.fetcher.Fetch(parentImageURL, fetcherDiskQuota)
 	if err != nil {
 		return "", nil, err
 	}

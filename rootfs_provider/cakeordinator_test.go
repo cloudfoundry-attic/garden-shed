@@ -2,6 +2,7 @@ package rootfs_provider_test
 
 import (
 	"errors"
+	"math"
 	"net/url"
 
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
@@ -39,6 +40,16 @@ var _ = Describe("The Cake Co-ordinator", func() {
 	})
 
 	Describe("creating container layers", func() {
+		Context("when the quota is zero", func() {
+			It("should pass the MaxInt64 disk quota the the fetcher", func() {
+				_, _, err := cakeOrdinator.Create("container-id", &url.URL{Path: "parent"}, true, 0)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, diskQuota := fakeFetcher.FetchArgsForCall(0)
+				Expect(diskQuota).To(Equal(int64(math.MaxInt64)))
+			})
+		})
+
 		Context("When the image is succesfully fetched", func() {
 			It("creates a container layer on top of the fetched layer", func() {
 				image := &repository_fetcher.Image{ImageID: "my cool image"}

@@ -47,7 +47,12 @@ func (provider *ContainerLayerCreator) Create(id string, parentImage *repository
 		return "", nil, err
 	}
 
-	rootPath, err := provider.graph.Path(containerID)
+	var rootPath string
+	if quota > 0 {
+		rootPath, err = provider.graph.QuotaedPath(containerID, quota)
+	} else {
+		rootPath, err = provider.graph.Path(containerID)
+	}
 	if err != nil {
 		return "", nil, err
 	}

@@ -60,6 +60,16 @@ type FakeCake struct {
 		result1 string
 		result2 error
 	}
+	QuotaedPathStub        func(id layercake.ID, quota int64) (string, error)
+	quotaedPathMutex       sync.RWMutex
+	quotaedPathArgsForCall []struct {
+		id    layercake.ID
+		quota int64
+	}
+	quotaedPathReturns struct {
+		result1 string
+		result2 error
+	}
 	IsLeafStub        func(id layercake.ID) (bool, error)
 	isLeafMutex       sync.RWMutex
 	isLeafArgsForCall []struct {
@@ -254,6 +264,40 @@ func (fake *FakeCake) PathArgsForCall(i int) layercake.ID {
 func (fake *FakeCake) PathReturns(result1 string, result2 error) {
 	fake.PathStub = nil
 	fake.pathReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCake) QuotaedPath(id layercake.ID, quota int64) (string, error) {
+	fake.quotaedPathMutex.Lock()
+	fake.quotaedPathArgsForCall = append(fake.quotaedPathArgsForCall, struct {
+		id    layercake.ID
+		quota int64
+	}{id, quota})
+	fake.quotaedPathMutex.Unlock()
+	if fake.QuotaedPathStub != nil {
+		return fake.QuotaedPathStub(id, quota)
+	} else {
+		return fake.quotaedPathReturns.result1, fake.quotaedPathReturns.result2
+	}
+}
+
+func (fake *FakeCake) QuotaedPathCallCount() int {
+	fake.quotaedPathMutex.RLock()
+	defer fake.quotaedPathMutex.RUnlock()
+	return len(fake.quotaedPathArgsForCall)
+}
+
+func (fake *FakeCake) QuotaedPathArgsForCall(i int) (layercake.ID, int64) {
+	fake.quotaedPathMutex.RLock()
+	defer fake.quotaedPathMutex.RUnlock()
+	return fake.quotaedPathArgsForCall[i].id, fake.quotaedPathArgsForCall[i].quota
+}
+
+func (fake *FakeCake) QuotaedPathReturns(result1 string, result2 error) {
+	fake.QuotaedPathStub = nil
+	fake.quotaedPathReturns = struct {
 		result1 string
 		result2 error
 	}{result1, result2}

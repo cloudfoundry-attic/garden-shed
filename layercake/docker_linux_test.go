@@ -1,11 +1,15 @@
 package layercake_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	"syscall"
 
+	quotaed_aufs "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/docker/docker/graph"
@@ -15,7 +19,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	_ "github.com/docker/docker/daemon/graphdriver/vfs"
+	_ "github.com/docker/docker/daemon/graphdriver/aufs"
 	_ "github.com/docker/docker/pkg/chrootarchive" // allow reexec of docker-applyLayer
 	"github.com/docker/docker/pkg/reexec"
 )
@@ -32,11 +36,26 @@ var _ = Describe("Docker", func() {
 
 	BeforeEach(func() {
 		var err error
+
 		root, err = ioutil.TempDir("", "cakeroot")
 		Expect(err).NotTo(HaveOccurred())
 
+		Expect(syscall.Mount("tmpfs", root, "tmpfs", 0, "")).To(Succeed())
+
 		driver, err := graphdriver.New(root, nil)
 		Expect(err).NotTo(HaveOccurred())
+
+		backingStoreRoot, err := ioutil.TempDir("", "backingstore")
+		Expect(err).NotTo(HaveOccurred())
+
+		driver = &quotaed_aufs.QuotaedDriver{
+			driver,
+			&quotaed_aufs.BackingStore{
+				RootPath: backingStoreRoot,
+			},
+			&quotaed_aufs.Loop{},
+			root,
+		}
 
 		graph, err := graph.NewGraph(root, driver)
 		Expect(err).NotTo(HaveOccurred())
@@ -186,6 +205,44 @@ var _ = Describe("Docker", func() {
 				Expect(cake.Remove(layercake.ContainerID("child2"))).To(Succeed())
 				Expect(cake.IsLeaf(layercake.ContainerID("def"))).To(Equal(true))
 			})
+		})
+	})
+
+	Describe("QuotaedPath", func() {
+		var id layercake.ID
+
+		BeforeEach(func() {
+			id = layercake.ContainerID("aubergine-layer")
+
+			registerImageLayer(cake, &image.Image{
+				ID: id.GraphID(),
+			})
+		})
+
+		It("returns a path which exists", func() {
+			path, err := cake.QuotaedPath(id, 10*1024*1024)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(path).To(BeADirectory())
+		})
+
+		It("should allow read/write of files within the quota", func() {
+			path, err := cake.QuotaedPath(id, 10*1024*1024)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(ioutil.WriteFile(filepath.Join(path, "foo"), []byte("hi"), 0700)).To(Succeed())
+			Expect(filepath.Join(path, "foo")).To(BeAnExistingFile())
+		})
+
+		It("should prevent us from exceeding the quota", func() {
+			path, err := cake.QuotaedPath(id, 10*1024*1024)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(
+				exec.Command(
+					"dd", "if=/dev/zero", fmt.Sprintf("of=%s/a_file", path),
+					"bs=1M", "count=11",
+				).Run(),
+			).NotTo(Succeed())
 		})
 	})
 })
