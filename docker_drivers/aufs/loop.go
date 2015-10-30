@@ -3,7 +3,6 @@ package aufs
 import (
 	"fmt"
 	"os/exec"
-	"syscall"
 
 	"github.com/pivotal-golang/lager"
 )
@@ -28,7 +27,7 @@ func (lm *Loop) MountFile(filePath, destPath string) error {
 func (lm *Loop) Unmount(path string) error {
 	log := lm.Logger.Session("unmount", lager.Data{"path": path})
 
-	if err := syscall.Unmount(path, 0); err != nil {
+	if err := exec.Command("umount", "-d", path).Run(); err != nil {
 		if err2 := exec.Command("mountpoint", path).Run(); err2 != nil {
 			// if it's not a mountpoint then this is fine
 			log.Error("failed-to-run-mountpoint", err)
