@@ -37,7 +37,7 @@ func (bm *BackingStore) Create(id string, quota int64) (string, error) {
 }
 
 func (bm *BackingStore) Delete(id string) error {
-	if err := os.Remove(bm.backingStorePath(id)); err != nil {
+	if err := os.RemoveAll(bm.backingStorePath(id)); err != nil {
 		return fmt.Errorf("deleting backing store file: %s", id, err)
 	}
 

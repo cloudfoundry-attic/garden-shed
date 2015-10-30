@@ -20,6 +20,11 @@ func (lm *Loop) MountFile(filePath, destPath string) error {
 
 func (lm *Loop) Unmount(path string) error {
 	if err := syscall.Unmount(path, 0); err != nil {
+		if err2 := exec.Command("mountpoint", path).Run(); err2 != nil {
+			// if it's not a mountpoint then this is fine
+			return nil
+		}
+
 		return err
 	}
 

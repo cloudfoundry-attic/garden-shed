@@ -2,9 +2,12 @@ package aufs
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/docker/docker/daemon/graphdriver"
 )
+
+const aufsRetryCount = 100
 
 //go:generate counterfeiter . GraphDriver
 type GraphDriver interface {
@@ -48,14 +51,27 @@ func (a *QuotaedDriver) GetQuotaed(id, mountlabel string, quota int64) (string, 
 func (a *QuotaedDriver) Remove(id string) error {
 	path := filepath.Join(a.RootPath, "aufs", "diff", id)
 
-	a.GraphDriver.Put(id)
-	a.GraphDriver.Remove(id)
+	var err error
+	for i := 0; i < aufsRetryCount; i++ {
+		err = a.GraphDriver.Put(id)
+		if err == nil {
+			break
+		}
 
-	a.LoopMounter.Unmount(path)
-	a.BackingStoreMgr.Delete(id)
+		time.Sleep(time.Millisecond * 50)
+	}
 
-	a.GraphDriver.Put(id)
-	a.GraphDriver.Remove(id)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	if err := a.LoopMounter.Unmount(path); err != nil {
+		return err
+	}
+
+	if err := a.BackingStoreMgr.Delete(id); err != nil {
+		return err
+	}
+
+	return a.GraphDriver.Remove(id)
 }
