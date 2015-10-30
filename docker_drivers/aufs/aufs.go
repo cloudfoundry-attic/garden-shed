@@ -1,6 +1,7 @@
 package aufs
 
 import (
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -42,10 +43,26 @@ func (a *QuotaedDriver) GetQuotaed(id, mountlabel string, quota int64) (string, 
 	}
 
 	if err := a.LoopMounter.MountFile(bsPath, path); err != nil {
+		if err2 := a.BackingStoreMgr.Delete(id); err2 != nil {
+			return "", fmt.Errorf("cleaning backing store beacause of %s: %s", err, err2)
+		}
+
 		return "", err
 	}
 
-	return a.GraphDriver.Get(id, mountlabel)
+	mntPath, err := a.GraphDriver.Get(id, mountlabel)
+	if err != nil {
+		if err2 := a.LoopMounter.Unmount(path); err2 != nil {
+			return "", fmt.Errorf("unmounting the loop device because of %s: %s", err, err2)
+		}
+		if err2 := a.BackingStoreMgr.Delete(id); err2 != nil {
+			return "", fmt.Errorf("cleaning backing store beacause of %s: %s", err, err2)
+		}
+
+		return "", err
+	}
+
+	return mntPath, nil
 }
 
 func (a *QuotaedDriver) Remove(id string) error {
