@@ -2,14 +2,16 @@ package aufs
 
 import (
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"time"
 
 	"github.com/docker/docker/daemon/graphdriver"
+	"github.com/docker/docker/daemon/graphdriver/aufs"
 	"github.com/pivotal-golang/lager"
 )
 
-const aufsRetryCount = 100
+const aufsRetryCount = 500
 
 //go:generate counterfeiter . GraphDriver
 type GraphDriver interface {
@@ -75,27 +77,35 @@ func (a *QuotaedDriver) GetQuotaed(id, mountlabel string, quota int64) (string, 
 }
 
 func (a *QuotaedDriver) Remove(id string) error {
-	path := filepath.Join(a.RootPath, "aufs", "diff", id)
-	log := a.Logger.Session("get-quotaed", lager.Data{"id": id, "path": path})
+	mntPath := filepath.Join(a.RootPath, "aufs", "diff", id)
+	diffPath := filepath.Join(a.RootPath, "aufs", "diff", id)
+
+	log := a.Logger.Session("remove", lager.Data{"id": id, "diffPath": diffPath, "mntPath": mntPath})
 
 	var err error
 	for i := 0; i < aufsRetryCount; i++ {
-		err = a.GraphDriver.Put(id)
-		if err == nil {
-			log.Info("driver-put-succeed")
+		var output []byte
+		a.GraphDriver.Put(id)
+		output, err = exec.Command("mountpoint", mntPath).CombinedOutput()
+		if err != nil {
+			log.Info("mnt-not-a-mountpoint")
 			break
 		}
-		log.Error("driver-put-failed-in-loop", err)
+
+		log.Info("mnt-still-a-mountpoint", lager.Data{"output": output})
+		if err3 := aufs.Unmount(mntPath); err3 != nil {
+			log.Error("umount", err3)
+		}
 
 		time.Sleep(time.Millisecond * 50)
 	}
 
-	if err != nil {
-		log.Error("driver-put-failed", err)
+	if err == nil {
+		log.Error("driver-put-failed-to-unmount", err)
 		return err
 	}
 
-	if err := a.LoopMounter.Unmount(path); err != nil {
+	if err := a.LoopMounter.Unmount(diffPath); err != nil {
 		log.Error("loop-unmount", err)
 		return err
 	}

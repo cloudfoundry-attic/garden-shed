@@ -27,13 +27,13 @@ func (lm *Loop) MountFile(filePath, destPath string) error {
 func (lm *Loop) Unmount(path string) error {
 	log := lm.Logger.Session("unmount", lager.Data{"path": path})
 
-	if err := exec.Command("umount", "-d", path).Run(); err != nil {
-		if err2 := exec.Command("mountpoint", path).Run(); err2 != nil {
+	if output, err := exec.Command("umount", "-d", path).CombinedOutput(); err != nil {
+		log.Error("failed-to-unmount", err, lager.Data{"output": output})
+		if output, err2 := exec.Command("mountpoint", path).CombinedOutput(); err2 != nil {
 			// if it's not a mountpoint then this is fine
-			log.Error("failed-to-run-mountpoint", err)
+			log.Info("not-a-mountpoint", lager.Data{"output": output, "error": err2})
 			return nil
 		}
-		log.Error("failed-to-unmount", err)
 
 		return err
 	}
