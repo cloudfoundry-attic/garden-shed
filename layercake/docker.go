@@ -37,6 +37,10 @@ func (d *Docker) Get(id ID) (*image.Image, error) {
 }
 
 func (d *Docker) Remove(id ID) error {
+	if err := d.Graph.Driver().Put(id.GraphID()); err != nil {
+		return err
+	}
+
 	return d.Graph.Delete(id.GraphID())
 }
 

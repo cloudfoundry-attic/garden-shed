@@ -76,16 +76,17 @@ func (a *QuotaedDriver) GetQuotaed(id, mountlabel string, quota int64) (string, 
 	return mntPath, nil
 }
 
-func (a *QuotaedDriver) Remove(id string) error {
-	mntPath := filepath.Join(a.RootPath, "aufs", "diff", id)
+func (a *QuotaedDriver) Put(id string) error {
+	mntPath := filepath.Join(a.RootPath, "aufs", "mnt", id)
 	diffPath := filepath.Join(a.RootPath, "aufs", "diff", id)
 
 	log := a.Logger.Session("remove", lager.Data{"id": id, "diffPath": diffPath, "mntPath": mntPath})
 
+	a.GraphDriver.Put(id)
+
 	var err error
 	for i := 0; i < aufsRetryCount; i++ {
 		var output []byte
-		a.GraphDriver.Put(id)
 		output, err = exec.Command("mountpoint", mntPath).CombinedOutput()
 		if err != nil {
 			log.Info("mnt-not-a-mountpoint")
@@ -112,11 +113,6 @@ func (a *QuotaedDriver) Remove(id string) error {
 
 	if err := a.BackingStoreMgr.Delete(id); err != nil {
 		log.Error("bs-delete", err)
-		return err
-	}
-
-	if err := a.GraphDriver.Remove(id); err != nil {
-		log.Error("driver-remove", err)
 		return err
 	}
 
