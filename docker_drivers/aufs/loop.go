@@ -3,9 +3,12 @@ package aufs
 import (
 	"fmt"
 	"os/exec"
+	"time"
 
 	"github.com/pivotal-golang/lager"
 )
+
+const umountRetryCount = 200
 
 type Loop struct {
 	Logger lager.Logger
@@ -27,14 +30,29 @@ func (lm *Loop) MountFile(filePath, destPath string) error {
 func (lm *Loop) Unmount(path string) error {
 	log := lm.Logger.Session("unmount", lager.Data{"path": path})
 
-	if output, err := exec.Command("umount", "-d", path).CombinedOutput(); err != nil {
-		log.Error("failed-to-unmount", err, lager.Data{"output": output})
-		if output, err2 := exec.Command("mountpoint", path).CombinedOutput(); err2 != nil {
-			// if it's not a mountpoint then this is fine
-			log.Info("not-a-mountpoint", lager.Data{"output": output, "error": err2})
+	var err error
+	for i := 0; i < umountRetryCount; i++ {
+		var output []byte
+
+		output, err = exec.Command("umount", "-d", path).CombinedOutput()
+		if err != nil {
+			log.Error("failed-to-unmount", err, lager.Data{"output": output})
+
+			if output, err2 := exec.Command("mountpoint", path).CombinedOutput(); err2 != nil {
+				// if it's not a mountpoint then this is fine
+				log.Info("not-a-mountpoint", lager.Data{"output": output, "error": err2})
+				return nil
+			}
+		} else {
+			log.Info("unmount-suceeded", lager.Data{"output": output})
 			return nil
 		}
 
+		time.Sleep(time.Millisecond * 50)
+	}
+
+	if err != nil {
+		log.Error("failed-to-unmount-after-retries", err)
 		return err
 	}
 
