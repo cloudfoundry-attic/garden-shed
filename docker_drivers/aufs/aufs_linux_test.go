@@ -7,6 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/lager/lagertest"
 )
 
 var _ = Describe("QuotaedDriver", func() {
@@ -31,6 +32,7 @@ var _ = Describe("QuotaedDriver", func() {
 			BackingStoreMgr: fakeBackingStoreMgr,
 			LoopMounter:     fakeLoopMounter,
 			RootPath:        rootPath,
+			Logger:          lagertest.NewTestLogger("test"),
 		}
 	})
 
@@ -121,20 +123,18 @@ var _ = Describe("QuotaedDriver", func() {
 		})
 	})
 
-	Describe("Remove", func() {
-		It("should put and remove the layer twice", func() {
+	Describe("Put", func() {
+		It("should put the layer", func() {
 			id := "herring-id"
 
-			Expect(driver.Remove(id)).To(Succeed())
+			Expect(driver.Put(id)).To(Succeed())
 
-			Expect(fakeGraphDriver.PutCallCount()).To(Equal(2))
+			Expect(fakeGraphDriver.PutCallCount()).To(Equal(1))
 			Expect(fakeGraphDriver.PutArgsForCall(0)).To(Equal(id))
-			Expect(fakeGraphDriver.RemoveCallCount()).To(Equal(2))
-			Expect(fakeGraphDriver.RemoveArgsForCall(0)).To(Equal(id))
 		})
 
 		It("should unmount the loop mount", func() {
-			Expect(driver.Remove("banana-id")).To(Succeed())
+			Expect(driver.Put("banana-id")).To(Succeed())
 
 			Expect(fakeLoopMounter.UnmountCallCount()).To(Equal(1))
 			Expect(fakeLoopMounter.UnmountArgsForCall(0)).To(Equal("/path/to/my/banana/graph/aufs/diff/banana-id"))
@@ -145,7 +145,7 @@ var _ = Describe("QuotaedDriver", func() {
 
 			driver.GetQuotaed(id, "", 10*1024)
 
-			Expect(driver.Remove("banana-id")).To(Succeed())
+			Expect(driver.Put("banana-id")).To(Succeed())
 
 			Expect(fakeBackingStoreMgr.DeleteCallCount()).To(Equal(1))
 			Expect(fakeBackingStoreMgr.DeleteArgsForCall(0)).To(Equal(id))

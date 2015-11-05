@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"github.com/pivotal-golang/lager/lagertest"
 )
 
 var _ = Describe("LoopLinux", func() {
@@ -37,7 +38,9 @@ var _ = Describe("LoopLinux", func() {
 		destPath, err = ioutil.TempDir("", "")
 		Expect(err).NotTo(HaveOccurred())
 
-		loop = &aufs.Loop{}
+		loop = &aufs.Loop{
+			Logger: lagertest.NewTestLogger("test"),
+		}
 	})
 
 	AfterEach(func() {
@@ -104,8 +107,8 @@ var _ = Describe("LoopLinux", func() {
 		})
 
 		Context("when the provided mount point does not exist", func() {
-			It("should return an error", func() {
-				Expect(loop.Unmount("/dev/loopbanana")).NotTo(Succeed())
+			It("should succeed", func() {
+				Expect(loop.Unmount("/dev/loopbanana")).To(Succeed())
 			})
 		})
 	})

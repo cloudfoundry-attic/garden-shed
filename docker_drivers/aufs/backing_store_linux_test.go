@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"github.com/pivotal-golang/lager/lagertest"
 )
 
 var _ = Describe("BackingStoreLinux", func() {
@@ -29,6 +30,7 @@ var _ = Describe("BackingStoreLinux", func() {
 	JustBeforeEach(func() {
 		mgr = &aufs.BackingStore{
 			RootPath: rootPath,
+			Logger:   lagertest.NewTestLogger("test"),
 		}
 	})
 
@@ -113,8 +115,8 @@ var _ = Describe("BackingStoreLinux", func() {
 		})
 
 		Context("when there is no file for the provided id", func() {
-			It("should return an error", func() {
-				Expect(mgr.Delete("fake-banana-id")).NotTo(Succeed())
+			It("should succeed", func() {
+				Expect(mgr.Delete("fake-banana-id")).To(Succeed())
 			})
 		})
 	})

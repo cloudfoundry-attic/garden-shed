@@ -3,14 +3,20 @@ package layercake
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
+	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/docker/docker/graph"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
 )
+
+type QuotaedDriver interface {
+	graphdriver.Driver
+	GetQuotaed(id, mountlabel string, quota int64) (string, error)
+}
 
 type Docker struct {
 	Graph *graph.Graph
@@ -49,7 +55,11 @@ func (d *Docker) Path(id ID) (string, error) {
 }
 
 func (d *Docker) QuotaedPath(id ID, quota int64) (string, error) {
-	return d.Graph.Driver().(*aufs.QuotaedDriver).GetQuotaed(id.GraphID(), "", quota)
+	if d.DriverName() == "aufs" {
+		return d.Graph.Driver().(QuotaedDriver).GetQuotaed(id.GraphID(), "", quota)
+	} else {
+		return "", errors.New("quotas are not supported for this driver")
+	}
 }
 
 func (d *Docker) IsLeaf(id ID) (bool, error) {
