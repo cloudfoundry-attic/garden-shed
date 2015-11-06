@@ -44,33 +44,27 @@ func (a *QuotaedDriver) GetQuotaed(id, mountlabel string, quota int64) (string, 
 
 	bsPath, err := a.BackingStoreMgr.Create(id, quota)
 	if err != nil {
-		log.Error("bs-create", err)
-		return "", err
+		return "", fmt.Errorf("creating backingstore file: %s", err)
 	}
 
 	if err := a.LoopMounter.MountFile(bsPath, path); err != nil {
-		log.Error("loop-mount", err)
 		if err2 := a.BackingStoreMgr.Delete(id); err2 != nil {
-			log.Error("bs-delete", err)
-			return "", fmt.Errorf("cleaning backing store beacause of %s: %s", err, err2)
+			log.Error("cleaning-backing-store", err2)
 		}
 
-		return "", err
+		return "", fmt.Errorf("mounting file: %s", err)
 	}
 
 	mntPath, err := a.GraphDriver.Get(id, mountlabel)
 	if err != nil {
-		log.Error("driver-get", err)
 		if err2 := a.LoopMounter.Unmount(path); err2 != nil {
-			log.Error("loop-unmount", err)
-			return "", fmt.Errorf("unmounting the loop device because of %s: %s", err, err2)
+			log.Error("unmounting-loop-device", err2)
 		}
 		if err2 := a.BackingStoreMgr.Delete(id); err2 != nil {
-			log.Error("bs-delete", err)
-			return "", fmt.Errorf("cleaning backing store beacause of %s: %s", err, err2)
+			log.Error("cleaning-backing-store", err2)
 		}
 
-		return "", err
+		return "", fmt.Errorf("getting mountpath: %s", err)
 	}
 
 	return mntPath, nil
@@ -80,40 +74,34 @@ func (a *QuotaedDriver) Put(id string) error {
 	mntPath := filepath.Join(a.RootPath, "aufs", "mnt", id)
 	diffPath := filepath.Join(a.RootPath, "aufs", "diff", id)
 
-	log := a.Logger.Session("remove", lager.Data{"id": id, "diffPath": diffPath, "mntPath": mntPath})
-
 	a.GraphDriver.Put(id)
 
-	var err error
+	var (
+		isMountpoint bool
+		err          error
+	)
 	for i := 0; i < aufsRetryCount; i++ {
-		var output []byte
-		output, err = exec.Command("mountpoint", mntPath).CombinedOutput()
-		if err != nil {
-			log.Info("mnt-not-a-mountpoint")
+		_, err2 := exec.Command("mountpoint", mntPath).CombinedOutput()
+		isMountpoint = err2 == nil
+		if !isMountpoint {
 			break
 		}
 
-		log.Info("mnt-still-a-mountpoint", lager.Data{"output": output})
-		if err3 := aufs.Unmount(mntPath); err3 != nil {
-			log.Error("umount", err3)
-		}
+		err = aufs.Unmount(mntPath)
 
 		time.Sleep(time.Millisecond * 50)
 	}
 
-	if err == nil {
-		log.Error("driver-put-failed-to-unmount", err)
-		return err
+	if isMountpoint {
+		return fmt.Errorf("still a mountpoint after retries: %s", err)
 	}
 
 	if err := a.LoopMounter.Unmount(diffPath); err != nil {
-		log.Error("loop-unmount", err)
-		return err
+		return fmt.Errorf("unmounting the loop device: %s", err)
 	}
 
 	if err := a.BackingStoreMgr.Delete(id); err != nil {
-		log.Error("bs-delete", err)
-		return err
+		return fmt.Errorf("removing the backing store: %s", err)
 	}
 
 	return nil

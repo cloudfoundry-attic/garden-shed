@@ -20,8 +20,8 @@ func (lm *Loop) MountFile(filePath, destPath string) error {
 	output, err := exec.Command("mount", "-t", "ext4", "-o", "loop",
 		filePath, destPath).CombinedOutput()
 	if err != nil {
-		log.Error("failed-to-mount", err, lager.Data{"output": output})
-		return fmt.Errorf(fmt.Sprintf("failed to mount file (%s): %s", err, output))
+		log.Error("mounting", err, lager.Data{"output": output})
+		return fmt.Errorf("mounting file: %s", err)
 	}
 
 	return nil
@@ -30,21 +30,18 @@ func (lm *Loop) MountFile(filePath, destPath string) error {
 func (lm *Loop) Unmount(path string) error {
 	log := lm.Logger.Session("unmount", lager.Data{"path": path})
 
-	var err error
+	var (
+		err    error
+		output []byte
+	)
 	for i := 0; i < umountRetryCount; i++ {
-		var output []byte
-
 		output, err = exec.Command("umount", "-d", path).CombinedOutput()
 		if err != nil {
-			log.Error("failed-to-unmount", err, lager.Data{"output": output})
-
-			if output, err2 := exec.Command("mountpoint", path).CombinedOutput(); err2 != nil {
+			if _, err2 := exec.Command("mountpoint", path).CombinedOutput(); err2 != nil {
 				// if it's not a mountpoint then this is fine
-				log.Info("not-a-mountpoint", lager.Data{"output": output, "error": err2})
 				return nil
 			}
 		} else {
-			log.Info("unmount-suceeded", lager.Data{"output": output})
 			return nil
 		}
 
@@ -52,8 +49,8 @@ func (lm *Loop) Unmount(path string) error {
 	}
 
 	if err != nil {
-		log.Error("failed-to-unmount-after-retries", err)
-		return err
+		log.Error("unmounting", err, lager.Data{"output": output})
+		return fmt.Errorf("unmounting file: %s", err)
 	}
 
 	return nil
