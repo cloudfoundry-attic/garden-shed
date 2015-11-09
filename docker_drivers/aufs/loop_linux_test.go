@@ -8,12 +8,15 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
+	"github.com/cloudfoundry-incubator/garden-shed/pkg/retrier"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"github.com/pivotal-golang/clock"
 	"github.com/pivotal-golang/lager/lagertest"
 )
 
@@ -40,6 +43,11 @@ var _ = Describe("LoopLinux", func() {
 
 		loop = &aufs.Loop{
 			Logger: lagertest.NewTestLogger("test"),
+			Retrier: &retrier.Retrier{
+				Timeout:         10 * time.Second,
+				PollingInterval: 50 * time.Millisecond,
+				Clock:           clock.NewClock(),
+			},
 		}
 	})
 
@@ -104,6 +112,27 @@ var _ = Describe("LoopLinux", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(devicesAfterRelease).To(BeNumerically("~", devicesAfterCreate-10, 2))
+		})
+
+		It("should try to unmount multiple times", func() {
+			Expect(loop.MountFile(bsFilePath, destPath)).To(Succeed())
+			testFile, err := ioutil.TempFile(destPath, "")
+			Expect(err).NotTo(HaveOccurred())
+
+			c := make(chan struct{})
+
+			go func(c chan struct{}, destPath string) {
+				defer GinkgoRecover()
+
+				Expect(loop.Unmount(destPath)).To(Succeed())
+
+				close(c)
+			}(c, destPath)
+
+			time.Sleep(time.Millisecond * 100)
+			Expect(testFile.Close()).To(Succeed())
+
+			Eventually(c).Should(BeClosed())
 		})
 
 		Context("when the provided mount point does not exist", func() {

@@ -2,16 +2,13 @@ package aufs
 
 import (
 	"fmt"
-	"os/exec"
 	"path/filepath"
-	"time"
 
 	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/docker/docker/daemon/graphdriver/aufs"
 	"github.com/pivotal-golang/lager"
 )
 
-const aufsRetryCount = 500
+type UnmountFunc func(target string) error
 
 //go:generate counterfeiter . GraphDriver
 type GraphDriver interface {
@@ -32,8 +29,10 @@ type BackingStoreMgr interface {
 
 type QuotaedDriver struct {
 	GraphDriver
+	Unmount         UnmountFunc
 	BackingStoreMgr BackingStoreMgr
 	LoopMounter     LoopMounter
+	Retrier         Retrier
 	RootPath        string
 	Logger          lager.Logger
 }
@@ -76,24 +75,10 @@ func (a *QuotaedDriver) Put(id string) error {
 
 	a.GraphDriver.Put(id)
 
-	var (
-		isMountpoint bool
-		err          error
-	)
-	for i := 0; i < aufsRetryCount; i++ {
-		_, err2 := exec.Command("mountpoint", mntPath).CombinedOutput()
-		isMountpoint = err2 == nil
-		if !isMountpoint {
-			break
-		}
-
-		err = aufs.Unmount(mntPath)
-
-		time.Sleep(time.Millisecond * 50)
-	}
-
-	if isMountpoint {
-		return fmt.Errorf("still a mountpoint after retries: %s", err)
+	if err := a.Retrier.Retry(func() error {
+		return a.Unmount(mntPath)
+	}); err != nil {
+		return err
 	}
 
 	if err := a.LoopMounter.Unmount(diffPath); err != nil {

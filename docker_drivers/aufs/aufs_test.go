@@ -15,6 +15,8 @@ var _ = Describe("QuotaedDriver", func() {
 		fakeGraphDriver     *fakes.FakeGraphDriver
 		fakeLoopMounter     *fakes.FakeLoopMounter
 		fakeBackingStoreMgr *fakes.FakeBackingStoreMgr
+		fakeRetrier         *fakes.FakeRetrier
+		fakeUnmount         aufs.UnmountFunc
 
 		driver *aufs.QuotaedDriver
 
@@ -22,15 +24,24 @@ var _ = Describe("QuotaedDriver", func() {
 	)
 
 	BeforeEach(func() {
+		rootPath = "/path/to/my/banana/graph"
+
 		fakeGraphDriver = new(fakes.FakeGraphDriver)
 		fakeLoopMounter = new(fakes.FakeLoopMounter)
 		fakeBackingStoreMgr = new(fakes.FakeBackingStoreMgr)
+		fakeRetrier = new(fakes.FakeRetrier)
+		fakeUnmount = func(path string) error {
+			return nil
+		}
+	})
 
-		rootPath = "/path/to/my/banana/graph"
+	JustBeforeEach(func() {
 		driver = &aufs.QuotaedDriver{
 			GraphDriver:     fakeGraphDriver,
+			Unmount:         fakeUnmount,
 			BackingStoreMgr: fakeBackingStoreMgr,
 			LoopMounter:     fakeLoopMounter,
+			Retrier:         fakeRetrier,
 			RootPath:        rootPath,
 			Logger:          lagertest.NewTestLogger("test"),
 		}
@@ -55,7 +66,7 @@ var _ = Describe("QuotaedDriver", func() {
 				fakeBackingStoreMgr.CreateReturns("", errors.New("create failed!"))
 
 				_, err := driver.GetQuotaed("banana-id", "", 12*1024)
-				Expect(err).To(MatchError("create failed!"))
+				Expect(err).To(MatchError(ContainSubstring("create failed!")))
 			})
 		})
 
@@ -80,7 +91,7 @@ var _ = Describe("QuotaedDriver", func() {
 
 			It("should return an error", func() {
 				_, err := driver.GetQuotaed("banana-id", "", 10*1024)
-				Expect(err).To(MatchError("another banana error"))
+				Expect(err).To(MatchError(ContainSubstring("another banana error")))
 			})
 
 			It("should not mount the layer", func() {
@@ -133,6 +144,23 @@ var _ = Describe("QuotaedDriver", func() {
 			Expect(fakeGraphDriver.PutArgsForCall(0)).To(Equal(id))
 		})
 
+		It("should retry unmounting the mnt endpoint", func() {})
+
+		Context("when the retrier fails", func() {
+			BeforeEach(func() {
+				fakeRetrier.RetryReturns(errors.New("banana"))
+			})
+
+			It("should return the error", func() {
+				Expect(driver.Put("banana-magic")).To(MatchError("banana"))
+			})
+
+			It("should not unmount the loop device", func() {
+				Expect(driver.Put("banana-magic")).To(HaveOccurred())
+				Expect(fakeLoopMounter.UnmountCallCount()).To(Equal(0))
+			})
+		})
+
 		It("should unmount the loop mount", func() {
 			Expect(driver.Put("banana-id")).To(Succeed())
 
@@ -140,15 +168,42 @@ var _ = Describe("QuotaedDriver", func() {
 			Expect(fakeLoopMounter.UnmountArgsForCall(0)).To(Equal("/path/to/my/banana/graph/aufs/diff/banana-id"))
 		})
 
-		It("should delete the backing store", func() {
+		Context("when unmounting the loop device fails", func() {
+			BeforeEach(func() {
+				fakeLoopMounter.UnmountReturns(errors.New("avocado"))
+			})
+
+			It("should return an error", func() {
+				Expect(driver.Put("banana-id")).To(MatchError("unmounting the loop device: avocado"))
+			})
+
+			It("should not remove the backing store file", func() {
+				Expect(driver.Put("banana-id")).To(HaveOccurred())
+				Expect(fakeBackingStoreMgr.DeleteCallCount()).To(Equal(0))
+			})
+		})
+
+		It("should remove the backing store file", func() {
 			id := "banana-id"
 
 			driver.GetQuotaed(id, "", 10*1024)
 
 			Expect(driver.Put("banana-id")).To(Succeed())
 
+			Expect(fakeRetrier.RetryCallCount()).To(Equal(1))
+
 			Expect(fakeBackingStoreMgr.DeleteCallCount()).To(Equal(1))
 			Expect(fakeBackingStoreMgr.DeleteArgsForCall(0)).To(Equal(id))
+		})
+
+		Context("when removig the backing store file fails", func() {
+			BeforeEach(func() {
+				fakeBackingStoreMgr.DeleteReturns(errors.New("banana"))
+			})
+
+			It("should return an error", func() {
+				Expect(driver.Put("banana-shed")).To(MatchError("removing the backing store: banana"))
+			})
 		})
 	})
 })

@@ -1,21 +1,30 @@
 package layercake_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"syscall"
+	"time"
 
+	quotaedaufs "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"github.com/cloudfoundry-incubator/garden-shed/pkg/retrier"
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/docker/docker/graph"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/pivotal-golang/clock"
+	"github.com/pivotal-golang/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 
+	_ "github.com/docker/docker/daemon/graphdriver/aufs"
 	_ "github.com/docker/docker/daemon/graphdriver/vfs"
 	_ "github.com/docker/docker/pkg/chrootarchive" // allow reexec of docker-applyLayer
 	"github.com/docker/docker/pkg/reexec"
@@ -27,8 +36,9 @@ func init() {
 
 var _ = Describe("Docker", func() {
 	var (
-		root string
-		cake *layercake.Docker
+		root   string
+		driver graphdriver.Driver
+		cake   *layercake.Docker
 	)
 
 	BeforeEach(func() {
@@ -38,7 +48,6 @@ var _ = Describe("Docker", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(syscall.Mount("tmpfs", root, "tmpfs", 0, "")).To(Succeed())
-
 		driver, err := graphdriver.GetDriver("vfs", root, nil)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -49,6 +58,10 @@ var _ = Describe("Docker", func() {
 			Graph:  graph,
 			Driver: driver,
 		}
+	})
+
+	AfterEach(func() {
+		Expect(os.RemoveAll(root)).To(Succeed())
 	})
 
 	Describe("Register", func() {
@@ -205,6 +218,94 @@ var _ = Describe("Docker", func() {
 
 				_, err := cake.QuotaedPath(id, 10*1024*1024)
 				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when using aufs quotaed driver", func() {
+			var (
+				backingStoreRoot string
+				id               layercake.ContainerID
+			)
+
+			BeforeEach(func() {
+				var err error
+
+				backingStoreRoot, err = ioutil.TempDir("", "backingstore")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(syscall.Mount("tmpfs", root, "tmpfs", 0, "")).To(Succeed())
+
+				driver, err = graphdriver.GetDriver("aufs", root, nil)
+				Expect(err).NotTo(HaveOccurred())
+
+				graphRetrier := &retrier.Retrier{
+					Timeout:         100 * time.Second,
+					PollingInterval: 500 * time.Millisecond,
+					Clock:           clock.NewClock(),
+				}
+
+				driver = &quotaedaufs.QuotaedDriver{
+					GraphDriver: driver,
+					Unmount:     quotaedaufs.Unmount,
+					BackingStoreMgr: &quotaedaufs.BackingStore{
+						RootPath: backingStoreRoot,
+						Logger:   lagertest.NewTestLogger("test"),
+					},
+					LoopMounter: &quotaedaufs.Loop{
+						Retrier: graphRetrier,
+						Logger:  lagertest.NewTestLogger("test"),
+					},
+					Retrier:  graphRetrier,
+					RootPath: root,
+					Logger:   lagertest.NewTestLogger("test"),
+				}
+
+				graph, err := graph.NewGraph(root, driver)
+				Expect(err).NotTo(HaveOccurred())
+
+				cake = &layercake.Docker{
+					Graph: graph,
+				}
+			})
+
+			JustBeforeEach(func() {
+				parent := layercake.DockerImageID("70d8f0edf5c9008eb61c7c52c458e7e0a831649dbb238b93dde0854faae314a8")
+				registerImageLayer(cake, &image.Image{
+					ID:     parent.GraphID(),
+					Parent: "",
+				})
+
+				id = layercake.ContainerID("abc")
+				createContainerLayer(cake, id, parent)
+			})
+
+			AfterEach(func() {
+				Expect(cake.Remove(id)).To(Succeed())
+				Expect(driver.Cleanup()).To(Succeed())
+				Expect(syscall.Unmount(root, 0)).To(Succeed())
+				Expect(os.RemoveAll(backingStoreRoot)).To(Succeed())
+			})
+
+			It("should allow the user to write a file that does not exceed the quota", func() {
+				path, err := cake.QuotaedPath(id, 10*1024*1024)
+				Expect(err).NotTo(HaveOccurred())
+
+				cmd := exec.Command("dd", "if=/dev/zero", fmt.Sprintf("of=%s", filepath.Join(path, "foo")), "bs=1M", "count=8")
+				session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).To(Succeed())
+
+				Eventually(session).Should(gexec.Exit(0))
+			})
+
+			It("should not allow the user to write that exceeds the quota", func() {
+				path, err := cake.QuotaedPath(id, 10*1024*1024)
+				Expect(err).NotTo(HaveOccurred())
+
+				cmd := exec.Command("dd", "if=/dev/zero", fmt.Sprintf("of=%s", filepath.Join(path, "foo")), "bs=1M", "count=11")
+				session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).To(Succeed())
+
+				Eventually(session).ShouldNot(gexec.Exit(0))
 			})
 		})
 	})

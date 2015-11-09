@@ -20,7 +20,6 @@ import (
 )
 
 var _ = Describe("Aufs", func() {
-
 	var (
 		aufsCake          *layercake.AufsCake
 		cake              *fake_cake.FakeCake

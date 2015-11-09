@@ -35,7 +35,7 @@ func (bm *BackingStore) Create(id string, quota int64) (string, error) {
 
 	output, err := exec.Command("mkfs.ext4", "-F", path).CombinedOutput()
 	if err != nil {
-		log.Error("formatting-file", err, lager.Data{"path": path, "output": output})
+		log.Error("formatting-file", err, lager.Data{"path": path, "output": string(output)})
 		return "", fmt.Errorf("formatting filesystem: %s", err)
 	}
 
