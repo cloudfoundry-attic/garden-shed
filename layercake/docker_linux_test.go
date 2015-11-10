@@ -61,6 +61,7 @@ var _ = Describe("Docker", func() {
 	})
 
 	AfterEach(func() {
+		Expect(syscall.Unmount(root, 0)).To(Succeed())
 		Expect(os.RemoveAll(root)).To(Succeed())
 	})
 
@@ -264,7 +265,8 @@ var _ = Describe("Docker", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				cake = &layercake.Docker{
-					Graph: graph,
+					Graph:  graph,
+					Driver: driver,
 				}
 			})
 
