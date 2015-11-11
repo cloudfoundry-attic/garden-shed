@@ -3,6 +3,7 @@ package aufs
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/pivotal-golang/lager"
@@ -38,7 +39,7 @@ type QuotaedDriver struct {
 }
 
 func (a *QuotaedDriver) GetQuotaed(id, mountlabel string, quota int64) (string, error) {
-	path := filepath.Join(a.RootPath, "aufs", "diff", id)
+	path := a.makeDiffPath(id)
 	log := a.Logger.Session("get-quotaed", lager.Data{"id": id, "mountlabel": mountlabel, "quota": quota, "path": path})
 
 	bsPath, err := a.BackingStoreMgr.Create(id, quota)
@@ -70,8 +71,8 @@ func (a *QuotaedDriver) GetQuotaed(id, mountlabel string, quota int64) (string, 
 }
 
 func (a *QuotaedDriver) Put(id string) error {
-	mntPath := filepath.Join(a.RootPath, "aufs", "mnt", id)
-	diffPath := filepath.Join(a.RootPath, "aufs", "diff", id)
+	mntPath := a.makeMntPath(id)
+	diffPath := a.makeDiffPath(id)
 
 	a.GraphDriver.Put(id)
 
@@ -90,4 +91,16 @@ func (a *QuotaedDriver) Put(id string) error {
 	}
 
 	return nil
+}
+
+func (a *QuotaedDriver) makeMntPath(id string) string {
+	return filepath.Join(a.RootPath, "aufs", "mnt", id)
+}
+
+func (a *QuotaedDriver) makeDiffPath(id string) string {
+	return filepath.Join(a.RootPath, "aufs", "diff", id)
+}
+
+func (a *QuotaedDriver) GetDiffLayerPath(rootFSPath string) string {
+	return strings.Replace(rootFSPath, "/mnt/", "/diff/", 1)
 }

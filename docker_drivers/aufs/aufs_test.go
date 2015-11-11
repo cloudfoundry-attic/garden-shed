@@ -206,4 +206,16 @@ var _ = Describe("QuotaedDriver", func() {
 			})
 		})
 	})
+
+	Describe("GetDiffLayerPath", func() {
+		It("replaces the `/mnt/ substring to `/diff/ in the given path", func() {
+			path := "some/mnt/path"
+			Expect(driver.GetDiffLayerPath(path)).To(Equal("some/diff/path"))
+		})
+
+		It("only replaces the first occurance of `/mnt/` to `/diff/` in the given path", func() {
+			path := "some/mnt/mnt/path"
+			Expect(driver.GetDiffLayerPath(path)).To(Equal("some/diff/mnt/path"))
+		})
+	})
 })
