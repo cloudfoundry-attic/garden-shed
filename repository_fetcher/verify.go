@@ -27,7 +27,7 @@ func Verify(r io.Reader, d digest.Digest) (io.ReadCloser, error) {
 		return nil, err
 	}
 
-	tmp, err := ioutil.TempFile("", "")
+	tmp, err := ioutil.TempFile("", "verifier")
 	if err != nil {
 		return nil, err
 	}
