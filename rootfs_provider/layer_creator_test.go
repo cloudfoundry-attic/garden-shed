@@ -6,7 +6,7 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
-	. "github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
+	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fake_namespacer"
 	"github.com/docker/docker/image"
 
@@ -36,7 +36,7 @@ var _ = Describe("Layer Creator", func() {
 		fakeVolumeCreator *FakeVolumeCreator
 		name              string
 
-		provider *ContainerLayerCreator
+		provider *rootfs_provider.ContainerLayerCreator
 	)
 
 	BeforeEach(func() {
@@ -45,7 +45,7 @@ var _ = Describe("Layer Creator", func() {
 		fakeNamespacer = &fake_namespacer.FakeNamespacer{}
 		name = "some-name"
 
-		provider = NewLayerCreator(
+		provider = rootfs_provider.NewLayerCreator(
 			fakeCake,
 			fakeVolumeCreator,
 			fakeNamespacer,
@@ -63,8 +63,10 @@ var _ = Describe("Layer Creator", func() {
 						ImageID: "some-image-id",
 						Env:     []string{"env1=env1value", "env2=env2value"},
 					},
-					false,
-					0,
+					rootfs_provider.Spec{
+						Namespaced: false,
+						QuotaSize:  0,
+					},
 				)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -94,32 +96,66 @@ var _ = Describe("Layer Creator", func() {
 					&repository_fetcher.Image{
 						ImageID: "some-image-id",
 					},
-					false,
-					int64(10*1024*1024),
+					rootfs_provider.Spec{
+						Namespaced: false,
+						QuotaSize:  int64(10 * 1024 * 1024),
+					},
 				)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(mountPointPath).To(Equal(quotaedPath))
 			})
 
-			It("should get the quotaed path", func() {
-				id := "some-id"
-				quota := int64(10 * 1024 * 1024)
+			Context("and the scope is exclusive", func() {
+				It("should get the quotaed path", func() {
+					id := "some-id"
+					quota := int64(10 * 1024 * 1024)
 
-				_, _, err := provider.Create(
-					id,
-					&repository_fetcher.Image{
-						ImageID: "some-image-id",
-					},
-					false,
-					quota,
-				)
-				Expect(err).ToNot(HaveOccurred())
+					_, _, err := provider.Create(
+						id,
+						&repository_fetcher.Image{
+							ImageID: "some-image-id",
+						},
+						rootfs_provider.Spec{
+							Namespaced: false,
+							QuotaSize:  quota,
+							QuotaScope: rootfs_provider.QuotaScopeExclusive,
+						},
+					)
+					Expect(err).ToNot(HaveOccurred())
 
-				Expect(fakeCake.QuotaedPathCallCount()).To(Equal(1))
-				reqId, reqQuota := fakeCake.QuotaedPathArgsForCall(0)
-				Expect(reqQuota).To(Equal(quota))
-				Expect(reqId).To(Equal(layercake.ContainerID(id)))
+					Expect(fakeCake.QuotaedPathCallCount()).To(Equal(1))
+					reqId, reqQuota := fakeCake.QuotaedPathArgsForCall(0)
+					Expect(reqQuota).To(Equal(quota))
+					Expect(reqId).To(Equal(layercake.ContainerID(id)))
+				})
+			})
+
+			Context("and the scope is total", func() {
+				It("should get the quotaed path", func() {
+					id := "some-id"
+					quota := int64(10 * 1024 * 1024)
+					imageSize := int64(5 * 1024 * 1024)
+
+					_, _, err := provider.Create(
+						id,
+						&repository_fetcher.Image{
+							ImageID: "some-image-id",
+							Size:    imageSize,
+						},
+						rootfs_provider.Spec{
+							Namespaced: false,
+							QuotaSize:  quota,
+							QuotaScope: rootfs_provider.QuotaScopeTotal,
+						},
+					)
+					Expect(err).ToNot(HaveOccurred())
+
+					Expect(fakeCake.QuotaedPathCallCount()).To(Equal(1))
+					reqId, reqQuota := fakeCake.QuotaedPathArgsForCall(0)
+					Expect(reqQuota).To(Equal(quota - imageSize))
+					Expect(reqId).To(Equal(layercake.ContainerID(id)))
+				})
 			})
 
 			Context("when the layer cake fails to mount the quotaed volume", func() {
@@ -133,8 +169,10 @@ var _ = Describe("Layer Creator", func() {
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
 						},
-						false,
-						10*1024*1024,
+						rootfs_provider.Spec{
+							Namespaced: false,
+							QuotaSize:  10 * 1024 * 1024,
+						},
 					)
 					Expect(err).To(MatchError(ContainSubstring("my banana tastes weird")))
 				})
@@ -146,8 +184,10 @@ var _ = Describe("Layer Creator", func() {
 							ImageID: "some-image-id",
 							Volumes: []string{"/foo", "/bar"},
 						},
-						false,
-						10*1024*1024,
+						rootfs_provider.Spec{
+							Namespaced: false,
+							QuotaSize:  10 * 1024 * 1024,
+						},
 					)
 					Expect(err).To(HaveOccurred())
 
@@ -175,8 +215,10 @@ var _ = Describe("Layer Creator", func() {
 							ImageID: "some-image-id",
 							Env:     []string{"env1=env1value", "env2=env2value"},
 						},
-						true,
-						0,
+						rootfs_provider.Spec{
+							Namespaced: true,
+							QuotaSize:  0,
+						},
 					)
 					Expect(err).ToNot(HaveOccurred())
 
@@ -228,8 +270,10 @@ var _ = Describe("Layer Creator", func() {
 							ImageID: "some-image-id",
 							Env:     []string{"env1=env1value", "env2=env2value"},
 						},
-						true,
-						0,
+						rootfs_provider.Spec{
+							Namespaced: true,
+							QuotaSize:  0,
+						},
 					)
 					Expect(err).ToNot(HaveOccurred())
 
@@ -258,8 +302,10 @@ var _ = Describe("Layer Creator", func() {
 				_, _, err := provider.Create(
 					"some-id",
 					&repository_fetcher.Image{ImageID: "some-image-id", Volumes: []string{"/foo", "/bar"}},
-					false,
-					0,
+					rootfs_provider.Spec{
+						Namespaced: false,
+						QuotaSize:  0,
+					},
 				)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -278,8 +324,10 @@ var _ = Describe("Layer Creator", func() {
 					_, _, err := provider.Create(
 						"some-id",
 						&repository_fetcher.Image{ImageID: "some-image-id", Volumes: []string{"/foo", "/bar"}},
-						false,
-						0,
+						rootfs_provider.Spec{
+							Namespaced: false,
+							QuotaSize:  0,
+						},
 					)
 					Expect(err).To(HaveOccurred())
 				})
@@ -297,8 +345,10 @@ var _ = Describe("Layer Creator", func() {
 				_, _, err := provider.Create(
 					"some-id",
 					&repository_fetcher.Image{ImageID: "some-image-id"},
-					false,
-					0,
+					rootfs_provider.Spec{
+						Namespaced: false,
+						QuotaSize:  0,
+					},
 				)
 				Expect(err).To(Equal(disaster))
 			})
@@ -315,8 +365,10 @@ var _ = Describe("Layer Creator", func() {
 				_, _, err := provider.Create(
 					"some-id",
 					&repository_fetcher.Image{ImageID: "some-image-id"},
-					false,
-					0,
+					rootfs_provider.Spec{
+						Namespaced: false,
+						QuotaSize:  0,
+					},
 				)
 				Expect(err).To(Equal(disaster))
 			})

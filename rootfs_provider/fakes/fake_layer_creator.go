@@ -9,13 +9,12 @@ import (
 )
 
 type FakeLayerCreator struct {
-	CreateStub        func(id string, parentImage *repository_fetcher.Image, shouldNamespace bool, quota int64) (string, []string, error)
+	CreateStub        func(id string, parentImage *repository_fetcher.Image, spec rootfs_provider.Spec) (string, []string, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
-		id              string
-		parentImage     *repository_fetcher.Image
-		shouldNamespace bool
-		quota           int64
+		id          string
+		parentImage *repository_fetcher.Image
+		spec        rootfs_provider.Spec
 	}
 	createReturns struct {
 		result1 string
@@ -24,17 +23,16 @@ type FakeLayerCreator struct {
 	}
 }
 
-func (fake *FakeLayerCreator) Create(id string, parentImage *repository_fetcher.Image, shouldNamespace bool, quota int64) (string, []string, error) {
+func (fake *FakeLayerCreator) Create(id string, parentImage *repository_fetcher.Image, spec rootfs_provider.Spec) (string, []string, error) {
 	fake.createMutex.Lock()
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
-		id              string
-		parentImage     *repository_fetcher.Image
-		shouldNamespace bool
-		quota           int64
-	}{id, parentImage, shouldNamespace, quota})
+		id          string
+		parentImage *repository_fetcher.Image
+		spec        rootfs_provider.Spec
+	}{id, parentImage, spec})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
-		return fake.CreateStub(id, parentImage, shouldNamespace, quota)
+		return fake.CreateStub(id, parentImage, spec)
 	} else {
 		return fake.createReturns.result1, fake.createReturns.result2, fake.createReturns.result3
 	}
@@ -46,10 +44,10 @@ func (fake *FakeLayerCreator) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeLayerCreator) CreateArgsForCall(i int) (string, *repository_fetcher.Image, bool, int64) {
+func (fake *FakeLayerCreator) CreateArgsForCall(i int) (string, *repository_fetcher.Image, rootfs_provider.Spec) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
-	return fake.createArgsForCall[i].id, fake.createArgsForCall[i].parentImage, fake.createArgsForCall[i].shouldNamespace, fake.createArgsForCall[i].quota
+	return fake.createArgsForCall[i].id, fake.createArgsForCall[i].parentImage, fake.createArgsForCall[i].spec
 }
 
 func (fake *FakeLayerCreator) CreateReturns(result1 string, result2 []string, result3 error) {

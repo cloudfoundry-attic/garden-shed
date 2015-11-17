@@ -29,10 +29,10 @@ func NewLayerCreator(
 	}
 }
 
-func (provider *ContainerLayerCreator) Create(id string, parentImage *repository_fetcher.Image, shouldNamespace bool, quota int64) (string, []string, error) {
+func (provider *ContainerLayerCreator) Create(id string, parentImage *repository_fetcher.Image, spec Spec) (string, []string, error) {
 	var err error
 	var imageID layercake.ID = layercake.DockerImageID(parentImage.ImageID)
-	if shouldNamespace {
+	if spec.Namespaced {
 		provider.mutex.Lock()
 		imageID, err = provider.namespace(imageID)
 		provider.mutex.Unlock()
@@ -48,8 +48,10 @@ func (provider *ContainerLayerCreator) Create(id string, parentImage *repository
 	}
 
 	var rootPath string
-	if quota > 0 {
-		rootPath, err = provider.graph.QuotaedPath(containerID, quota)
+	if spec.QuotaSize > 0 && spec.QuotaScope == QuotaScopeExclusive {
+		rootPath, err = provider.graph.QuotaedPath(containerID, spec.QuotaSize)
+	} else if spec.QuotaSize > 0 && spec.QuotaScope == QuotaScopeTotal {
+		rootPath, err = provider.graph.QuotaedPath(containerID, spec.QuotaSize-parentImage.Size)
 	} else {
 		rootPath, err = provider.graph.Path(containerID)
 	}

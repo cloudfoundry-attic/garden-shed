@@ -59,6 +59,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 								Env:     []string{"a", "b"},
 								Volumes: map[string]struct{}{"vol1": struct{}{}},
 							},
+							Size: 1,
 						},
 					},
 					{
@@ -71,7 +72,9 @@ var _ = Describe("Fetching from a Remote repo", func() {
 						Image: image.Image{
 							Config: &runconfig.Config{
 								Env:     []string{"d", "e", "f"},
-								Volumes: map[string]struct{}{"vol2": struct{}{}}},
+								Volumes: map[string]struct{}{"vol2": struct{}{}},
+							},
+							Size: 2,
 						},
 					},
 				},
@@ -325,6 +328,28 @@ var _ = Describe("Fetching from a Remote repo", func() {
 				Expect(fakeConn.GetBlobReaderCallCount()).To(Equal(4 * i))
 			}
 		})
+	})
+
+	Context("when a disk quota is provided", func() {
+		Context("and the image is smaller than the quota", func() {
+			It("should succeed", func() {
+				_, err := remote.Fetch(parseURL("docker:///banana#some-tag"), 3)
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("and the image is bigger than the quota", func() {
+			It("should return an error", func() {
+				_, err := remote.Fetch(parseURL("docker:///banana#some-tag"), 2)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
+	It("returns the size of the image", func() {
+		image, err := remote.Fetch(parseURL("docker:///banana#some-tag"), 3)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(image.Size).To(BeNumerically("==", 3))
 	})
 })
 

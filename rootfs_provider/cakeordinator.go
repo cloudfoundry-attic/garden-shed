@@ -1,7 +1,6 @@
 package rootfs_provider
 
 import (
-	"math"
 	"net/url"
 	"sync"
 
@@ -12,7 +11,7 @@ import (
 
 //go:generate counterfeiter . LayerCreator
 type LayerCreator interface {
-	Create(id string, parentImage *repository_fetcher.Image, shouldNamespace bool, quota int64) (string, []string, error)
+	Create(id string, parentImage *repository_fetcher.Image, spec Spec) (string, []string, error)
 }
 
 //go:generate counterfeiter . RepositoryFetcher
@@ -24,9 +23,7 @@ type CakeRetainer struct {
 	layercake.Cake
 }
 
-func (r CakeRetainer) Retain(id layercake.ID) {
-
-}
+func (r CakeRetainer) Retain(id layercake.ID) {}
 
 // CakeOrdinator manages a cake, fetching layers as neccesary
 type CakeOrdinator struct {
@@ -50,20 +47,20 @@ func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreat
 		logger:       logger}
 }
 
-func (c *CakeOrdinator) Create(id string, parentImageURL *url.URL, translateUIDs bool, diskQuota int64) (string, []string, error) {
+func (c *CakeOrdinator) Create(id string, spec Spec) (string, []string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	fetcherDiskQuota := diskQuota
-	if fetcherDiskQuota == 0 {
-		fetcherDiskQuota = math.MaxInt64
+	fetcherDiskQuota := spec.QuotaSize
+	if spec.QuotaScope == QuotaScopeExclusive {
+		fetcherDiskQuota = 0
 	}
-	image, err := c.fetcher.Fetch(parentImageURL, fetcherDiskQuota)
+	image, err := c.fetcher.Fetch(spec.RootFS, fetcherDiskQuota)
 	if err != nil {
 		return "", nil, err
 	}
 
-	return c.layerCreator.Create(id, image, translateUIDs, diskQuota)
+	return c.layerCreator.Create(id, image, spec)
 }
 
 func (c *CakeOrdinator) Retain(id layercake.ID) {

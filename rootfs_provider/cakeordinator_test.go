@@ -2,7 +2,6 @@ package rootfs_provider_test
 
 import (
 	"errors"
-	"math"
 	"net/url"
 
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
@@ -40,41 +39,69 @@ var _ = Describe("The Cake Co-ordinator", func() {
 	})
 
 	Describe("creating container layers", func() {
-		Context("when the quota is zero", func() {
-			It("should pass the MaxInt64 disk quota the the fetcher", func() {
-				_, _, err := cakeOrdinator.Create("container-id", &url.URL{Path: "parent"}, true, 0)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, diskQuota := fakeFetcher.FetchArgsForCall(0)
-				Expect(diskQuota).To(Equal(int64(math.MaxInt64)))
-			})
-		})
-
 		Context("When the image is succesfully fetched", func() {
 			It("creates a container layer on top of the fetched layer", func() {
 				image := &repository_fetcher.Image{ImageID: "my cool image"}
 				fakeFetcher.FetchReturns(image, nil)
 				fakeLayerCreator.CreateReturns("potato", []string{"foo=bar"}, errors.New("cake"))
 
-				rootfsPath, envs, err := cakeOrdinator.Create("container-id", &url.URL{Path: "parent"}, true, 55)
+				spec := rootfs_provider.Spec{
+					RootFS:     &url.URL{Path: "parent"},
+					Namespaced: true,
+					QuotaSize:  55,
+				}
+				rootfsPath, envs, err := cakeOrdinator.Create("container-id", spec)
 				Expect(rootfsPath).To(Equal("potato"))
 				Expect(envs).To(Equal([]string{"foo=bar"}))
 				Expect(err).To(MatchError("cake"))
 
 				Expect(fakeLayerCreator.CreateCallCount()).To(Equal(1))
-				containerID, parentImage, translateUIDs, diskQuota := fakeLayerCreator.CreateArgsForCall(0)
+				containerID, parentImage, layerCreatorSpec := fakeLayerCreator.CreateArgsForCall(0)
 				Expect(containerID).To(Equal("container-id"))
 				Expect(parentImage).To(Equal(image))
-				Expect(translateUIDs).To(BeTrue())
-				Expect(diskQuota).To(BeEquivalentTo(55))
+				Expect(layerCreatorSpec).To(Equal(spec))
 			})
 		})
 
 		Context("when fetching fails", func() {
 			It("returns an error", func() {
 				fakeFetcher.FetchReturns(nil, errors.New("amadeus"))
-				_, _, err := cakeOrdinator.Create("", nil, true, 12)
+				_, _, err := cakeOrdinator.Create("", rootfs_provider.Spec{
+					RootFS:     nil,
+					Namespaced: true,
+					QuotaSize:  12,
+				})
 				Expect(err).To(MatchError("amadeus"))
+			})
+		})
+
+		Context("when the quota scope is exclusive", func() {
+			It("disables quota for the fetcher", func() {
+				_, _, err := cakeOrdinator.Create("", rootfs_provider.Spec{
+					RootFS:     &url.URL{},
+					Namespaced: false,
+					QuotaSize:  33,
+					QuotaScope: rootfs_provider.QuotaScopeExclusive,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))
+				_, diskQuota := fakeFetcher.FetchArgsForCall(0)
+				Expect(diskQuota).To(BeNumerically("==", 0))
+			})
+		})
+
+		Context("when the quota scope is total", func() {
+			It("passes down the same quota number to the fetcher", func() {
+				_, _, err := cakeOrdinator.Create("", rootfs_provider.Spec{
+					RootFS:     &url.URL{},
+					Namespaced: false,
+					QuotaSize:  33,
+					QuotaScope: rootfs_provider.QuotaScopeTotal,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))
+				_, diskQuota := fakeFetcher.FetchArgsForCall(0)
+				Expect(diskQuota).To(BeNumerically("==", 33))
 			})
 		})
 	})
@@ -109,7 +136,11 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 			go cakeOrdinator.Remove(layercake.DockerImageID(""))
 			<-removeStarted
-			go cakeOrdinator.Create("", &url.URL{}, false, 33)
+			go cakeOrdinator.Create("", rootfs_provider.Spec{
+				RootFS:     &url.URL{},
+				Namespaced: false,
+				QuotaSize:  33,
+			})
 
 			Consistently(fakeFetcher.FetchCallCount).Should(Equal(0))
 			close(removeReturns)
@@ -124,8 +155,16 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			return nil, nil
 		}
 
-		go cakeOrdinator.Create("", &url.URL{}, false, 33)
-		go cakeOrdinator.Create("", &url.URL{}, false, 33)
+		go cakeOrdinator.Create("", rootfs_provider.Spec{
+			RootFS:     &url.URL{},
+			Namespaced: false,
+			QuotaSize:  33,
+		})
+		go cakeOrdinator.Create("", rootfs_provider.Spec{
+			RootFS:     &url.URL{},
+			Namespaced: false,
+			QuotaSize:  33,
+		})
 
 		Eventually(fakeFetcher.FetchCallCount).Should(Equal(2))
 		close(fakeBlocks)

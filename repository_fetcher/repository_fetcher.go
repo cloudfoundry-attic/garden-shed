@@ -11,11 +11,6 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-//go:generate counterfeiter -o fake_registry_provider/fake_registry_provider.go . RegistryProvider
-type RegistryProvider interface {
-	ProvideRegistry(hostname string) (*registry.Session, *registry.Endpoint, error)
-}
-
 //go:generate counterfeiter -o fake_lock/FakeLock.go . Lock
 type Lock interface {
 	Acquire(key string)
@@ -57,6 +52,7 @@ type Image struct {
 	ImageID string
 	Env     []string
 	Volumes []string
+	Size    int64
 }
 
 var ErrInvalidDockerURL = errors.New("invalid docker url")

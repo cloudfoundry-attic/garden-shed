@@ -46,6 +46,15 @@ func (r *Remote) Fetch(u *url.URL, diskQuota int64) (*Image, error) {
 		return nil, err
 	}
 
+	totalImageSize := int64(0)
+	for _, layer := range manifest.Layers {
+		totalImageSize += layer.Image.Size
+	}
+
+	if diskQuota > 0 && totalImageSize > diskQuota {
+		return nil, ErrQuotaExceeded
+	}
+
 	var env []string
 	var vols []string
 	for _, layer := range manifest.Layers {
@@ -63,6 +72,7 @@ func (r *Remote) Fetch(u *url.URL, diskQuota int64) (*Image, error) {
 		ImageID: hex(manifest.Layers[len(manifest.Layers)-1].StrongID),
 		Env:     env,
 		Volumes: vols,
+		Size:    totalImageSize,
 	}, nil
 }
 

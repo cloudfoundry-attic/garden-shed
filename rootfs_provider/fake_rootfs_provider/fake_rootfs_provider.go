@@ -2,7 +2,6 @@
 package fake_rootfs_provider
 
 import (
-	"net/url"
 	"sync"
 
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
@@ -10,13 +9,11 @@ import (
 )
 
 type FakeRootFSProvider struct {
-	CreateStub        func(id string, rootfs *url.URL, namespaced bool, quota int64) (mountpoint string, envvar []string, err error)
+	CreateStub        func(id string, spec rootfs_provider.Spec) (mountpoint string, envvar []string, err error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
-		id         string
-		rootfs     *url.URL
-		namespaced bool
-		quota      int64
+		id   string
+		spec rootfs_provider.Spec
 	}
 	createReturns struct {
 		result1 string
@@ -33,17 +30,15 @@ type FakeRootFSProvider struct {
 	}
 }
 
-func (fake *FakeRootFSProvider) Create(id string, rootfs *url.URL, namespaced bool, quota int64) (mountpoint string, envvar []string, err error) {
+func (fake *FakeRootFSProvider) Create(id string, spec rootfs_provider.Spec) (mountpoint string, envvar []string, err error) {
 	fake.createMutex.Lock()
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
-		id         string
-		rootfs     *url.URL
-		namespaced bool
-		quota      int64
-	}{id, rootfs, namespaced, quota})
+		id   string
+		spec rootfs_provider.Spec
+	}{id, spec})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
-		return fake.CreateStub(id, rootfs, namespaced, quota)
+		return fake.CreateStub(id, spec)
 	} else {
 		return fake.createReturns.result1, fake.createReturns.result2, fake.createReturns.result3
 	}
@@ -55,10 +50,10 @@ func (fake *FakeRootFSProvider) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeRootFSProvider) CreateArgsForCall(i int) (string, *url.URL, bool, int64) {
+func (fake *FakeRootFSProvider) CreateArgsForCall(i int) (string, rootfs_provider.Spec) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
-	return fake.createArgsForCall[i].id, fake.createArgsForCall[i].rootfs, fake.createArgsForCall[i].namespaced, fake.createArgsForCall[i].quota
+	return fake.createArgsForCall[i].id, fake.createArgsForCall[i].spec
 }
 
 func (fake *FakeRootFSProvider) CreateReturns(result1 string, result2 []string, result3 error) {
