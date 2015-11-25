@@ -30,7 +30,7 @@ var _ = Describe("LoopLinux", func() {
 	BeforeEach(func() {
 		var err error
 
-		tempFile, err := ioutil.TempFile("", "")
+		tempFile, err := ioutil.TempFile("", "loop")
 		Expect(err).NotTo(HaveOccurred())
 		bsFilePath = tempFile.Name()
 		_, err = exec.Command("truncate", "-s", "10M", bsFilePath).CombinedOutput()
@@ -38,7 +38,7 @@ var _ = Describe("LoopLinux", func() {
 		_, err = exec.Command("mkfs.ext4", "-F", bsFilePath).CombinedOutput()
 		Expect(err).NotTo(HaveOccurred())
 
-		destPath, err = ioutil.TempDir("", "")
+		destPath, err = ioutil.TempDir("", "loop")
 		Expect(err).NotTo(HaveOccurred())
 
 		loop = &aufs.Loop{
@@ -61,11 +61,13 @@ var _ = Describe("LoopLinux", func() {
 		It("mounts the file", func() {
 			Expect(loop.MountFile(bsFilePath, destPath)).To(Succeed())
 
-			session, err := gexec.Start(exec.Command("mount"), GinkgoWriter, GinkgoWriter)
+			session, err := gexec.Start(exec.Command("losetup", "-j", bsFilePath), GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(session).Should(gbytes.Say(
-				fmt.Sprintf("%s on %s type ext4 \\(rw\\)", bsFilePath, destPath),
-			))
+			loopDev := strings.TrimSpace(strings.Split(string(session.Out.Contents()), ":")[0])
+
+			session, err = gexec.Start(exec.Command("cat", "/proc/mounts"), GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session).Should(gbytes.Say(fmt.Sprintf("%s %s ext4 rw,", loopDev, destPath)))
 		})
 
 		Context("when using a file that does not exist", func() {

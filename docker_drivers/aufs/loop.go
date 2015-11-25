@@ -20,7 +20,7 @@ type Loop struct {
 func (lm *Loop) MountFile(filePath, destPath string) error {
 	log := lm.Logger.Session("mount-file", lager.Data{"filePath": filePath, "destPath": destPath})
 
-	output, err := exec.Command("mount", "-t", "ext4", "-o", "loop",
+	output, err := exec.Command("mount", "-n", "-t", "ext4", "-o", "loop",
 		filePath, destPath).CombinedOutput()
 	if err != nil {
 		log.Error("mounting", err, lager.Data{"output": string(output)})

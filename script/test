@@ -8,7 +8,7 @@ if egrep -q integration <(echo "$ARGS"); then
    (cd ../../../..; ./scripts/remote-fly ci/nested-shed-tests.yml -- -nodes 4 $ARGS)
 elif [ -d $ARGS ] && 
      [ "$(find $ARGS -maxdepth 1 -name '*_linux_test.go')" != "" ]; then
-   (cd ../../../..; ./scripts/remote-fly ci/nested-shed-tests.yml $ARGS)
+   (cd ../../../..; ./scripts/remote-fly ci/nested-shed-tests.yml -- $ARGS)
 else
   ginkgo -r -race $ARGS
 fi

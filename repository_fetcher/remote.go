@@ -149,7 +149,11 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 	defer verifiedBlob.Close()
 
 	log.Info("registering")
-	err = r.Cake.Register(&image.Image{ID: hex(layer.StrongID), Parent: hex(layer.ParentStrongID)}, verifiedBlob)
+	err = r.Cake.Register(&image.Image{
+		ID:     hex(layer.StrongID),
+		Parent: hex(layer.ParentStrongID),
+		Size:   layer.Image.Size,
+	}, verifiedBlob)
 	if err != nil {
 		return err
 	}

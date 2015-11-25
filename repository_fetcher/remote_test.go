@@ -183,17 +183,16 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	})
 
 	Context("when the cake does not contain any of the layers", func() {
-		It("registers each of the layers in the graph", func() {
+		BeforeEach(func() {
 			_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
 			Expect(err).NotTo(HaveOccurred())
+		})
 
+		It("registers each of the layers in the graph", func() {
 			Expect(fakeCake.RegisterCallCount()).To(Equal(3))
 		})
 
 		It("registers the layer contents under its Strong IDs", func() {
-			_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
-			Expect(err).NotTo(HaveOccurred())
-
 			image, reader := fakeCake.RegisterArgsForCall(0)
 			Expect(image.ID).To(Equal("abc-id"))
 			Expect(image.Parent).To(Equal("abc-parent-id"))
@@ -201,6 +200,11 @@ var _ = Describe("Fetching from a Remote repo", func() {
 			b, err := ioutil.ReadAll(reader)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(b)).To(Equal("abc-def-contents"))
+		})
+
+		It("registers the layer with the correct size", func() {
+			image, _ := fakeCake.RegisterArgsForCall(0)
+			Expect(image.Size).To(BeEquivalentTo(1))
 		})
 	})
 
