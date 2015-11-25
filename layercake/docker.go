@@ -44,6 +44,10 @@ func (d *Docker) Get(id ID) (*image.Image, error) {
 	return d.Graph.Get(id.GraphID())
 }
 
+func (d *Docker) Unmount(id ID) error {
+	return d.Driver.Put(id.GraphID())
+}
+
 func (d *Docker) Remove(id ID) error {
 	if err := d.Driver.Put(id.GraphID()); err != nil {
 		return err

@@ -43,6 +43,14 @@ type FakeCake struct {
 		result1 *image.Image
 		result2 error
 	}
+	UnmountStub        func(id layercake.ID) error
+	unmountMutex       sync.RWMutex
+	unmountArgsForCall []struct {
+		id layercake.ID
+	}
+	unmountReturns struct {
+		result1 error
+	}
 	RemoveStub        func(id layercake.ID) error
 	removeMutex       sync.RWMutex
 	removeArgsForCall []struct {
@@ -202,6 +210,38 @@ func (fake *FakeCake) GetReturns(result1 *image.Image, result2 error) {
 		result1 *image.Image
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeCake) Unmount(id layercake.ID) error {
+	fake.unmountMutex.Lock()
+	fake.unmountArgsForCall = append(fake.unmountArgsForCall, struct {
+		id layercake.ID
+	}{id})
+	fake.unmountMutex.Unlock()
+	if fake.UnmountStub != nil {
+		return fake.UnmountStub(id)
+	} else {
+		return fake.unmountReturns.result1
+	}
+}
+
+func (fake *FakeCake) UnmountCallCount() int {
+	fake.unmountMutex.RLock()
+	defer fake.unmountMutex.RUnlock()
+	return len(fake.unmountArgsForCall)
+}
+
+func (fake *FakeCake) UnmountArgsForCall(i int) layercake.ID {
+	fake.unmountMutex.RLock()
+	defer fake.unmountMutex.RUnlock()
+	return fake.unmountArgsForCall[i].id
+}
+
+func (fake *FakeCake) UnmountReturns(result1 error) {
+	fake.UnmountStub = nil
+	fake.unmountReturns = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeCake) Remove(id layercake.ID) error {

@@ -125,14 +125,67 @@ var _ = Describe("Aufs", func() {
 			})
 
 			Context("when getting parent's path fails", func() {
-				It("should return the error", func() {
+				BeforeEach(func() {
 					cake.PathReturns("", testError)
+				})
+
+				It("should return the error", func() {
 					Expect(aufsCake.Create(namespacedChildID, parentID)).To(Equal(testError))
+				})
+
+				It("should not unmount the parent", func() {
+					Expect(aufsCake.Create(namespacedChildID, parentID)).To(Equal(testError))
+					Expect(cake.UnmountCallCount()).To(Equal(0))
+				})
+			})
+
+			Context("when getting parent's path succeeds", func() {
+				var succeedingRunner *fake_command_runner.FakeCommandRunner
+
+				BeforeEach(func() {
+					succeedingRunner = fake_command_runner.New()
+					succeedingRunner.WhenRunning(fake_command_runner.CommandSpec{}, func(cmd *exec.Cmd) error {
+						return nil
+					})
+				})
+
+				It("should unmount the parentID", func() {
+					aufsCake.Runner = succeedingRunner
+					Expect(aufsCake.Create(namespacedChildID, parentID)).To(Succeed())
+					Expect(cake.UnmountCallCount()).To(Equal(1))
+					Expect(cake.UnmountArgsForCall(0)).To(Equal(parentID))
+				})
+
+				It("should only unmount the parentID after mounting it", func() {
+					cake.UnmountStub = func(id layercake.ID) error {
+						Expect(cake.PathCallCount()).Should(BeNumerically(">", 0))
+						Expect(cake.PathArgsForCall(0)).To(Equal(parentID))
+						return nil
+					}
+					aufsCake.Runner = succeedingRunner
+					Expect(aufsCake.Create(namespacedChildID, parentID)).To(Succeed())
+
+				})
+
+				It("should only unmount the parentID after we copy the parent directory", func() {
+					runCallCount := 0
+					cake.UnmountStub = func(id layercake.ID) error {
+						Expect(runCallCount).To(Equal(1))
+						return nil
+					}
+
+					fakeRunner := fake_command_runner.New()
+					aufsCake.Runner = fakeRunner
+					fakeRunner.WhenRunning(fake_command_runner.CommandSpec{}, func(cmd *exec.Cmd) error {
+						runCallCount += 1
+						return nil
+					})
+					Expect(aufsCake.Create(namespacedChildID, parentID)).To(Succeed())
 				})
 			})
 
 			Context("when getting child's path fails", func() {
-				It("should return the error", func() {
+				BeforeEach(func() {
 					cake.PathStub = func(id layercake.ID) (string, error) {
 						if id == parentID {
 							return "/path/to/the/parent", nil
@@ -144,8 +197,17 @@ var _ = Describe("Aufs", func() {
 
 						return "", nil
 					}
+				})
 
+				It("should return the error", func() {
 					Expect(aufsCake.Create(namespacedChildID, parentID)).To(Equal(testError))
+				})
+
+				It("should unmount the parentID", func() {
+					// gds doesn't currently understand why this fails.
+					Expect(aufsCake.Create(namespacedChildID, parentID)).To(Equal(testError))
+					Expect(cake.UnmountCallCount()).To(Equal(1))
+					Expect(cake.UnmountArgsForCall(0)).To(Equal(parentID))
 				})
 			})
 
@@ -231,6 +293,7 @@ var _ = Describe("Aufs", func() {
 
 				Context("when command runner fails", func() {
 					testError := errors.New("oh no!")
+					var actualError error
 					BeforeEach(func() {
 						fakeRunner := fake_command_runner.New()
 						fakeRunner.WhenRunning(fake_command_runner.CommandSpec{}, func(cmd *exec.Cmd) error {
@@ -240,8 +303,17 @@ var _ = Describe("Aufs", func() {
 						runner = fakeRunner
 					})
 
+					JustBeforeEach(func() {
+						actualError = aufsCake.Create(namespacedChildID, parentID)
+					})
+
 					It("returns the error", func() {
-						Expect(aufsCake.Create(namespacedChildID, parentID)).To(Equal(testError))
+						Expect(actualError).To(Equal(testError))
+					})
+
+					It("should unmount the parent", func() {
+						Expect(cake.UnmountCallCount()).To(Equal(1))
+						Expect(cake.UnmountArgsForCall(0)).To(Equal(parentID))
 					})
 
 					It("should not create the garden-info metadata directories", func() {

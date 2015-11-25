@@ -16,6 +16,7 @@ type Cake interface {
 	Create(containerID, imageID ID) error
 	Register(img *image.Image, layer archive.ArchiveReader) error
 	Get(id ID) (*image.Image, error)
+	Unmount(id ID) error
 	Remove(id ID) error
 	Path(id ID) (string, error)
 	QuotaedPath(id ID, quota int64) (string, error)

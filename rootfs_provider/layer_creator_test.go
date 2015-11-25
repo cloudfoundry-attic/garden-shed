@@ -198,18 +198,22 @@ var _ = Describe("Layer Creator", func() {
 
 		Context("when the namespace parameter is true", func() {
 			Context("and the image has not been translated yet", func() {
-				BeforeEach(func() {
-					fakeCake.GetReturns(nil, errors.New("no image here"))
-				})
+				var (
+					mountpoint string
+					envvars    []string
+				)
 
-				It("namespaces it, and creates a graph entry with it as the parent", func() {
+				JustBeforeEach(func() {
+					fakeCake.GetReturns(nil, errors.New("no image here"))
+
 					fakeCake.PathStub = func(id layercake.ID) (string, error) {
 						return "/mount/point/" + id.GraphID(), nil
 					}
 
 					fakeNamespacer.CacheKeyReturns("jam")
 
-					mountpoint, envvars, err := provider.Create(
+					var err error
+					mountpoint, envvars, err = provider.Create(
 						"some-id",
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
@@ -220,8 +224,11 @@ var _ = Describe("Layer Creator", func() {
 							QuotaSize:  0,
 						},
 					)
-					Expect(err).ToNot(HaveOccurred())
 
+					Expect(err).ToNot(HaveOccurred())
+				})
+
+				It("namespaces it, and creates a graph entry with it as the parent", func() {
 					Expect(fakeCake.CreateCallCount()).To(Equal(2))
 					id, parent := fakeCake.CreateArgsForCall(0)
 					Expect(id).To(Equal(layercake.NamespacedID(layercake.DockerImageID("some-image-id"), "jam")))
@@ -242,6 +249,21 @@ var _ = Describe("Layer Creator", func() {
 							"env2=env2value",
 						},
 					))
+				})
+
+				Context("unmounting the translation layer", func() {
+					BeforeEach(func() {
+						// ensure umount doesnt happen too quickly
+						fakeNamespacer.NamespaceStub = func(_ string) error {
+							Expect(fakeCake.UnmountCallCount()).To(Equal(0))
+							return nil
+						}
+					})
+
+					It("unmounts the translation layer after performing namespacing", func() {
+						Expect(fakeCake.UnmountCallCount()).Should(Equal(1))
+						Expect(fakeCake.UnmountArgsForCall(0)).To(Equal(layercake.NamespacedID(layercake.DockerImageID("some-image-id"), "jam")))
+					})
 				})
 			})
 

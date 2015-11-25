@@ -32,6 +32,7 @@ func NewLayerCreator(
 func (provider *ContainerLayerCreator) Create(id string, parentImage *repository_fetcher.Image, spec Spec) (string, []string, error) {
 	var err error
 	var imageID layercake.ID = layercake.DockerImageID(parentImage.ImageID)
+
 	if spec.Namespaced {
 		provider.mutex.Lock()
 		imageID, err = provider.namespace(imageID)
@@ -42,8 +43,7 @@ func (provider *ContainerLayerCreator) Create(id string, parentImage *repository
 	}
 
 	containerID := layercake.ContainerID(id)
-	err = provider.graph.Create(containerID, imageID)
-	if err != nil {
+	if err := provider.graph.Create(containerID, imageID); err != nil {
 		return "", nil, err
 	}
 
@@ -55,6 +55,7 @@ func (provider *ContainerLayerCreator) Create(id string, parentImage *repository
 	} else {
 		rootPath, err = provider.graph.Path(containerID)
 	}
+
 	if err != nil {
 		return "", nil, err
 	}
@@ -87,7 +88,14 @@ func (provider *ContainerLayerCreator) createNamespacedLayer(id, parentId layerc
 		return err
 	}
 
+	defer provider.unmountTranslationLayer(id)
 	return provider.namespacer.Namespace(path)
+}
+
+func (provider *ContainerLayerCreator) unmountTranslationLayer(id layercake.ID) {
+	if err := provider.graph.Unmount(id); err != nil {
+		panic(err)
+	}
 }
 
 func (provider *ContainerLayerCreator) createLayer(id, parentId layercake.ID) (string, error) {
