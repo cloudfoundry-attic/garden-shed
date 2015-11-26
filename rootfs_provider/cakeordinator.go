@@ -19,12 +19,6 @@ type RepositoryFetcher interface {
 	Fetch(*url.URL, int64) (*repository_fetcher.Image, error)
 }
 
-type CakeRetainer struct {
-	layercake.Cake
-}
-
-func (r CakeRetainer) Retain(id layercake.ID) {}
-
 // CakeOrdinator manages a cake, fetching layers as neccesary
 type CakeOrdinator struct {
 	mu sync.RWMutex
