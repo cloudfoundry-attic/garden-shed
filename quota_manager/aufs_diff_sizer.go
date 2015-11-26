@@ -21,7 +21,7 @@ func (a *AUFSDiffSizer) DiffSize(logger lager.Logger, containerRootFSPath string
 	log := logger.Session("diff-size", lager.Data{"path": containerRootFSPath})
 	log.Info("start")
 
-	command := fmt.Sprintf("df -B 1 | grep %s | awk -v N=3 '{print $N}'", a.AUFSDiffPathFinder.GetDiffLayerPath((containerRootFSPath)))
+	command := fmt.Sprintf("df -B 1 %s | tail -n1 | awk -v N=3 '{print $N}'", a.AUFSDiffPathFinder.GetDiffLayerPath((containerRootFSPath)))
 	outbytes, err := exec.Command("sh", "-c", command).CombinedOutput()
 	if err != nil {
 		log.Error("df-failed", err)
