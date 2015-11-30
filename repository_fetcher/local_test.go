@@ -2,9 +2,11 @@ package repository_fetcher_test
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 	"time"
@@ -62,6 +64,27 @@ var _ = Describe("LayerIDProvider", func() {
 		beforeID := idp.ProvideID(path1)
 		Expect(os.Chtimes(path1, accessTime, modifiedTime.Add(time.Second*1))).To(Succeed())
 		Expect(idp.ProvideID(path1)).NotTo(Equal(beforeID))
+	})
+
+	Context("when path is a symlink", func() {
+		var symlinkPath string
+
+		BeforeEach(func() {
+			tempDir, err := ioutil.TempDir("", "")
+			Expect(err).NotTo(HaveOccurred())
+			symlinkPath = path.Join(tempDir, fmt.Sprintf("busybox-%d", GinkgoParallelNode()))
+			Expect(exec.Command("ln", "-s", path1, symlinkPath).Run()).To(Succeed())
+		})
+
+		AfterEach(func() {
+			Expect(os.RemoveAll(symlinkPath)).To(Succeed())
+		})
+
+		It("returns a ID of the symlinked directory", func() {
+			pathID := idp.ProvideID(path1)
+			symlinkID := idp.ProvideID(symlinkPath)
+			Expect(symlinkID).To(Equal(pathID))
+		})
 	})
 })
 

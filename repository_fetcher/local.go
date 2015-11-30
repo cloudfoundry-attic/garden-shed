@@ -94,11 +94,16 @@ func resolve(path string) (string, error) {
 type LayerIDProvider struct {
 }
 
-func (LayerIDProvider) ProvideID(id string) layercake.ID {
-	info, err := os.Lstat(id)
+func (LayerIDProvider) ProvideID(path string) layercake.ID {
+	path, err := resolve(path)
 	if err != nil {
-		return layercake.LocalImageID{id, time.Time{}}
+		return layercake.LocalImageID{path, time.Time{}}
 	}
 
-	return layercake.LocalImageID{id, info.ModTime()}
+	info, err := os.Lstat(path)
+	if err != nil {
+		return layercake.LocalImageID{path, time.Time{}}
+	}
+
+	return layercake.LocalImageID{path, info.ModTime()}
 }
