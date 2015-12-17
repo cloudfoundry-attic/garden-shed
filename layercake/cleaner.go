@@ -24,7 +24,7 @@ func (g *OvenCleaner) Get(id ID) (*image.Image, error) {
 }
 
 func (g *OvenCleaner) Remove(id ID) error {
-	log := g.Logger.Session("remove", lager.Data{"ID": id})
+	log := g.Logger.Session("remove", lager.Data{"ID": id, "GRAPH_ID": id.GraphID()})
 	log.Info("start")
 
 	if g.isRetained(id) {
@@ -39,20 +39,26 @@ func (g *OvenCleaner) Remove(id ID) error {
 	}
 
 	if err := g.Cake.Remove(id); err != nil {
+		log.Error("remove-image", err)
 		return err
 	}
 
 	if !g.EnableImageCleanup {
+		log.Debug("stop-image-cleanup-disabled")
 		return nil
 	}
 
 	if img.Parent == "" {
+		log.Debug("stop-image-has-no-parent")
 		return nil
 	}
+
 	if leaf, err := g.Cake.IsLeaf(DockerImageID(img.Parent)); err == nil && leaf {
+		log.Debug("has-parent-leaf", lager.Data{"PARENT_ID": img.Parent})
 		return g.Remove(DockerImageID(img.Parent))
 	}
 
+	log.Info("finish")
 	return nil
 }
 
