@@ -34,12 +34,17 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 		remote *repository_fetcher.Remote
 
-		manifests      map[string]*distclient.Manifest
-		blobs          map[digest.Digest]string
-		existingLayers map[string]bool
+		manifests                 map[string]*distclient.Manifest
+		blobs                     map[digest.Digest]string
+		existingLayers            map[string]bool
+		defaultDockerRegistryHost string
 	)
 
 	BeforeEach(func() {
+		defaultDockerRegistryHost = "registry-1.docker.io"
+	})
+
+	JustBeforeEach(func() {
 		existingLayers = map[string]bool{}
 
 		manifests = map[string]*distclient.Manifest{
@@ -127,7 +132,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 			return &verified{Reader: r}, nil
 		}
 
-		remote = repository_fetcher.NewRemote(lagertest.NewTestLogger("test"), "the-default-host", fakeCake, fakeDialer, fakeVerifier)
+		remote = repository_fetcher.NewRemote(lagertest.NewTestLogger("test"), defaultDockerRegistryHost, fakeCake, fakeDialer, fakeVerifier)
 	})
 
 	Context("when the URL has a host", func() {
@@ -146,7 +151,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			_, host, _ := fakeDialer.DialArgsForCall(0)
-			Expect(host).To(Equal("the-default-host"))
+			Expect(host).To(Equal(defaultDockerRegistryHost))
 		})
 	})
 
@@ -162,12 +167,28 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	Context("when the path does not contain a slash", func() {
 		Context("and the default registry is being used", func() {
-			It("prepends the implied 'library/' to the path, because dockerhub needs this", func() {
-				_, err := remote.Fetch(parseURL("docker://the-default-host/somerepo#some-tag"), 1234)
-				Expect(err).NotTo(HaveOccurred())
+			Context("and the default is DockerHub", func() {
+				It("prepends the implied 'library/' to the path", func() {
+					_, err := remote.Fetch(parseURL("docker://registry-1.docker.io/somerepo#some-tag"), 1234)
+					Expect(err).NotTo(HaveOccurred())
 
-				_, _, repo := fakeDialer.DialArgsForCall(0)
-				Expect(repo).To(Equal("library/somerepo"))
+					_, _, repo := fakeDialer.DialArgsForCall(0)
+					Expect(repo).To(Equal("library/somerepo"))
+				})
+			})
+
+			Context("and the default is a custom registry", func() {
+				BeforeEach(func() {
+					defaultDockerRegistryHost = "some-host"
+				})
+
+				It("does not prepend 'library/' to the path", func() {
+					_, err := remote.Fetch(parseURL("docker://some-host/somerepo#some-tag"), 1234)
+					Expect(err).NotTo(HaveOccurred())
+
+					_, _, repo := fakeDialer.DialArgsForCall(0)
+					Expect(repo).To(Equal("somerepo"))
+				})
 			})
 		})
 
@@ -183,7 +204,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	})
 
 	Context("when the cake does not contain any of the layers", func() {
-		BeforeEach(func() {
+		JustBeforeEach(func() {
 			_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -209,7 +230,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	})
 
 	Context("when the graph already contains a layer", func() {
-		BeforeEach(func() {
+		JustBeforeEach(func() {
 			existingLayers["ghj-id"] = true
 		})
 
@@ -275,7 +296,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	})
 
 	Context("when the layer does not match its digest", func() {
-		BeforeEach(func() {
+		JustBeforeEach(func() {
 			fakeVerifier.VerifyReturns(nil, errors.New("boom"))
 		})
 

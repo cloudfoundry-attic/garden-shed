@@ -96,8 +96,11 @@ func (r *Remote) manifest(log lager.Logger, u *url.URL) (distclient.Conn, *distc
 		host = r.DefaultHost
 	}
 
+	isDockerHub := host == "registry-1.docker.io"
 	path := u.Path[1:] // strip off initial '/'
-	if host == r.DefaultHost && strings.Index(path, "/") < 0 {
+	isOfficialImage := strings.Index(path, "/") < 0
+	if isDockerHub && isOfficialImage {
+		// The Docker Hub keeps manifests of official images under library/
 		path = "library/" + path
 	}
 
