@@ -83,8 +83,7 @@ var _ = Describe("BackingStoreLinux", func() {
 		})
 
 		It("should format the file as ext4", func() {
-			quota := int64(10 * 1024 * 1024)
-			path, err := mgr.Create("banana_id", quota)
+			path, err := mgr.Create("banana_id", 10*1024*1024)
 			Expect(err).NotTo(HaveOccurred())
 
 			session, err := gexec.Start(
@@ -92,6 +91,18 @@ var _ = Describe("BackingStoreLinux", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session).Should(gbytes.Say("TYPE=\"ext4\""))
+		})
+
+		It("should create an unjournaled backing store", func() {
+			path, err := mgr.Create("banana_id", 10*1024*1024)
+			Expect(err).NotTo(HaveOccurred())
+
+			session, err := gexec.Start(
+				exec.Command("dumpe2fs", path), GinkgoWriter, GinkgoWriter,
+			)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session).Should(gexec.Exit(0))
+			Expect(session).NotTo(gbytes.Say("has_journal"))
 		})
 
 		Context("when the quota is not enought", func() {

@@ -33,7 +33,10 @@ func (bm *BackingStore) Create(id string, quota int64) (string, error) {
 		return "", fmt.Errorf("truncating the file returned error: %s", err)
 	}
 
-	output, err := exec.Command("mkfs.ext4", "-F", path).CombinedOutput()
+	output, err := exec.Command("mkfs.ext4",
+		"-O", "^has_journal",
+		"-F", path,
+	).CombinedOutput()
 	if err != nil {
 		log.Error("formatting-file", err, lager.Data{"path": path, "output": string(output)})
 		return "", fmt.Errorf("formatting filesystem: %s", err)
