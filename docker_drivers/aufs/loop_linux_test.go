@@ -16,14 +16,20 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"github.com/pivotal-golang/clock"
+	"github.com/pivotal-golang/clock/fakeclock"
 	"github.com/pivotal-golang/lager/lagertest"
+)
+
+const (
+	pollingInterval = 100 * time.Millisecond
+	numRetries      = 3 // At least 3 so that we can test the case where it works after multiple (2) retries
 )
 
 var _ = Describe("LoopLinux", func() {
 	var (
 		bsFilePath string
 		destPath   string
+		fakeClock  *fakeclock.FakeClock
 		loop       *aufs.Loop
 	)
 
@@ -41,12 +47,14 @@ var _ = Describe("LoopLinux", func() {
 		destPath, err = ioutil.TempDir("", "loop")
 		Expect(err).NotTo(HaveOccurred())
 
+		fakeClock = fakeclock.NewFakeClock(time.Now())
+
 		loop = &aufs.Loop{
 			Logger: lagertest.NewTestLogger("test"),
 			Retrier: &retrier.Retrier{
-				Timeout:         10 * time.Second,
-				PollingInterval: 50 * time.Millisecond,
-				Clock:           clock.NewClock(),
+				Timeout:         numRetries * pollingInterval,
+				PollingInterval: pollingInterval,
+				Clock:           fakeClock,
 			},
 		}
 	})
@@ -116,25 +124,40 @@ var _ = Describe("LoopLinux", func() {
 			Expect(devicesAfterRelease).To(BeNumerically("~", devicesAfterCreate-10, 2))
 		})
 
-		It("should try to unmount multiple times", func() {
-			Expect(loop.MountFile(bsFilePath, destPath)).To(Succeed())
-			testFile, err := ioutil.TempFile(destPath, "")
-			Expect(err).NotTo(HaveOccurred())
+		Describe("retrying the unmount when it doesn't immediately work", func() {
+			var testFile *os.File
 
-			c := make(chan struct{})
+			BeforeEach(func() {
+				Expect(loop.MountFile(bsFilePath, destPath)).To(Succeed())
+				var err error
+				testFile, err = ioutil.TempFile(destPath, "")
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-			go func(c chan struct{}, destPath string) {
-				defer GinkgoRecover()
+			It("fails when the unmount never succeeds", func() {
+				defer func() {
+					Expect(testFile.Close()).To(Succeed())
+					Expect(loop.Unmount(destPath)).To(Succeed())
+				}()
+
+				go func() {
+					for i := 0; i < numRetries; i++ {
+						fakeClock.WaitForWatcherAndIncrement(100 * time.Millisecond)
+					}
+				}()
+
+				Expect(loop.Unmount(destPath)).To(MatchError(ContainSubstring("unmounting file: exit status 1")))
+			})
+
+			It("suceeds when the unmount eventually succeeds", func() {
+				go func() {
+					fakeClock.WaitForWatcherAndIncrement(100 * time.Millisecond)
+					fakeClock.WaitForWatcherAndIncrement(100 * time.Millisecond)
+					Expect(testFile.Close()).To(Succeed())
+				}()
 
 				Expect(loop.Unmount(destPath)).To(Succeed())
-
-				close(c)
-			}(c, destPath)
-
-			time.Sleep(time.Millisecond * 100)
-			Expect(testFile.Close()).To(Succeed())
-
-			Eventually(c).Should(BeClosed())
+			})
 		})
 
 		Context("when the provided mount point does not exist", func() {
