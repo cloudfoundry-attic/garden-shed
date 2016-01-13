@@ -35,7 +35,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 		fakeRetainer = new(fake_retainer.FakeRetainer)
 		fakeLayerCreator = new(fakes.FakeLayerCreator)
 		fakeCake = new(fake_cake.FakeCake)
-		cakeOrdinator = rootfs_provider.NewCakeOrdinator(fakeCake, fakeFetcher, fakeLayerCreator, fakeRetainer, logger)
+		cakeOrdinator = rootfs_provider.NewCakeOrdinator(fakeCake, fakeFetcher, fakeLayerCreator, fakeRetainer)
 	})
 
 	Describe("creating container layers", func() {
@@ -50,7 +50,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 					Namespaced: true,
 					QuotaSize:  55,
 				}
-				rootfsPath, envs, err := cakeOrdinator.Create("container-id", spec)
+				rootfsPath, envs, err := cakeOrdinator.Create(logger, "container-id", spec)
 				Expect(rootfsPath).To(Equal("potato"))
 				Expect(envs).To(Equal([]string{"foo=bar"}))
 				Expect(err).To(MatchError("cake"))
@@ -66,7 +66,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 		Context("when fetching fails", func() {
 			It("returns an error", func() {
 				fakeFetcher.FetchReturns(nil, errors.New("amadeus"))
-				_, _, err := cakeOrdinator.Create("", rootfs_provider.Spec{
+				_, _, err := cakeOrdinator.Create(logger, "", rootfs_provider.Spec{
 					RootFS:     nil,
 					Namespaced: true,
 					QuotaSize:  12,
@@ -77,7 +77,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 		Context("when the quota scope is exclusive", func() {
 			It("disables quota for the fetcher", func() {
-				_, _, err := cakeOrdinator.Create("", rootfs_provider.Spec{
+				_, _, err := cakeOrdinator.Create(logger, "", rootfs_provider.Spec{
 					RootFS:     &url.URL{},
 					Namespaced: false,
 					QuotaSize:  33,
@@ -92,7 +92,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 		Context("when the quota scope is total", func() {
 			It("passes down the same quota number to the fetcher", func() {
-				_, _, err := cakeOrdinator.Create("", rootfs_provider.Spec{
+				_, _, err := cakeOrdinator.Create(logger, "", rootfs_provider.Spec{
 					RootFS:     &url.URL{},
 					Namespaced: false,
 					QuotaSize:  33,
@@ -109,7 +109,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 	Describe("Retain", func() {
 		It("can be retained by Retainer", func() {
 			retainedId := layercake.ContainerID("banana")
-			cakeOrdinator.Retain(retainedId)
+			cakeOrdinator.Retain(logger, retainedId)
 
 			Expect(fakeRetainer.RetainCallCount()).To(Equal(1))
 			var id layercake.ID = fakeRetainer.RetainArgsForCall(0)
@@ -117,11 +117,14 @@ var _ = Describe("The Cake Co-ordinator", func() {
 		})
 	})
 
-	Describe("Remove", func() {
+	Describe("Destroy", func() {
 		It("delegates removals", func() {
 			fakeCake.RemoveReturns(errors.New("returned-error"))
 
-			err := cakeOrdinator.Remove(layercake.DockerImageID("something"))
+			err := cakeOrdinator.Destroy(logger, "something")
+			Expect(fakeCake.RemoveCallCount()).To(Equal(1))
+			id := fakeCake.RemoveArgsForCall(0)
+			Expect(id).To(Equal(layercake.ContainerID("something")))
 			Expect(err).To(MatchError("returned-error"))
 		})
 
@@ -134,9 +137,9 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				return nil
 			}
 
-			go cakeOrdinator.Remove(layercake.DockerImageID(""))
+			go cakeOrdinator.Destroy(logger, "")
 			<-removeStarted
-			go cakeOrdinator.Create("", rootfs_provider.Spec{
+			go cakeOrdinator.Create(logger, "", rootfs_provider.Spec{
 				RootFS:     &url.URL{},
 				Namespaced: false,
 				QuotaSize:  33,
@@ -155,12 +158,12 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			return nil, nil
 		}
 
-		go cakeOrdinator.Create("", rootfs_provider.Spec{
+		go cakeOrdinator.Create(logger, "", rootfs_provider.Spec{
 			RootFS:     &url.URL{},
 			Namespaced: false,
 			QuotaSize:  33,
 		})
-		go cakeOrdinator.Create("", rootfs_provider.Spec{
+		go cakeOrdinator.Create(logger, "", rootfs_provider.Spec{
 			RootFS:     &url.URL{},
 			Namespaced: false,
 			QuotaSize:  33,

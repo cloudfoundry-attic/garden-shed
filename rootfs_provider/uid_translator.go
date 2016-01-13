@@ -3,9 +3,11 @@ package rootfs_provider
 import (
 	"fmt"
 	"os"
+
+	"github.com/cloudfoundry-incubator/garden-shed/pkg/chown"
 )
 
-var chownFunc = Chown
+var chownFunc = chown.Chown
 
 type UidTranslator struct {
 	uidMappings StringMapper

@@ -1,4 +1,4 @@
-package rootfs_provider
+package chown
 
 import (
 	"os"

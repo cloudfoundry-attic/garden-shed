@@ -11,7 +11,7 @@ import (
 
 var _ = Describe("UidTranslator", func() {
 	var translator *UidTranslator
-	var chowned []chown
+	var chowned []chownargs
 
 	BeforeEach(func() {
 		uidMap := fakeMap{
@@ -30,7 +30,7 @@ var _ = Describe("UidTranslator", func() {
 		}
 
 		translator.chown = func(path string, uid, gid int) error {
-			chowned = append(chowned, chown{
+			chowned = append(chowned, chownargs{
 				path: path,
 				uid:  uid,
 				gid:  gid,
@@ -58,7 +58,7 @@ var _ = Describe("UidTranslator", func() {
 	Context("when only the uid is mapped", func() {
 		It("changes only the uid", func() {
 			Expect(translator.Translate("some-path", fakeInfo{12, 2}, nil)).To(Succeed())
-			Expect(chowned).To(ContainElement(chown{
+			Expect(chowned).To(ContainElement(chownargs{
 				path: "some-path",
 				uid:  24,
 				gid:  2,
@@ -69,7 +69,7 @@ var _ = Describe("UidTranslator", func() {
 	Context("when only the gid is mapped", func() {
 		It("changes only the gid", func() {
 			Expect(translator.Translate("some-path", fakeInfo{2, 33}, nil)).To(Succeed())
-			Expect(chowned).To(ContainElement(chown{
+			Expect(chowned).To(ContainElement(chownargs{
 				path: "some-path",
 				uid:  2,
 				gid:  66,
@@ -80,7 +80,7 @@ var _ = Describe("UidTranslator", func() {
 	Context("when both uid and gid are mapped", func() {
 		It("changes both", func() {
 			Expect(translator.Translate("some-path", fakeInfo{12, 33}, nil)).To(Succeed())
-			Expect(chowned).To(ContainElement(chown{
+			Expect(chowned).To(ContainElement(chownargs{
 				path: "some-path",
 				uid:  24,
 				gid:  66,
@@ -89,7 +89,7 @@ var _ = Describe("UidTranslator", func() {
 	})
 })
 
-type chown struct {
+type chownargs struct {
 	path string
 	uid  int
 	gid  int

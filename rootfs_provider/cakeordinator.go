@@ -27,21 +27,20 @@ type CakeOrdinator struct {
 	fetcher      RepositoryFetcher
 	layerCreator LayerCreator
 	retainer     layercake.Retainer
-	logger       lager.Logger
 }
 
 // New creates a new cake-ordinator, there should only be one CakeOrdinator
 // for a particular cake.
-func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreator LayerCreator, retainer layercake.Retainer, logger lager.Logger) *CakeOrdinator {
+func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreator LayerCreator, retainer layercake.Retainer) *CakeOrdinator {
 	return &CakeOrdinator{
 		cake:         cake,
 		fetcher:      fetcher,
 		layerCreator: layerCreator,
 		retainer:     retainer,
-		logger:       logger}
+	}
 }
 
-func (c *CakeOrdinator) Create(id string, spec Spec) (string, []string, error) {
+func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (string, []string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -57,16 +56,15 @@ func (c *CakeOrdinator) Create(id string, spec Spec) (string, []string, error) {
 	return c.layerCreator.Create(id, image, spec)
 }
 
-func (c *CakeOrdinator) Retain(id layercake.ID) {
+func (c *CakeOrdinator) Retain(logger lager.Logger, id layercake.ID) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	c.retainer.Retain(id)
 }
 
-func (c *CakeOrdinator) Remove(id layercake.ID) error {
+func (c *CakeOrdinator) Destroy(_ lager.Logger, id string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-
-	return c.cake.Remove(id)
+	return c.cake.Remove(layercake.ContainerID(id))
 }

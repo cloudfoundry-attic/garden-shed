@@ -1,4 +1,4 @@
-package rootfs_provider_test
+package chown_test
 
 import (
 	"io/ioutil"
@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
+	"github.com/cloudfoundry-incubator/garden-shed/pkg/chown"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -31,7 +31,7 @@ var _ = Describe("chowning", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(info.Mode() & os.ModeSetuid).ToNot(Equal(os.FileMode(0)))
 
-			Expect(rootfs_provider.Chown(someFile, 100, 100)).To(Succeed())
+			Expect(chown.Chown(someFile, 100, 100)).To(Succeed())
 		})
 
 		AfterEach(func() {
@@ -70,7 +70,7 @@ var _ = Describe("chowning", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(sess).Should(gexec.Exit(0))
 
-			Expect(rootfs_provider.Chown(symlink, 100, 100)).To(Succeed())
+			Expect(chown.Chown(symlink, 100, 100)).To(Succeed())
 		})
 
 		It("does not change the gid/uid of the target", func() {
