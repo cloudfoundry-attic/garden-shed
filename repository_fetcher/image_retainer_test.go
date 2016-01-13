@@ -55,7 +55,8 @@ var _ = Describe("ImageRetainer", func() {
 				})
 
 				Expect(fakeGraphRetainer.RetainCallCount()).To(Equal(2))
-				Expect(fakeGraphRetainer.RetainArgsForCall(0)).To(Equal(layercake.LocalImageID{"/foo/bar/baz", time.Time{}}))
+				_, id := fakeGraphRetainer.RetainArgsForCall(0)
+				Expect(id).To(Equal(layercake.LocalImageID{"/foo/bar/baz", time.Time{}}))
 			})
 
 			It("retains the namespaced version of the image", func() {
@@ -64,9 +65,8 @@ var _ = Describe("ImageRetainer", func() {
 				})
 
 				Expect(fakeGraphRetainer.RetainCallCount()).To(Equal(2))
-				Expect(fakeGraphRetainer.RetainArgsForCall(1)).To(Equal(
-					layercake.NamespacedID(layercake.LocalImageID{"/foo/bar/baz", time.Time{}}, "chip-sandwhich"),
-				))
+				_, id := fakeGraphRetainer.RetainArgsForCall(1)
+				Expect(id).To(Equal(layercake.NamespacedID(layercake.LocalImageID{"/foo/bar/baz", time.Time{}}, "chip-sandwhich")))
 			})
 		})
 
@@ -77,7 +77,8 @@ var _ = Describe("ImageRetainer", func() {
 				})
 
 				Expect(fakeGraphRetainer.RetainCallCount()).To(Equal(2))
-				Expect(fakeGraphRetainer.RetainArgsForCall(0)).To(Equal(layercake.DockerImageID("/fetched//bar/baz")))
+				_, id := fakeGraphRetainer.RetainArgsForCall(0)
+				Expect(id).To(Equal(layercake.DockerImageID("/fetched//bar/baz")))
 			})
 
 			It("retains the namespaced version of the image", func() {
@@ -86,9 +87,8 @@ var _ = Describe("ImageRetainer", func() {
 				})
 
 				Expect(fakeGraphRetainer.RetainCallCount()).To(Equal(2))
-				Expect(fakeGraphRetainer.RetainArgsForCall(1)).To(Equal(
-					layercake.NamespacedID(layercake.DockerImageID("/fetched//bar/baz"), "chip-sandwhich"),
-				))
+				_, id := fakeGraphRetainer.RetainArgsForCall(1)
+				Expect(id).To(Equal(layercake.NamespacedID(layercake.DockerImageID("/fetched//bar/baz"), "chip-sandwhich")))
 			})
 		})
 	})

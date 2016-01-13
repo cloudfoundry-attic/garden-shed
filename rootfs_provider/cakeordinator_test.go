@@ -112,7 +112,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			cakeOrdinator.Retain(logger, retainedId)
 
 			Expect(fakeRetainer.RetainCallCount()).To(Equal(1))
-			var id layercake.ID = fakeRetainer.RetainArgsForCall(0)
+			_, id := fakeRetainer.RetainArgsForCall(0)
 			Expect(id).To(Equal(retainedId))
 		})
 	})

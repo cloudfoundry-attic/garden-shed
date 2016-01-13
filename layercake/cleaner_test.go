@@ -71,7 +71,7 @@ var _ = Describe("Oven cleaner", func() {
 
 			Context("when the layer is retained", func() {
 				JustBeforeEach(func() {
-					gc.Retain(layercake.ContainerID("child"))
+					gc.Retain(lagertest.NewTestLogger(""), layercake.ContainerID("child"))
 				})
 
 				It("should not remove the layer", func() {

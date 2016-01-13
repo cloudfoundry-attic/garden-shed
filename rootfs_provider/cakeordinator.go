@@ -60,7 +60,7 @@ func (c *CakeOrdinator) Retain(logger lager.Logger, id layercake.ID) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	c.retainer.Retain(id)
+	c.retainer.Retain(logger, id)
 }
 
 func (c *CakeOrdinator) Destroy(_ lager.Logger, id string) error {

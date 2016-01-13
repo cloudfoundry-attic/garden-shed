@@ -42,8 +42,8 @@ func (i *ImageRetainer) Retain(imageList []string) {
 			continue
 		}
 
-		i.GraphRetainer.Retain(id)
-		i.GraphRetainer.Retain(layercake.NamespacedID(id, i.NamespaceCacheKey))
+		i.GraphRetainer.Retain(log, id)
+		i.GraphRetainer.Retain(log, layercake.NamespacedID(id, i.NamespaceCacheKey))
 
 		log.Info("retaining-complete")
 	}

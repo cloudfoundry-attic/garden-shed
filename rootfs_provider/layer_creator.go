@@ -12,8 +12,6 @@ type ContainerLayerCreator struct {
 	volumeCreator VolumeCreator
 	namespacer    Namespacer
 	mutex         *sync.Mutex
-
-	fallback RootFSProvider
 }
 
 func NewLayerCreator(

@@ -62,7 +62,7 @@ func (g *OvenCleaner) Remove(id ID) error {
 	return nil
 }
 
-func (g *OvenCleaner) Retain(id ID) {
+func (g *OvenCleaner) Retain(log lager.Logger, id ID) {
 	g.retainedImagesMu.Lock()
 	defer g.retainedImagesMu.Unlock()
 

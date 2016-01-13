@@ -20,12 +20,6 @@ type Spec struct {
 	QuotaScope QuotaScope
 }
 
-//go:generate counterfeiter -o fake_rootfs_provider/fake_rootfs_provider.go . RootFSProvider
-type RootFSProvider interface {
-	Create(id string, spec Spec) (mountpoint string, envvar []string, err error)
-	Remove(id layercake.ID) error
-}
-
 type Graph interface {
 	layercake.Cake
 }

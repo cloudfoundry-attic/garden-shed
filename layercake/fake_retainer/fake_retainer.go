@@ -5,24 +5,27 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"github.com/pivotal-golang/lager"
 )
 
 type FakeRetainer struct {
-	RetainStub        func(id layercake.ID)
+	RetainStub        func(log lager.Logger, id layercake.ID)
 	retainMutex       sync.RWMutex
 	retainArgsForCall []struct {
-		id layercake.ID
+		log lager.Logger
+		id  layercake.ID
 	}
 }
 
-func (fake *FakeRetainer) Retain(id layercake.ID) {
+func (fake *FakeRetainer) Retain(log lager.Logger, id layercake.ID) {
 	fake.retainMutex.Lock()
 	fake.retainArgsForCall = append(fake.retainArgsForCall, struct {
-		id layercake.ID
-	}{id})
+		log lager.Logger
+		id  layercake.ID
+	}{log, id})
 	fake.retainMutex.Unlock()
 	if fake.RetainStub != nil {
-		fake.RetainStub(id)
+		fake.RetainStub(log, id)
 	}
 }
 
@@ -32,10 +35,10 @@ func (fake *FakeRetainer) RetainCallCount() int {
 	return len(fake.retainArgsForCall)
 }
 
-func (fake *FakeRetainer) RetainArgsForCall(i int) layercake.ID {
+func (fake *FakeRetainer) RetainArgsForCall(i int) (lager.Logger, layercake.ID) {
 	fake.retainMutex.RLock()
 	defer fake.retainMutex.RUnlock()
-	return fake.retainArgsForCall[i].id
+	return fake.retainArgsForCall[i].log, fake.retainArgsForCall[i].id
 }
 
 var _ layercake.Retainer = new(FakeRetainer)
