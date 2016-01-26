@@ -10,55 +10,55 @@ var _ = Describe("MappingList", func() {
 	Context("when the mapping does not contain the given id", func() {
 		It("returns the original id", func() {
 			mapping := rootfs_provider.MappingList{}
-			Expect(mapping.Map(55)).To(Equal(55))
+			Expect(mapping.Map(55)).To(BeEquivalentTo(55))
 		})
 	})
 
 	Context("when the mapping contains the given id but the range size is zero", func() {
 		It("returns the original id", func() {
 			mapping := rootfs_provider.MappingList{{
-				FromID: 55,
-				ToID:   77,
-				Size:   0,
+				ContainerID: 55,
+				HostID:      77,
+				Size:        0,
 			}}
 
-			Expect(mapping.Map(55)).To(Equal(55))
+			Expect(mapping.Map(55)).To(BeEquivalentTo(55))
 		})
 	})
 
 	Context("when the mapping contains the given id as the first element of a range", func() {
 		It("returns the mapped id", func() {
 			mapping := rootfs_provider.MappingList{{
-				FromID: 55,
-				ToID:   77,
-				Size:   1,
+				ContainerID: 55,
+				HostID:      77,
+				Size:        1,
 			}}
 
-			Expect(mapping.Map(55)).To(Equal(77))
+			Expect(mapping.Map(55)).To(BeEquivalentTo(77))
 		})
 	})
 
 	Context("when the mapping contains the given id as path of a range", func() {
 		It("returns the mapped id", func() {
 			mapping := rootfs_provider.MappingList{{
-				FromID: 55,
-				ToID:   77,
-				Size:   10,
+				ContainerID: 55,
+				HostID:      77,
+				Size:        10,
 			}}
 
-			Expect(mapping.Map(64)).To(Equal(86))
+			Expect(mapping.Map(64)).To(BeEquivalentTo(86))
 		})
 	})
 
 	Context("when the uid is just outside of the range of a mapping (defensive)", func() {
 		It("returns the original id", func() {
 			mapping := rootfs_provider.MappingList{{
-				FromID: 55,
-				ToID:   77,
-				Size:   10,
+				ContainerID: 55,
+				HostID:      77,
+				Size:        10,
 			}}
 
-			Expect(mapping.Map(65)).To(Equal(65))
+			Expect(mapping.Map(65)).To(BeEquivalentTo(65))
 		})
 	})
 
@@ -73,10 +73,10 @@ var _ = Describe("MappingList", func() {
 		Context("when the mapping has a single entry", func() {
 			It("returns a valid representation", func() {
 				mapping := rootfs_provider.MappingList{
-					rootfs_provider.Mapping{
-						FromID: 122,
-						ToID:   123456,
-						Size:   125000,
+					{
+						ContainerID: 122,
+						HostID:      123456,
+						Size:        125000,
 					},
 				}
 
@@ -88,14 +88,14 @@ var _ = Describe("MappingList", func() {
 			It("returns a valid representation containing all the entries", func() {
 				mapping := rootfs_provider.MappingList{
 					{
-						FromID: 1,
-						ToID:   2,
-						Size:   3,
+						ContainerID: 1,
+						HostID:      2,
+						Size:        3,
 					},
 					{
-						FromID: 4,
-						ToID:   5,
-						Size:   6,
+						ContainerID: 4,
+						HostID:      5,
+						Size:        6,
 					},
 				}
 
@@ -103,5 +103,4 @@ var _ = Describe("MappingList", func() {
 			})
 		})
 	})
-
 })

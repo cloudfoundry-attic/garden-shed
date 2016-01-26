@@ -3,20 +3,16 @@ package rootfs_provider
 import (
 	"fmt"
 	"strings"
+
+	"github.com/cloudfoundry-incubator/goci/specs"
 )
 
-type Mapping struct {
-	FromID int
-	ToID   int
-	Size   int
-}
-
-type MappingList []Mapping
+type MappingList []specs.IDMapping
 
 func (m MappingList) Map(id int) int {
 	for _, m := range m {
-		if delta := id - m.FromID; delta < m.Size {
-			return m.ToID + delta
+		if delta := id - int(m.ContainerID); delta < int(m.Size) {
+			return int(m.HostID) + delta
 		}
 	}
 
@@ -30,7 +26,7 @@ func (m MappingList) String() string {
 
 	var parts []string
 	for _, entry := range m {
-		parts = append(parts, fmt.Sprintf("%d-%d-%d", entry.FromID, entry.ToID, entry.Size))
+		parts = append(parts, fmt.Sprintf("%d-%d-%d", entry.ContainerID, entry.HostID, entry.Size))
 	}
 
 	return strings.Join(parts, ",")
