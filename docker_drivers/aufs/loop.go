@@ -7,11 +7,6 @@ import (
 	"github.com/pivotal-golang/lager"
 )
 
-//go:generate counterfeiter . Retrier
-type Retrier interface {
-	Retry(cb func() error) error
-}
-
 type Loop struct {
 	Retrier Retrier
 	Logger  lager.Logger
@@ -34,7 +29,7 @@ func (lm *Loop) Unmount(path string) error {
 	log := lm.Logger.Session("unmount", lager.Data{"path": path})
 
 	var output []byte
-	err := lm.Retrier.Retry(func() error {
+	err := lm.Retrier.Run(func() error {
 		var err error
 		output, err = exec.Command("umount", "-d", path).CombinedOutput()
 		if err != nil {

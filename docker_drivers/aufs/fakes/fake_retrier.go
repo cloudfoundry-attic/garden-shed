@@ -8,44 +8,44 @@ import (
 )
 
 type FakeRetrier struct {
-	RetryStub        func(cb func() error) error
-	retryMutex       sync.RWMutex
-	retryArgsForCall []struct {
-		cb func() error
+	RunStub        func(work func() error) error
+	runMutex       sync.RWMutex
+	runArgsForCall []struct {
+		work func() error
 	}
-	retryReturns struct {
+	runReturns struct {
 		result1 error
 	}
 }
 
-func (fake *FakeRetrier) Retry(cb func() error) error {
-	fake.retryMutex.Lock()
-	fake.retryArgsForCall = append(fake.retryArgsForCall, struct {
-		cb func() error
-	}{cb})
-	fake.retryMutex.Unlock()
-	if fake.RetryStub != nil {
-		return fake.RetryStub(cb)
+func (fake *FakeRetrier) Run(work func() error) error {
+	fake.runMutex.Lock()
+	fake.runArgsForCall = append(fake.runArgsForCall, struct {
+		work func() error
+	}{work})
+	fake.runMutex.Unlock()
+	if fake.RunStub != nil {
+		return fake.RunStub(work)
 	} else {
-		return fake.retryReturns.result1
+		return fake.runReturns.result1
 	}
 }
 
-func (fake *FakeRetrier) RetryCallCount() int {
-	fake.retryMutex.RLock()
-	defer fake.retryMutex.RUnlock()
-	return len(fake.retryArgsForCall)
+func (fake *FakeRetrier) RunCallCount() int {
+	fake.runMutex.RLock()
+	defer fake.runMutex.RUnlock()
+	return len(fake.runArgsForCall)
 }
 
-func (fake *FakeRetrier) RetryArgsForCall(i int) func() error {
-	fake.retryMutex.RLock()
-	defer fake.retryMutex.RUnlock()
-	return fake.retryArgsForCall[i].cb
+func (fake *FakeRetrier) RunArgsForCall(i int) func() error {
+	fake.runMutex.RLock()
+	defer fake.runMutex.RUnlock()
+	return fake.runArgsForCall[i].work
 }
 
-func (fake *FakeRetrier) RetryReturns(result1 error) {
-	fake.RetryStub = nil
-	fake.retryReturns = struct {
+func (fake *FakeRetrier) RunReturns(result1 error) {
+	fake.RunStub = nil
+	fake.runReturns = struct {
 		result1 error
 	}{result1}
 }

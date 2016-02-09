@@ -28,6 +28,11 @@ type BackingStoreMgr interface {
 	Delete(id string) error
 }
 
+//go:generate counterfeiter . Retrier
+type Retrier interface {
+	Run(work func() error) error
+}
+
 type QuotaedDriver struct {
 	GraphDriver
 	Unmount         UnmountFunc
@@ -76,7 +81,7 @@ func (a *QuotaedDriver) Put(id string) error {
 
 	a.GraphDriver.Put(id)
 
-	if err := a.Retrier.Retry(func() error {
+	if err := a.Retrier.Run(func() error {
 		return a.Unmount(mntPath)
 	}); err != nil {
 		return err

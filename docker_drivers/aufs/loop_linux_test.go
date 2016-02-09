@@ -11,12 +11,11 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
-	"github.com/cloudfoundry-incubator/garden-shed/pkg/retrier"
+	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"github.com/pivotal-golang/clock/fakeclock"
 	"github.com/pivotal-golang/lager/lagertest"
 )
 
@@ -29,8 +28,9 @@ var _ = Describe("LoopLinux", func() {
 	var (
 		bsFilePath string
 		destPath   string
-		fakeClock  *fakeclock.FakeClock
 		loop       *aufs.Loop
+
+		fakeRetrier *fakes.FakeRetrier
 	)
 
 	BeforeEach(func() {
@@ -47,15 +47,14 @@ var _ = Describe("LoopLinux", func() {
 		destPath, err = ioutil.TempDir("", "loop")
 		Expect(err).NotTo(HaveOccurred())
 
-		fakeClock = fakeclock.NewFakeClock(time.Now())
+		fakeRetrier = new(fakes.FakeRetrier)
+		fakeRetrier.RunStub = func(fn func() error) error {
+			return fn()
+		}
 
 		loop = &aufs.Loop{
-			Logger: lagertest.NewTestLogger("test"),
-			Retrier: &retrier.Retrier{
-				Timeout:         numRetries * pollingInterval,
-				PollingInterval: pollingInterval,
-				Clock:           fakeClock,
-			},
+			Logger:  lagertest.NewTestLogger("test"),
+			Retrier: fakeRetrier,
 		}
 	})
 
@@ -140,21 +139,16 @@ var _ = Describe("LoopLinux", func() {
 					Expect(loop.Unmount(destPath)).To(Succeed())
 				}()
 
-				go func() {
-					for i := 0; i < numRetries; i++ {
-						fakeClock.WaitForWatcherAndIncrement(100 * time.Millisecond)
-					}
-				}()
-
 				Expect(loop.Unmount(destPath)).To(MatchError(ContainSubstring("unmounting file: exit status 1")))
 			})
 
 			It("suceeds when the unmount eventually succeeds", func() {
-				go func() {
-					fakeClock.WaitForWatcherAndIncrement(100 * time.Millisecond)
-					fakeClock.WaitForWatcherAndIncrement(100 * time.Millisecond)
+				fakeRetrier.RunStub = func(fn func() error) error {
+					Expect(fn()).NotTo(Succeed())
 					Expect(testFile.Close()).To(Succeed())
-				}()
+					Expect(fn()).To(Succeed())
+					return nil
+				}
 
 				Expect(loop.Unmount(destPath)).To(Succeed())
 			})

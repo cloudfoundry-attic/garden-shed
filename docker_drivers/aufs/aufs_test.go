@@ -148,7 +148,7 @@ var _ = Describe("QuotaedDriver", func() {
 
 		Context("when the retrier fails", func() {
 			BeforeEach(func() {
-				fakeRetrier.RetryReturns(errors.New("banana"))
+				fakeRetrier.RunReturns(errors.New("banana"))
 			})
 
 			It("should return the error", func() {
@@ -190,7 +190,7 @@ var _ = Describe("QuotaedDriver", func() {
 
 			Expect(driver.Put("banana-id")).To(Succeed())
 
-			Expect(fakeRetrier.RetryCallCount()).To(Equal(1))
+			Expect(fakeRetrier.RunCallCount()).To(Equal(1))
 
 			Expect(fakeBackingStoreMgr.DeleteCallCount()).To(Equal(1))
 			Expect(fakeBackingStoreMgr.DeleteArgsForCall(0)).To(Equal(id))
