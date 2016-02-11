@@ -8,14 +8,15 @@ import (
 	"path"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	quotaedaufs "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
-	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/fakes"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/docker/docker/graph"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
+	"github.com/eapache/go-resiliency/retrier"
 	"github.com/pivotal-golang/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
@@ -261,11 +262,6 @@ var _ = Describe("Docker", func() {
 				driver, err = graphdriver.GetDriver("aufs", root, nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				fakeRetrier := new(fakes.FakeRetrier)
-				fakeRetrier.RunStub = func(fn func() error) error {
-					return fn()
-				}
-
 				driver = &quotaedaufs.QuotaedDriver{
 					GraphDriver: driver,
 					Unmount:     quotaedaufs.Unmount,
@@ -274,10 +270,10 @@ var _ = Describe("Docker", func() {
 						Logger:   lagertest.NewTestLogger("test"),
 					},
 					LoopMounter: &quotaedaufs.Loop{
-						Retrier: fakeRetrier,
+						Retrier: retrier.New(retrier.ConstantBackoff(200, 500*time.Millisecond), nil),
 						Logger:  lagertest.NewTestLogger("test"),
 					},
-					Retrier:  fakeRetrier,
+					Retrier:  retrier.New(retrier.ConstantBackoff(200, 500*time.Millisecond), nil),
 					RootPath: root,
 					Logger:   lagertest.NewTestLogger("test"),
 				}
