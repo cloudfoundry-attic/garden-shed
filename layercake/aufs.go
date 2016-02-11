@@ -25,9 +25,9 @@ type AufsCake struct {
 	GraphRoot string
 }
 
-func (a *AufsCake) Create(childID, parentID ID) error {
+func (a *AufsCake) Create(childID, parentID ID, id string) error {
 	if _, ok := childID.(NamespacedLayerID); !ok {
-		return a.Cake.Create(childID, parentID)
+		return a.Cake.Create(childID, parentID, id)
 	}
 
 	if isAlreadyNamespaced, err := a.hasInfo(a.childParentDir(), childID); err != nil {
@@ -36,7 +36,7 @@ func (a *AufsCake) Create(childID, parentID ID) error {
 		return fmt.Errorf("%s already exists", childID.GraphID())
 	}
 
-	if err := a.Cake.Create(childID, DockerImageID("")); err != nil {
+	if err := a.Cake.Create(childID, DockerImageID(""), ""); err != nil {
 		return err
 	}
 
@@ -85,6 +85,28 @@ func (a *AufsCake) IsLeaf(id ID) (bool, error) {
 	}
 
 	return !isParent, nil
+}
+
+func (a *AufsCake) GetAllLeaves() ([]ID, error) {
+	var leaves []ID
+
+	dockerLeaves, err := a.Cake.GetAllLeaves()
+	if err != nil {
+		return []ID{}, err
+	}
+
+	for _, dockerLeaf := range dockerLeaves {
+		isParent, err := a.hasInfo(a.parentChildDir(), dockerLeaf)
+		if err != nil {
+			return []ID{}, err
+		}
+
+		if !isParent {
+			leaves = append(leaves, dockerLeaf)
+		}
+	}
+
+	return leaves, nil
 }
 
 func (a *AufsCake) Get(id ID) (*image.Image, error) {

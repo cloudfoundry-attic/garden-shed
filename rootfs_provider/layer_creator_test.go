@@ -71,9 +71,10 @@ var _ = Describe("Layer Creator", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(fakeCake.CreateCallCount()).To(Equal(1))
-				id, parent := fakeCake.CreateArgsForCall(0)
+				id, parent, containerID := fakeCake.CreateArgsForCall(0)
 				Expect(id).To(Equal(layercake.ContainerID("some-id")))
 				Expect(parent).To(Equal(layercake.DockerImageID("some-image-id")))
+				Expect(containerID).To(Equal("some-id"))
 
 				Expect(mountpoint).To(Equal("/some/graph/driver/mount/point"))
 				Expect(envvars).To(Equal(
@@ -230,13 +231,14 @@ var _ = Describe("Layer Creator", func() {
 
 				It("namespaces it, and creates a graph entry with it as the parent", func() {
 					Expect(fakeCake.CreateCallCount()).To(Equal(2))
-					id, parent := fakeCake.CreateArgsForCall(0)
+					id, parent, _ := fakeCake.CreateArgsForCall(0)
 					Expect(id).To(Equal(layercake.NamespacedID(layercake.DockerImageID("some-image-id"), "jam")))
 					Expect(parent).To(Equal(layercake.DockerImageID("some-image-id")))
 
-					id, parent = fakeCake.CreateArgsForCall(1)
+					id, parent, containerID := fakeCake.CreateArgsForCall(1)
 					Expect(id).To(Equal(layercake.ContainerID("some-id")))
 					Expect(parent).To(Equal(layercake.NamespacedID(layercake.DockerImageID("some-image-id"), "jam")))
+					Expect(containerID).To(Equal("some-id"))
 
 					Expect(fakeNamespacer.NamespaceCallCount()).To(Equal(1))
 					dst := fakeNamespacer.NamespaceArgsForCall(0)
@@ -300,7 +302,7 @@ var _ = Describe("Layer Creator", func() {
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(fakeCake.CreateCallCount()).To(Equal(1))
-					id, parent := fakeCake.CreateArgsForCall(0)
+					id, parent, _ := fakeCake.CreateArgsForCall(0)
 					Expect(id).To(Equal(layercake.ContainerID("some-id")))
 					Expect(parent).To(Equal(layercake.NamespacedID(layercake.DockerImageID("some-image-id"), "sandwich")))
 

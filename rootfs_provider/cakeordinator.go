@@ -19,6 +19,11 @@ type RepositoryFetcher interface {
 	Fetch(*url.URL, int64) (*repository_fetcher.Image, error)
 }
 
+//go:generate counterfeiter . GCer
+type GCer interface {
+	GC(log lager.Logger, cake layercake.Cake) error
+}
+
 // CakeOrdinator manages a cake, fetching layers as neccesary
 type CakeOrdinator struct {
 	mu sync.RWMutex
@@ -26,17 +31,17 @@ type CakeOrdinator struct {
 	cake         layercake.Cake
 	fetcher      RepositoryFetcher
 	layerCreator LayerCreator
-	retainer     layercake.Retainer
+	gc           GCer
 }
 
 // New creates a new cake-ordinator, there should only be one CakeOrdinator
 // for a particular cake.
-func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreator LayerCreator, retainer layercake.Retainer) *CakeOrdinator {
+func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreator LayerCreator, gc GCer) *CakeOrdinator {
 	return &CakeOrdinator{
 		cake:         cake,
 		fetcher:      fetcher,
 		layerCreator: layerCreator,
-		retainer:     retainer,
+		gc:           gc,
 	}
 }
 
@@ -48,6 +53,7 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 	if spec.QuotaScope == QuotaScopeExclusive {
 		fetcherDiskQuota = 0
 	}
+
 	image, err := c.fetcher.Fetch(spec.RootFS, fetcherDiskQuota)
 	if err != nil {
 		return "", nil, err
@@ -56,15 +62,13 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 	return c.layerCreator.Create(id, image, spec)
 }
 
-func (c *CakeOrdinator) Retain(logger lager.Logger, id layercake.ID) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	c.retainer.Retain(logger, id)
+func (c *CakeOrdinator) Destroy(logger lager.Logger, id string) error {
+	return c.cake.Remove(layercake.ContainerID(id))
 }
 
-func (c *CakeOrdinator) Destroy(_ lager.Logger, id string) error {
+func (c *CakeOrdinator) GC(logger lager.Logger) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	return c.cake.Remove(layercake.ContainerID(id))
+
+	return c.gc.GC(logger, c.cake)
 }

@@ -41,7 +41,7 @@ func (provider *ContainerLayerCreator) Create(id string, parentImage *repository
 	}
 
 	containerID := layercake.ContainerID(id)
-	if err := provider.graph.Create(containerID, imageID); err != nil {
+	if err := provider.graph.Create(containerID, imageID, id); err != nil {
 		return "", nil, err
 	}
 
@@ -101,7 +101,7 @@ func (provider *ContainerLayerCreator) createLayer(id, parentId layercake.ID) (s
 		return "", err
 	}
 
-	if err := provider.graph.Create(id, parentId); err != nil {
+	if err := provider.graph.Create(id, parentId, ""); err != nil {
 		return errs(err)
 	}
 

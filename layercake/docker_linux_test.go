@@ -8,16 +8,14 @@ import (
 	"path"
 	"path/filepath"
 	"syscall"
-	"time"
 
 	quotaedaufs "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
+	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/fakes"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-shed/pkg/retrier"
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/docker/docker/graph"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/pivotal-golang/clock"
 	"github.com/pivotal-golang/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
@@ -160,7 +158,7 @@ var _ = Describe("Docker", func() {
 						})
 
 						id = layercake.ContainerID("abc")
-						createContainerLayer(cake, id, parent)
+						createContainerLayer(cake, id, parent, "potato")
 					})
 
 					ItCanReadWriteTheLayer()
@@ -171,6 +169,13 @@ var _ = Describe("Docker", func() {
 
 						Expect(path.Join(p, parent.GraphID())).To(BeAnExistingFile())
 					})
+
+					It("saves the container ID in the graph", func() {
+						p, err := cake.Get(id)
+						Expect(err).NotTo(HaveOccurred())
+
+						Expect(p.Container).To(Equal("potato"))
+					})
 				})
 			})
 		})
@@ -178,9 +183,9 @@ var _ = Describe("Docker", func() {
 
 	Describe("IsLeaf", func() {
 		BeforeEach(func() {
-			createContainerLayer(cake, layercake.ContainerID("def"), layercake.DockerImageID(""))
-			createContainerLayer(cake, layercake.ContainerID("abc"), layercake.ContainerID("def"))
-			createContainerLayer(cake, layercake.ContainerID("child2"), layercake.ContainerID("def"))
+			createContainerLayer(cake, layercake.ContainerID("def"), layercake.DockerImageID(""), "")
+			createContainerLayer(cake, layercake.ContainerID("abc"), layercake.ContainerID("def"), "")
+			createContainerLayer(cake, layercake.ContainerID("child2"), layercake.ContainerID("def"), "")
 		})
 
 		Context("when an image has no children", func() {
@@ -205,6 +210,23 @@ var _ = Describe("Docker", func() {
 				Expect(cake.Remove(layercake.ContainerID("child2"))).To(Succeed())
 				Expect(cake.IsLeaf(layercake.ContainerID("def"))).To(Equal(true))
 			})
+		})
+	})
+
+	Describe("GetAllLeaves", func() {
+		BeforeEach(func() {
+			createContainerLayer(cake, layercake.ContainerID("def"), layercake.DockerImageID(""), "")
+			createContainerLayer(cake, layercake.ContainerID("abc"), layercake.ContainerID("def"), "")
+			createContainerLayer(cake, layercake.ContainerID("child2"), layercake.ContainerID("def"), "")
+		})
+
+		It("should return all the leaves", func() {
+			leaves, err := cake.GetAllLeaves()
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(leaves).To(HaveLen(2))
+			Expect(leaves).To(ContainElement(layercake.DockerImageID(layercake.ContainerID("abc").GraphID())))
+			Expect(leaves).To(ContainElement(layercake.DockerImageID(layercake.ContainerID("child2").GraphID())))
 		})
 	})
 
@@ -239,10 +261,9 @@ var _ = Describe("Docker", func() {
 				driver, err = graphdriver.GetDriver("aufs", root, nil)
 				Expect(err).NotTo(HaveOccurred())
 
-				graphRetrier := &retrier.Retrier{
-					Timeout:         100 * time.Second,
-					PollingInterval: 500 * time.Millisecond,
-					Clock:           clock.NewClock(),
+				fakeRetrier := new(fakes.FakeRetrier)
+				fakeRetrier.RunStub = func(fn func() error) error {
+					return fn()
 				}
 
 				driver = &quotaedaufs.QuotaedDriver{
@@ -253,10 +274,10 @@ var _ = Describe("Docker", func() {
 						Logger:   lagertest.NewTestLogger("test"),
 					},
 					LoopMounter: &quotaedaufs.Loop{
-						Retrier: graphRetrier,
+						Retrier: fakeRetrier,
 						Logger:  lagertest.NewTestLogger("test"),
 					},
-					Retrier:  graphRetrier,
+					Retrier:  fakeRetrier,
 					RootPath: root,
 					Logger:   lagertest.NewTestLogger("test"),
 				}
@@ -278,7 +299,7 @@ var _ = Describe("Docker", func() {
 				})
 
 				id = layercake.ContainerID("abc")
-				createContainerLayer(cake, id, parent)
+				createContainerLayer(cake, id, parent, "")
 			})
 
 			AfterEach(func() {
@@ -313,8 +334,8 @@ var _ = Describe("Docker", func() {
 	})
 })
 
-func createContainerLayer(cake *layercake.Docker, id, parent layercake.ID) {
-	Expect(cake.Create(id, parent)).To(Succeed())
+func createContainerLayer(cake *layercake.Docker, id, parent layercake.ID, containerId string) {
+	Expect(cake.Create(id, parent, containerId)).To(Succeed())
 }
 
 func registerImageLayer(cake *layercake.Docker, img *image.Image) {

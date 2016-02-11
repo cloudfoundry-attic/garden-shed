@@ -28,11 +28,12 @@ func (d *Docker) DriverName() string {
 	return d.Driver.String()
 }
 
-func (d *Docker) Create(containerID ID, imageID ID) error {
+func (d *Docker) Create(layerID, parentID ID, containerID string) error {
 	return d.Register(
 		&image.Image{
-			ID:     containerID.GraphID(),
-			Parent: imageID.GraphID(),
+			ID:        layerID.GraphID(),
+			Parent:    parentID.GraphID(),
+			Container: containerID,
 		}, nil)
 }
 
@@ -72,6 +73,17 @@ func (d *Docker) IsLeaf(id ID) (bool, error) {
 	heads := d.Graph.Heads()
 	_, ok := heads[id.GraphID()]
 	return ok, nil
+}
+
+func (d *Docker) GetAllLeaves() ([]ID, error) {
+	heads := d.Graph.Heads()
+	var result []ID
+
+	for head := range heads {
+		result = append(result, DockerImageID(head))
+	}
+
+	return result, nil
 }
 
 type ContainerID string

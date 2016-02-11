@@ -6,10 +6,10 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_retainer"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fakes"
+	"github.com/pivotal-golang/lager"
 	"github.com/pivotal-golang/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
@@ -21,7 +21,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 		fakeFetcher      *fakes.FakeRepositoryFetcher
 		fakeLayerCreator *fakes.FakeLayerCreator
 		fakeCake         *fake_cake.FakeCake
-		fakeRetainer     *fake_retainer.FakeRetainer
+		fakeGCer         *fakes.FakeGCer
 		logger           *lagertest.TestLogger
 
 		cakeOrdinator *rootfs_provider.CakeOrdinator
@@ -32,10 +32,10 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 		fakeFetcher = new(fakes.FakeRepositoryFetcher)
 
-		fakeRetainer = new(fake_retainer.FakeRetainer)
 		fakeLayerCreator = new(fakes.FakeLayerCreator)
 		fakeCake = new(fake_cake.FakeCake)
-		cakeOrdinator = rootfs_provider.NewCakeOrdinator(fakeCake, fakeFetcher, fakeLayerCreator, fakeRetainer)
+		fakeGCer = new(fakes.FakeGCer)
+		cakeOrdinator = rootfs_provider.NewCakeOrdinator(fakeCake, fakeFetcher, fakeLayerCreator, fakeGCer)
 	})
 
 	Describe("creating container layers", func() {
@@ -106,39 +106,35 @@ var _ = Describe("The Cake Co-ordinator", func() {
 		})
 	})
 
-	Describe("Retain", func() {
-		It("can be retained by Retainer", func() {
-			retainedId := layercake.ContainerID("banana")
-			cakeOrdinator.Retain(logger, retainedId)
-
-			Expect(fakeRetainer.RetainCallCount()).To(Equal(1))
-			_, id := fakeRetainer.RetainArgsForCall(0)
-			Expect(id).To(Equal(retainedId))
+	Describe("Destroy", func() {
+		It("delegates removal", func() {
+			Expect(cakeOrdinator.Destroy(logger, "something")).To(Succeed())
+			Expect(fakeCake.RemoveCallCount()).To(Equal(1))
+			Expect(fakeCake.RemoveArgsForCall(0)).To(Equal(layercake.ContainerID("something")))
 		})
 	})
 
-	Describe("Destroy", func() {
-		It("delegates removals", func() {
-			fakeCake.RemoveReturns(errors.New("returned-error"))
+	Describe("GC", func() {
+		It("delegates GC", func() {
+			Expect(cakeOrdinator.GC(logger)).To(Succeed())
+			Expect(fakeGCer.GCCallCount()).To(Equal(1))
 
-			err := cakeOrdinator.Destroy(logger, "something")
-			Expect(fakeCake.RemoveCallCount()).To(Equal(1))
-			id := fakeCake.RemoveArgsForCall(0)
-			Expect(id).To(Equal(layercake.ContainerID("something")))
-			Expect(err).To(MatchError("returned-error"))
+			_, cake := fakeGCer.GCArgsForCall(0)
+			Expect(cake).To(Equal(fakeCake))
 		})
 
 		It("prevents concurrent garbage collection and creation", func() {
-			removeStarted := make(chan struct{})
-			removeReturns := make(chan struct{})
-			fakeCake.RemoveStub = func(id layercake.ID) error {
-				close(removeStarted)
-				<-removeReturns
+			gcStarted := make(chan struct{})
+			gcReturns := make(chan struct{})
+			fakeGCer.GCStub = func(_ lager.Logger, _ layercake.Cake) error {
+				close(gcStarted)
+				<-gcReturns
 				return nil
 			}
 
-			go cakeOrdinator.Destroy(logger, "")
-			<-removeStarted
+			go cakeOrdinator.GC(logger)
+			<-gcStarted
+
 			go cakeOrdinator.Create(logger, "", rootfs_provider.Spec{
 				RootFS:     &url.URL{},
 				Namespaced: false,
@@ -146,7 +142,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			})
 
 			Consistently(fakeFetcher.FetchCallCount).Should(Equal(0))
-			close(removeReturns)
+			close(gcReturns)
 			Eventually(fakeFetcher.FetchCallCount).Should(Equal(1))
 		})
 	})
