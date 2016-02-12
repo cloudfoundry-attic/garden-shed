@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"sync"
 
+	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	"github.com/pivotal-golang/lager"
@@ -50,7 +51,7 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 	defer c.mu.RUnlock()
 
 	fetcherDiskQuota := spec.QuotaSize
-	if spec.QuotaScope == QuotaScopeExclusive {
+	if spec.QuotaScope == garden.DiskLimitScopeExclusive {
 		fetcherDiskQuota = 0
 	}
 

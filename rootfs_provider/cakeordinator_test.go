@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/url"
 
+	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
@@ -81,7 +82,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 					RootFS:     &url.URL{},
 					Namespaced: false,
 					QuotaSize:  33,
-					QuotaScope: rootfs_provider.QuotaScopeExclusive,
+					QuotaScope: garden.DiskLimitScopeExclusive,
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))
@@ -96,7 +97,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 					RootFS:     &url.URL{},
 					Namespaced: false,
 					QuotaSize:  33,
-					QuotaScope: rootfs_provider.QuotaScopeTotal,
+					QuotaScope: garden.DiskLimitScopeTotal,
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))

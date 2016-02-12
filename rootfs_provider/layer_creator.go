@@ -3,6 +3,7 @@ package rootfs_provider
 import (
 	"sync"
 
+	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 )
@@ -46,9 +47,9 @@ func (provider *ContainerLayerCreator) Create(id string, parentImage *repository
 	}
 
 	var rootPath string
-	if spec.QuotaSize > 0 && spec.QuotaScope == QuotaScopeExclusive {
+	if spec.QuotaSize > 0 && spec.QuotaScope == garden.DiskLimitScopeExclusive {
 		rootPath, err = provider.graph.QuotaedPath(containerID, spec.QuotaSize)
-	} else if spec.QuotaSize > 0 && spec.QuotaScope == QuotaScopeTotal {
+	} else if spec.QuotaSize > 0 && spec.QuotaScope == garden.DiskLimitScopeTotal {
 		rootPath, err = provider.graph.QuotaedPath(containerID, spec.QuotaSize-parentImage.Size)
 	} else {
 		rootPath, err = provider.graph.Path(containerID)

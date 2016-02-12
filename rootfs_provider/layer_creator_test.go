@@ -3,6 +3,7 @@ package rootfs_provider_test
 import (
 	"errors"
 
+	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
@@ -120,7 +121,7 @@ var _ = Describe("Layer Creator", func() {
 						rootfs_provider.Spec{
 							Namespaced: false,
 							QuotaSize:  quota,
-							QuotaScope: rootfs_provider.QuotaScopeExclusive,
+							QuotaScope: garden.DiskLimitScopeExclusive,
 						},
 					)
 					Expect(err).ToNot(HaveOccurred())
@@ -147,7 +148,7 @@ var _ = Describe("Layer Creator", func() {
 						rootfs_provider.Spec{
 							Namespaced: false,
 							QuotaSize:  quota,
-							QuotaScope: rootfs_provider.QuotaScopeTotal,
+							QuotaScope: garden.DiskLimitScopeTotal,
 						},
 					)
 					Expect(err).ToNot(HaveOccurred())
