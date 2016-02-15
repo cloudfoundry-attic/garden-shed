@@ -69,6 +69,13 @@ func (d *Docker) QuotaedPath(id ID, quota int64) (string, error) {
 	}
 }
 
+func (d *Docker) All() (layers []*image.Image) {
+	for _, layer := range d.Graph.Map() {
+		layers = append(layers, layer)
+	}
+	return layers
+}
+
 func (d *Docker) IsLeaf(id ID) (bool, error) {
 	heads := d.Graph.Heads()
 	_, ok := heads[id.GraphID()]

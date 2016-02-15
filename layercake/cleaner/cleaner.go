@@ -1,38 +1,44 @@
-package layercake
+package cleaner
 
 import (
 	"sync"
 
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/pivotal-golang/lager"
 )
 
 type OvenCleaner struct {
-	EnableImageCleanup bool
-	retainCheck        Checker
+	GraphCleanupThreshold Threshold
+	retainCheck           Checker
 }
 
 type Checker interface {
-	Check(id ID) bool
+	Check(id layercake.ID) bool
 }
 
 type RetainChecker interface {
-	Retainer
+	layercake.Retainer
 	Checker
 }
 
-func NewOvenCleaner(retainCheck Checker, enableCleanup bool) *OvenCleaner {
+//go:generate counterfeiter . Threshold
+type Threshold interface {
+	Exceeded(log lager.Logger, cake layercake.Cake) bool
+}
+
+func NewOvenCleaner(retainCheck Checker, graphCleanupThreshold Threshold) *OvenCleaner {
 	return &OvenCleaner{
-		EnableImageCleanup: enableCleanup,
-		retainCheck:        retainCheck,
+		GraphCleanupThreshold: graphCleanupThreshold,
+		retainCheck:           retainCheck,
 	}
 }
 
-func (g *OvenCleaner) GC(log lager.Logger, cake Cake) error {
+func (g *OvenCleaner) GC(log lager.Logger, cake layercake.Cake) error {
 	log = log.Session("gc")
 	log.Info("start")
 
-	if !g.EnableImageCleanup {
-		log.Debug("stop-image-cleanup-disabled")
+	if exceeded := g.GraphCleanupThreshold.Exceeded(log, cake); !exceeded {
+		log.Debug("threshold-not-exceeded")
 		return nil
 	}
 
@@ -50,7 +56,7 @@ func (g *OvenCleaner) GC(log lager.Logger, cake Cake) error {
 	return nil
 }
 
-func (g *OvenCleaner) removeRecursively(log lager.Logger, cake Cake, id ID) error {
+func (g *OvenCleaner) removeRecursively(log lager.Logger, cake layercake.Cake, id layercake.ID) error {
 	if g.retainCheck.Check(id) {
 		log.Info("layer-is-held")
 		return nil
@@ -77,9 +83,9 @@ func (g *OvenCleaner) removeRecursively(log lager.Logger, cake Cake, id ID) erro
 		return nil
 	}
 
-	if leaf, err := cake.IsLeaf(DockerImageID(img.Parent)); err == nil && leaf {
+	if leaf, err := cake.IsLeaf(layercake.DockerImageID(img.Parent)); err == nil && leaf {
 		log.Debug("has-parent-leaf", lager.Data{"parent-id": img.Parent})
-		return g.removeRecursively(log, cake, DockerImageID(img.Parent))
+		return g.removeRecursively(log, cake, layercake.DockerImageID(img.Parent))
 	}
 
 	log.Info("finish")
@@ -96,7 +102,7 @@ func NewRetainer() *retainer {
 	return &retainer{}
 }
 
-func (g *retainer) Retain(log lager.Logger, id ID) {
+func (g *retainer) Retain(log lager.Logger, id layercake.ID) {
 	g.retainedImagesMu.Lock()
 	defer g.retainedImagesMu.Unlock()
 
@@ -107,7 +113,7 @@ func (g *retainer) Retain(log lager.Logger, id ID) {
 	g.retainedImages[id.GraphID()] = struct{}{}
 }
 
-func (g *retainer) Check(id ID) bool {
+func (g *retainer) Check(id layercake.ID) bool {
 	g.retainedImagesMu.Lock()
 	defer g.retainedImagesMu.Unlock()
 
@@ -119,6 +125,6 @@ func (g *retainer) Check(id ID) bool {
 	return ok
 }
 
-type CheckFunc func(id ID) bool
+type CheckFunc func(id layercake.ID) bool
 
-func (fn CheckFunc) Check(id ID) bool { return fn(id) }
+func (fn CheckFunc) Check(id layercake.ID) bool { return fn(id) }

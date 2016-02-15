@@ -95,6 +95,12 @@ type FakeCake struct {
 		result1 []layercake.ID
 		result2 error
 	}
+	AllStub        func() []*image.Image
+	allMutex       sync.RWMutex
+	allArgsForCall []struct{}
+	allReturns     struct {
+		result1 []*image.Image
+	}
 }
 
 func (fake *FakeCake) DriverName() string {
@@ -408,6 +414,30 @@ func (fake *FakeCake) GetAllLeavesReturns(result1 []layercake.ID, result2 error)
 		result1 []layercake.ID
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeCake) All() []*image.Image {
+	fake.allMutex.Lock()
+	fake.allArgsForCall = append(fake.allArgsForCall, struct{}{})
+	fake.allMutex.Unlock()
+	if fake.AllStub != nil {
+		return fake.AllStub()
+	} else {
+		return fake.allReturns.result1
+	}
+}
+
+func (fake *FakeCake) AllCallCount() int {
+	fake.allMutex.RLock()
+	defer fake.allMutex.RUnlock()
+	return len(fake.allArgsForCall)
+}
+
+func (fake *FakeCake) AllReturns(result1 []*image.Image) {
+	fake.AllStub = nil
+	fake.allReturns = struct {
+		result1 []*image.Image
+	}{result1}
 }
 
 var _ layercake.Cake = new(FakeCake)

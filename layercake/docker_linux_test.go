@@ -182,6 +182,27 @@ var _ = Describe("Docker", func() {
 		})
 	})
 
+	Describe("All", func() {
+		BeforeEach(func() {
+			createContainerLayer(cake, layercake.ContainerID("def"), layercake.DockerImageID(""), "")
+			createContainerLayer(cake, layercake.ContainerID("abc"), layercake.ContainerID("def"), "")
+			createContainerLayer(cake, layercake.ContainerID("child2"), layercake.ContainerID("def"), "")
+		})
+
+		It("returns all the layers in the graph", func() {
+			Expect(cake.All()).To(HaveLen(3))
+
+			var ids []string
+			for _, layer := range cake.All() {
+				ids = append(ids, layer.ID)
+			}
+
+			Expect(ids).To(ContainElement(layercake.ContainerID("def").GraphID()))
+			Expect(ids).To(ContainElement(layercake.ContainerID("abc").GraphID()))
+			Expect(ids).To(ContainElement(layercake.ContainerID("child2").GraphID()))
+		})
+	})
+
 	Describe("IsLeaf", func() {
 		BeforeEach(func() {
 			createContainerLayer(cake, layercake.ContainerID("def"), layercake.DockerImageID(""), "")

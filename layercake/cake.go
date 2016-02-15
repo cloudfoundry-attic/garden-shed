@@ -22,4 +22,5 @@ type Cake interface {
 	QuotaedPath(id ID, quota int64) (string, error)
 	IsLeaf(id ID) (bool, error)
 	GetAllLeaves() ([]ID, error)
+	All() []*image.Image
 }
