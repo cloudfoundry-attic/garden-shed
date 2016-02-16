@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/goci/specs"
+	"github.com/opencontainers/specs"
 )
 
 type MappingList []specs.IDMapping
