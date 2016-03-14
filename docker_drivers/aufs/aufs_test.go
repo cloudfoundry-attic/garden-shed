@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
 	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/fakes"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-golang/lager/lagertest"
@@ -204,6 +205,12 @@ var _ = Describe("QuotaedDriver", func() {
 			It("should return an error", func() {
 				Expect(driver.Put("banana-shed")).To(MatchError("removing the backing store: banana"))
 			})
+		})
+	})
+
+	Describe("GetMntPath", func() {
+		It("returns the mnt path of the given layer (without calling Path)", func() {
+			Expect(driver.GetMntPath(layercake.DockerImageID("foo"))).To(Equal("/path/to/my/banana/graph/aufs/mnt/foo"))
 		})
 	})
 

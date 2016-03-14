@@ -34,5 +34,6 @@ func (a *AUFSDiffSizer) DiffSize(logger lager.Logger, containerRootFSPath string
 		return 0, nil
 	}
 
+	log.Info("finished", lager.Data{"bytes": bytesUsed})
 	return bytesUsed, nil
 }

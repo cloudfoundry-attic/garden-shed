@@ -23,6 +23,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 		fakeLayerCreator *fakes.FakeLayerCreator
 		fakeCake         *fake_cake.FakeCake
 		fakeGCer         *fakes.FakeGCer
+		fakeMetrics      *fakes.FakeMetricser
 		logger           *lagertest.TestLogger
 
 		cakeOrdinator *rootfs_provider.CakeOrdinator
@@ -36,7 +37,8 @@ var _ = Describe("The Cake Co-ordinator", func() {
 		fakeLayerCreator = new(fakes.FakeLayerCreator)
 		fakeCake = new(fake_cake.FakeCake)
 		fakeGCer = new(fakes.FakeGCer)
-		cakeOrdinator = rootfs_provider.NewCakeOrdinator(fakeCake, fakeFetcher, fakeLayerCreator, fakeGCer)
+		fakeMetrics = new(fakes.FakeMetricser)
+		cakeOrdinator = rootfs_provider.NewCakeOrdinator(fakeCake, fakeFetcher, fakeLayerCreator, fakeMetrics, fakeGCer)
 	})
 
 	Describe("creating container layers", func() {
@@ -103,6 +105,35 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))
 				_, diskQuota := fakeFetcher.FetchArgsForCall(0)
 				Expect(diskQuota).To(BeNumerically("==", 33))
+			})
+		})
+	})
+
+	Describe("Metrics", func() {
+		It("delegates metrics retrieval to the metricser", func() {
+			fakeMetrics.MetricsReturns(garden.ContainerDiskStat{
+				TotalBytesUsed: 12,
+			}, nil)
+
+			metrics, err := cakeOrdinator.Metrics(logger, "something")
+			Expect(err).NotTo(HaveOccurred())
+
+			_, path := fakeMetrics.MetricsArgsForCall(0)
+			Expect(path).To(Equal(layercake.ContainerID("something")))
+
+			Expect(metrics).To(Equal(garden.ContainerDiskStat{
+				TotalBytesUsed: 12,
+			}))
+		})
+
+		Context("when it fails to get the metrics", func() {
+			BeforeEach(func() {
+				fakeMetrics.MetricsReturns(garden.ContainerDiskStat{}, errors.New("rotten banana"))
+			})
+
+			It("should return an error", func() {
+				_, err := cakeOrdinator.Metrics(logger, "something")
+				Expect(err).To(MatchError("rotten banana"))
 			})
 		})
 	})

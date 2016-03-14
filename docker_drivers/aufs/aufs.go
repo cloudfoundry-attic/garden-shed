@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/pivotal-golang/lager"
 )
@@ -108,4 +109,8 @@ func (a *QuotaedDriver) makeDiffPath(id string) string {
 
 func (a *QuotaedDriver) GetDiffLayerPath(rootFSPath string) string {
 	return strings.Replace(rootFSPath, "/mnt/", "/diff/", 1)
+}
+
+func (a *QuotaedDriver) GetMntPath(id layercake.ID) string {
+	return a.makeMntPath(id.GraphID())
 }

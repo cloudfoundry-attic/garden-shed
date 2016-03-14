@@ -25,6 +25,11 @@ type GCer interface {
 	GC(log lager.Logger, cake layercake.Cake) error
 }
 
+//go:generate counterfeiter . Metricser
+type Metricser interface {
+	Metrics(logger lager.Logger, id layercake.ID) (garden.ContainerDiskStat, error)
+}
+
 // CakeOrdinator manages a cake, fetching layers as neccesary
 type CakeOrdinator struct {
 	mu sync.RWMutex
@@ -32,16 +37,18 @@ type CakeOrdinator struct {
 	cake         layercake.Cake
 	fetcher      RepositoryFetcher
 	layerCreator LayerCreator
+	metrics      Metricser
 	gc           GCer
 }
 
 // New creates a new cake-ordinator, there should only be one CakeOrdinator
 // for a particular cake.
-func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreator LayerCreator, gc GCer) *CakeOrdinator {
+func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreator LayerCreator, metrics Metricser, gc GCer) *CakeOrdinator {
 	return &CakeOrdinator{
 		cake:         cake,
 		fetcher:      fetcher,
 		layerCreator: layerCreator,
+		metrics:      metrics,
 		gc:           gc,
 	}
 }
@@ -61,6 +68,11 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 	}
 
 	return c.layerCreator.Create(id, image, spec)
+}
+
+func (c *CakeOrdinator) Metrics(logger lager.Logger, id string) (garden.ContainerDiskStat, error) {
+	cid := layercake.ContainerID(id)
+	return c.metrics.Metrics(logger, cid)
 }
 
 func (c *CakeOrdinator) Destroy(logger lager.Logger, id string) error {
