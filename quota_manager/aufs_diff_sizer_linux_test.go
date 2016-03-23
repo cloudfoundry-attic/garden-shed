@@ -50,7 +50,7 @@ var _ = Describe("AufsLayerSizer", func() {
 
 			session, err = gexec.Start(exec.Command("mkfs.ext4", "-F", backingFile.Name()), GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(session).Should(gexec.Exit(0))
+			Eventually(session, "3s").Should(gexec.Exit(0))
 
 			session, err = gexec.Start(exec.Command("mount", "-o", "loop", backingFile.Name(), mountDir), GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
