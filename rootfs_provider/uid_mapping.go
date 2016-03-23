@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/opencontainers/specs"
+	"github.com/opencontainers/specs/specs-go"
 )
 
 type MappingList []specs.IDMapping
