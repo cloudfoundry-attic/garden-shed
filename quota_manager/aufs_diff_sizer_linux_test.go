@@ -44,17 +44,20 @@ var _ = Describe("AufsLayerSizer", func() {
 			backingFile, err = ioutil.TempFile("", "quota_manager_backing_store")
 			Expect(err).NotTo(HaveOccurred())
 
-			session, err := gexec.Start(exec.Command("truncate", "-s", fmt.Sprintf("%dM", quotaMB), backingFile.Name()), GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session).Should(gexec.Exit(0))
+			cmd := exec.Command("truncate", "-s", fmt.Sprintf("%dM", quotaMB), backingFile.Name())
+			cmd.Stdout = GinkgoWriter
+			cmd.Stderr = GinkgoWriter
+			Expect(cmd.Run()).To(Succeed())
 
-			session, err = gexec.Start(exec.Command("mkfs.ext4", "-F", backingFile.Name()), GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "3s").Should(gexec.Exit(0))
+			cmd = exec.Command("mkfs.ext4", "-F", backingFile.Name())
+			cmd.Stdout = GinkgoWriter
+			cmd.Stderr = GinkgoWriter
+			Expect(cmd.Run()).To(Succeed())
 
-			session, err = gexec.Start(exec.Command("mount", "-o", "loop", backingFile.Name(), mountDir), GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session).Should(gexec.Exit(0))
+			cmd = exec.Command("mount", "-o", "loop", backingFile.Name(), mountDir)
+			cmd.Stdout = GinkgoWriter
+			cmd.Stderr = GinkgoWriter
+			Expect(cmd.Run()).To(Succeed())
 		})
 
 		AfterEach(func() {
