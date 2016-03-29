@@ -144,6 +144,26 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			Expect(fakeCake.RemoveCallCount()).To(Equal(1))
 			Expect(fakeCake.RemoveArgsForCall(0)).To(Equal(layercake.ContainerID("something")))
 		})
+
+		Context("when the layer is already destroyed", func() {
+			It("does not destroy again", func() {
+				fakeCake.GetReturns(nil, errors.New("cannae find it"))
+
+				Expect(cakeOrdinator.Destroy(logger, "something")).To(Succeed())
+				Expect(fakeCake.RemoveCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("when the graph can't retrieve information about the layer", func() {
+			BeforeEach(func() {
+				fakeCake.GetReturns(nil, errors.New("failed tae find it"))
+			})
+
+			It("skips destroy and logs the error instead", func() {
+				Expect(cakeOrdinator.Destroy(logger, "something")).To(Succeed())
+				Expect(logger.LogMessages()).To(ContainElement("test.destroy-cant-get-layer-from-graph"))
+			})
+		})
 	})
 
 	Describe("GC", func() {

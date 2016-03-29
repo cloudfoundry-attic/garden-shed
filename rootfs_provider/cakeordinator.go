@@ -76,7 +76,13 @@ func (c *CakeOrdinator) Metrics(logger lager.Logger, id string) (garden.Containe
 }
 
 func (c *CakeOrdinator) Destroy(logger lager.Logger, id string) error {
-	return c.cake.Remove(layercake.ContainerID(id))
+	cid := layercake.ContainerID(id)
+	if _, err := c.cake.Get(cid); err != nil {
+		logger.Error("destroy-cant-get-layer-from-graph", err, lager.Data{"id": id, "graphID": cid})
+		return nil
+	}
+
+	return c.cake.Remove(cid)
 }
 
 func (c *CakeOrdinator) GC(logger lager.Logger) error {
