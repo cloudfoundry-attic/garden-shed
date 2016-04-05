@@ -157,7 +157,7 @@ var _ = Describe("Local", func() {
 			Context("and a default was not specified", func() {
 				It("should throw an appropriate error", func() {
 					_, err := fetcher.Fetch(&url.URL{Path: ""}, 0)
-					Expect(err).To(MatchError("RootFSPath: is a required parameter, since no default rootfs was provided to the server. To provide a default rootfs, use the --rootfs flag on startup."))
+					Expect(err).To(MatchError("RootFSPath: is a required parameter, since no default rootfs was provided to the server."))
 				})
 			})
 		})
