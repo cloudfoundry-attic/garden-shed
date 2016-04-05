@@ -33,7 +33,7 @@ func (l *Local) Fetch(repoURL *url.URL, _ int64) (*Image, error) {
 	}
 
 	if len(path) == 0 {
-		return nil, errors.New("RootFSPath: is a required parameter, since no default rootfs was provided to the server. To provide a default rootfs, use the --rootfs flag on startup.")
+		return nil, errors.New("RootFSPath: is a required parameter, since no default rootfs was provided to the server. To provide a default rootfs, use the --default-rootfs flag on startup.")
 	}
 
 	id, err := l.fetch(path)
