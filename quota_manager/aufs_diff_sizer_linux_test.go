@@ -125,7 +125,7 @@ var _ = Describe("AufsLayerSizer", func() {
 					It("returns accurate stats", func() {
 						stats, err := diffSizer.DiffSize(logger, mountDir)
 						Expect(err).NotTo(HaveOccurred())
-						Expect(stats).To(Equal(initialUsage + 7*1024*1024))
+						Expect(stats).To(BeNumerically("~", initialUsage+7*1024*1024, 1024))
 					})
 				})
 			})
