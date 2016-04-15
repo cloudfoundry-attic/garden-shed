@@ -61,9 +61,10 @@ var _ = Describe("AufsLayerSizer", func() {
 		})
 
 		AfterEach(func() {
-			session, err := gexec.Start(exec.Command("umount", mountDir), GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session).Should(gexec.Exit(0))
+			cmd := exec.Command("umount", mountDir)
+			cmd.Stdout = GinkgoWriter
+			cmd.Stderr = GinkgoWriter
+			Expect(cmd.Run()).To(Succeed())
 
 			Expect(os.RemoveAll(mountDir)).To(Succeed())
 			Expect(os.RemoveAll(backingFile.Name())).To(Succeed())
