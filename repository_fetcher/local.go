@@ -97,13 +97,22 @@ type LayerIDProvider struct {
 func (LayerIDProvider) ProvideID(path string) layercake.ID {
 	path, err := resolve(path)
 	if err != nil {
-		return layercake.LocalImageID{path, time.Time{}}
+		return layercake.LocalImageID{
+			Path:         path,
+			ModifiedTime: time.Time{},
+		}
 	}
 
 	info, err := os.Lstat(path)
 	if err != nil {
-		return layercake.LocalImageID{path, time.Time{}}
+		return layercake.LocalImageID{
+			Path:         path,
+			ModifiedTime: time.Time{},
+		}
 	}
 
-	return layercake.LocalImageID{path, info.ModTime()}
+	return layercake.LocalImageID{
+		Path:         path,
+		ModifiedTime: info.ModTime(),
+	}
 }

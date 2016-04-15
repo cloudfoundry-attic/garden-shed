@@ -30,7 +30,10 @@ var _ = Describe("ImageRetainer", func() {
 		fakeRemoteImageIDProvider = new(fakes.FakeRemoteImageIDFetcher)
 
 		fakeDirRootfsProvider.ProvideIDStub = func(id string) layercake.ID {
-			return layercake.LocalImageID{id, time.Time{}}
+			return layercake.LocalImageID{
+				Path:         id,
+				ModifiedTime: time.Time{},
+			}
 		}
 
 		fakeRemoteImageIDProvider.FetchIDStub = func(id *url.URL) (layercake.ID, error) {
@@ -56,7 +59,10 @@ var _ = Describe("ImageRetainer", func() {
 
 				Expect(fakeGraphRetainer.RetainCallCount()).To(Equal(2))
 				_, id := fakeGraphRetainer.RetainArgsForCall(0)
-				Expect(id).To(Equal(layercake.LocalImageID{"/foo/bar/baz", time.Time{}}))
+				Expect(id).To(Equal(layercake.LocalImageID{
+					Path:         "/foo/bar/baz",
+					ModifiedTime: time.Time{},
+				}))
 			})
 
 			It("retains the namespaced version of the image", func() {
@@ -66,7 +72,10 @@ var _ = Describe("ImageRetainer", func() {
 
 				Expect(fakeGraphRetainer.RetainCallCount()).To(Equal(2))
 				_, id := fakeGraphRetainer.RetainArgsForCall(1)
-				Expect(id).To(Equal(layercake.NamespacedID(layercake.LocalImageID{"/foo/bar/baz", time.Time{}}, "chip-sandwhich")))
+				Expect(id).To(Equal(layercake.NamespacedID(layercake.LocalImageID{
+					Path:         "/foo/bar/baz",
+					ModifiedTime: time.Time{},
+				}, "chip-sandwhich")))
 			})
 		})
 
