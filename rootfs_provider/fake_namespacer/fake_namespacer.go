@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
+	"github.com/pivotal-golang/lager"
 )
 
 type FakeNamespacer struct {
@@ -14,9 +15,10 @@ type FakeNamespacer struct {
 	cacheKeyReturns     struct {
 		result1 string
 	}
-	NamespaceStub        func(rootfsPath string) error
+	NamespaceStub        func(log lager.Logger, rootfsPath string) error
 	namespaceMutex       sync.RWMutex
 	namespaceArgsForCall []struct {
+		log        lager.Logger
 		rootfsPath string
 	}
 	namespaceReturns struct {
@@ -48,14 +50,15 @@ func (fake *FakeNamespacer) CacheKeyReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeNamespacer) Namespace(rootfsPath string) error {
+func (fake *FakeNamespacer) Namespace(log lager.Logger, rootfsPath string) error {
 	fake.namespaceMutex.Lock()
 	fake.namespaceArgsForCall = append(fake.namespaceArgsForCall, struct {
+		log        lager.Logger
 		rootfsPath string
-	}{rootfsPath})
+	}{log, rootfsPath})
 	fake.namespaceMutex.Unlock()
 	if fake.NamespaceStub != nil {
-		return fake.NamespaceStub(rootfsPath)
+		return fake.NamespaceStub(log, rootfsPath)
 	} else {
 		return fake.namespaceReturns.result1
 	}
@@ -67,10 +70,10 @@ func (fake *FakeNamespacer) NamespaceCallCount() int {
 	return len(fake.namespaceArgsForCall)
 }
 
-func (fake *FakeNamespacer) NamespaceArgsForCall(i int) string {
+func (fake *FakeNamespacer) NamespaceArgsForCall(i int) (lager.Logger, string) {
 	fake.namespaceMutex.RLock()
 	defer fake.namespaceMutex.RUnlock()
-	return fake.namespaceArgsForCall[i].rootfsPath
+	return fake.namespaceArgsForCall[i].log, fake.namespaceArgsForCall[i].rootfsPath
 }
 
 func (fake *FakeNamespacer) NamespaceReturns(result1 error) {

@@ -38,8 +38,8 @@ func NewRemote(logger lager.Logger, defaultHost string, cake layercake.Cake, dia
 func (r *Remote) Fetch(u *url.URL, diskQuota int64) (*Image, error) {
 	log := r.Logger.Session("fetch", lager.Data{"url": u})
 
-	log.Info("started")
-	defer log.Info("complete")
+	log.Info("start")
+	defer log.Info("finished")
 
 	conn, manifest, err := r.manifest(log, u)
 	if err != nil {
@@ -88,8 +88,8 @@ func (r *Remote) FetchID(u *url.URL) (layercake.ID, error) {
 func (r *Remote) manifest(log lager.Logger, u *url.URL) (distclient.Conn, *distclient.Manifest, error) {
 	log = log.Session("get-manifest", lager.Data{"url": u})
 
-	log.Info("started")
-	defer log.Info("got")
+	log.Debug("started")
+	defer log.Debug("got")
 
 	host := u.Host
 	if host == "" {
@@ -142,16 +142,16 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 		return err
 	}
 
-	log.Info("verifying")
+	log.Debug("verifying")
 	verifiedBlob, err := r.Verifier.Verify(blob, layer.BlobSum)
 	if err != nil {
 		return err
 	}
 
-	log.Info("verified")
+	log.Debug("verified")
 	defer verifiedBlob.Close()
 
-	log.Info("registering")
+	log.Debug("registering")
 	err = r.Cake.Register(&image.Image{
 		ID:     hex(layer.StrongID),
 		Parent: hex(layer.ParentStrongID),

@@ -10,6 +10,8 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fake_namespacer"
 	"github.com/docker/docker/image"
+	"github.com/pivotal-golang/lager"
+	"github.com/pivotal-golang/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -59,6 +61,7 @@ var _ = Describe("Layer Creator", func() {
 				fakeCake.PathReturns("/some/graph/driver/mount/point", nil)
 
 				mountpoint, envvars, err := provider.Create(
+					lagertest.NewTestLogger("test"),
 					"some-id",
 					&repository_fetcher.Image{
 						ImageID: "some-image-id",
@@ -94,6 +97,7 @@ var _ = Describe("Layer Creator", func() {
 				fakeCake.QuotaedPathReturns(quotaedPath, nil)
 
 				mountPointPath, _, err := provider.Create(
+					lagertest.NewTestLogger("test"),
 					"some-id",
 					&repository_fetcher.Image{
 						ImageID: "some-image-id",
@@ -114,6 +118,7 @@ var _ = Describe("Layer Creator", func() {
 					quota := int64(10 * 1024 * 1024)
 
 					_, _, err := provider.Create(
+						lagertest.NewTestLogger("test"),
 						id,
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
@@ -140,6 +145,7 @@ var _ = Describe("Layer Creator", func() {
 					imageSize := int64(5 * 1024 * 1024)
 
 					_, _, err := provider.Create(
+						lagertest.NewTestLogger("test"),
 						id,
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
@@ -167,6 +173,7 @@ var _ = Describe("Layer Creator", func() {
 
 				It("should return an error", func() {
 					_, _, err := provider.Create(
+						lagertest.NewTestLogger("test"),
 						"some-id",
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
@@ -181,6 +188,7 @@ var _ = Describe("Layer Creator", func() {
 
 				It("should not create the volumes", func() {
 					_, _, err := provider.Create(
+						lagertest.NewTestLogger("test"),
 						"some-id",
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
@@ -216,6 +224,7 @@ var _ = Describe("Layer Creator", func() {
 
 					var err error
 					mountpoint, envvars, err = provider.Create(
+						lagertest.NewTestLogger("test"),
 						"some-id",
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
@@ -242,7 +251,7 @@ var _ = Describe("Layer Creator", func() {
 					Expect(containerID).To(Equal("some-id"))
 
 					Expect(fakeNamespacer.NamespaceCallCount()).To(Equal(1))
-					dst := fakeNamespacer.NamespaceArgsForCall(0)
+					_, dst := fakeNamespacer.NamespaceArgsForCall(0)
 					Expect(dst).To(Equal("/mount/point/" + layercake.NamespacedID(layercake.DockerImageID("some-image-id"), "jam").GraphID()))
 
 					Expect(mountpoint).To(Equal("/mount/point/" + layercake.ContainerID("some-id").GraphID()))
@@ -257,7 +266,7 @@ var _ = Describe("Layer Creator", func() {
 				Context("unmounting the translation layer", func() {
 					BeforeEach(func() {
 						// ensure umount doesnt happen too quickly
-						fakeNamespacer.NamespaceStub = func(_ string) error {
+						fakeNamespacer.NamespaceStub = func(_ lager.Logger, _ string) error {
 							Expect(fakeCake.UnmountCallCount()).To(Equal(0))
 							return nil
 						}
@@ -290,6 +299,7 @@ var _ = Describe("Layer Creator", func() {
 
 				It("reuses the translated layer", func() {
 					mountpoint, envvars, err := provider.Create(
+						lagertest.NewTestLogger("test"),
 						"some-id",
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
@@ -325,6 +335,7 @@ var _ = Describe("Layer Creator", func() {
 				fakeCake.PathReturns("/some/graph/driver/mount/point", nil)
 
 				_, _, err := provider.Create(
+					lagertest.NewTestLogger("test"),
 					"some-id",
 					&repository_fetcher.Image{ImageID: "some-image-id", Volumes: []string{"/foo", "/bar"}},
 					rootfs_provider.Spec{
@@ -347,6 +358,7 @@ var _ = Describe("Layer Creator", func() {
 					fakeVolumeCreator.CreateError = errors.New("o nooo")
 
 					_, _, err := provider.Create(
+						lagertest.NewTestLogger("test"),
 						"some-id",
 						&repository_fetcher.Image{ImageID: "some-image-id", Volumes: []string{"/foo", "/bar"}},
 						rootfs_provider.Spec{
@@ -368,6 +380,7 @@ var _ = Describe("Layer Creator", func() {
 
 			It("returns the error", func() {
 				_, _, err := provider.Create(
+					lagertest.NewTestLogger("test"),
 					"some-id",
 					&repository_fetcher.Image{ImageID: "some-image-id"},
 					rootfs_provider.Spec{
@@ -388,6 +401,7 @@ var _ = Describe("Layer Creator", func() {
 
 			It("returns the error", func() {
 				_, _, err := provider.Create(
+					lagertest.NewTestLogger("test"),
 					"some-id",
 					&repository_fetcher.Image{ImageID: "some-image-id"},
 					rootfs_provider.Spec{

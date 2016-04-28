@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fake_translator"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-golang/lager"
+	"github.com/pivotal-golang/lager/lagertest"
 )
 
 var _ = Describe("Namespacer", func() {
@@ -43,7 +43,6 @@ var _ = Describe("Namespacer", func() {
 		}
 
 		namespacer = &rootfs_provider.UidNamespacer{
-			Logger:     lager.NewLogger("test"),
 			Translator: translator,
 		}
 	})
@@ -54,7 +53,7 @@ var _ = Describe("Namespacer", func() {
 	})
 
 	It("translate the root directory", func() {
-		err := namespacer.Namespace(rootfs)
+		err := namespacer.Namespace(lagertest.NewTestLogger("test"), rootfs)
 
 		info, err := os.Stat(rootfs)
 		Expect(err).NotTo(HaveOccurred())
@@ -69,7 +68,7 @@ var _ = Describe("Namespacer", func() {
 	})
 
 	It("translates all of the uids", func() {
-		err := namespacer.Namespace(rootfs)
+		err := namespacer.Namespace(lagertest.NewTestLogger("test"), rootfs)
 
 		info, err := os.Stat(filepath.Join(rootfs, "foo", "bar", "baz"))
 		Expect(err).NotTo(HaveOccurred())

@@ -26,7 +26,7 @@ func (a *AUFSBaseSizer) BaseSize(logger lager.Logger, containerRootFSPath string
 			return 0, fmt.Errorf("base-size %s: %s", graphID, err)
 		}
 
-		logger.Info("base-size", lager.Data{
+		logger.Debug("base-size", lager.Data{
 			"layer":      graphID,
 			"size":       img.Size,
 			"total-size": size,

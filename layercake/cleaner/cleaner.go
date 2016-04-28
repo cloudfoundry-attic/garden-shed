@@ -35,7 +35,9 @@ func NewOvenCleaner(retainCheck Checker, graphCleanupThreshold Threshold) *OvenC
 
 func (g *OvenCleaner) GC(log lager.Logger, cake layercake.Cake) error {
 	log = log.Session("gc")
+
 	log.Info("start")
+	defer log.Info("finished")
 
 	if exceeded := g.GraphCleanupThreshold.Exceeded(log, cake); !exceeded {
 		log.Debug("threshold-not-exceeded")
@@ -57,14 +59,19 @@ func (g *OvenCleaner) GC(log lager.Logger, cake layercake.Cake) error {
 }
 
 func (g *OvenCleaner) removeRecursively(log lager.Logger, cake layercake.Cake, id layercake.ID) error {
+	log = log.Session("remove-recursively", lager.Data{"id": id})
+
+	log.Debug("start")
+	defer log.Debug("finished")
+
 	if g.retainCheck.Check(id) {
-		log.Info("layer-is-held")
+		log.Debug("layer-is-held")
 		return nil
 	}
 
 	img, err := cake.Get(id)
 	if err != nil {
-		log.Error("get-image", err)
+		log.Error("get-image-failed", err)
 		return nil
 	}
 
@@ -74,7 +81,7 @@ func (g *OvenCleaner) removeRecursively(log lager.Logger, cake layercake.Cake, i
 	}
 
 	if err := cake.Remove(id); err != nil {
-		log.Error("remove-image", err)
+		log.Error("remove-image-failed", err)
 		return err
 	}
 
@@ -87,8 +94,6 @@ func (g *OvenCleaner) removeRecursively(log lager.Logger, cake layercake.Cake, i
 		log.Debug("has-parent-leaf", lager.Data{"parent-id": img.Parent})
 		return g.removeRecursively(log, cake, layercake.DockerImageID(img.Parent))
 	}
-
-	log.Info("finish")
 
 	return nil
 }

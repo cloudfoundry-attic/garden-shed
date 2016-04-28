@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
+	"github.com/pivotal-golang/lager"
 )
 
 type ContainerLayerCreator struct {
@@ -28,13 +29,13 @@ func NewLayerCreator(
 	}
 }
 
-func (provider *ContainerLayerCreator) Create(id string, parentImage *repository_fetcher.Image, spec Spec) (string, []string, error) {
+func (provider *ContainerLayerCreator) Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec Spec) (string, []string, error) {
 	var err error
 	var imageID layercake.ID = layercake.DockerImageID(parentImage.ImageID)
 
 	if spec.Namespaced {
 		provider.mutex.Lock()
-		imageID, err = provider.namespace(imageID)
+		imageID, err = provider.namespace(log, imageID)
 		provider.mutex.Unlock()
 		if err != nil {
 			return "", nil, err
@@ -68,11 +69,11 @@ func (provider *ContainerLayerCreator) Create(id string, parentImage *repository
 	return rootPath, parentImage.Env, nil
 }
 
-func (provider *ContainerLayerCreator) namespace(imageID layercake.ID) (layercake.ID, error) {
+func (provider *ContainerLayerCreator) namespace(log lager.Logger, imageID layercake.ID) (layercake.ID, error) {
 	namespacedImageID := layercake.NamespacedID(imageID, provider.namespacer.CacheKey())
 
 	if _, err := provider.graph.Get(namespacedImageID); err != nil {
-		if err := provider.createNamespacedLayer(namespacedImageID, imageID); err != nil {
+		if err := provider.createNamespacedLayer(log, namespacedImageID, imageID); err != nil {
 			return nil, err
 		}
 	}
@@ -80,7 +81,7 @@ func (provider *ContainerLayerCreator) namespace(imageID layercake.ID) (layercak
 	return namespacedImageID, nil
 }
 
-func (provider *ContainerLayerCreator) createNamespacedLayer(id, parentId layercake.ID) error {
+func (provider *ContainerLayerCreator) createNamespacedLayer(log lager.Logger, id, parentId layercake.ID) error {
 	var err error
 	var path string
 	if path, err = provider.createLayer(id, parentId); err != nil {
@@ -88,7 +89,7 @@ func (provider *ContainerLayerCreator) createNamespacedLayer(id, parentId layerc
 	}
 
 	defer provider.unmountTranslationLayer(id)
-	return provider.namespacer.Namespace(path)
+	return provider.namespacer.Namespace(log, path)
 }
 
 func (provider *ContainerLayerCreator) unmountTranslationLayer(id layercake.ID) {

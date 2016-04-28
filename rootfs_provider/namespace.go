@@ -10,7 +10,7 @@ import (
 //go:generate counterfeiter -o fake_namespacer/fake_namespacer.go . Namespacer
 type Namespacer interface {
 	CacheKey() string
-	Namespace(rootfsPath string) error
+	Namespace(log lager.Logger, rootfsPath string) error
 }
 
 //go:generate counterfeiter -o fake_translator/fake_translator.go . Translator
@@ -21,11 +21,10 @@ type Translator interface {
 
 type UidNamespacer struct {
 	Translator Translator
-	Logger     lager.Logger
 }
 
-func (n *UidNamespacer) Namespace(rootfsPath string) error {
-	log := n.Logger.Session("namespace-rootfs", lager.Data{
+func (n *UidNamespacer) Namespace(log lager.Logger, rootfsPath string) error {
+	log = log.Session("namespace-rootfs", lager.Data{
 		"path": rootfsPath,
 	})
 

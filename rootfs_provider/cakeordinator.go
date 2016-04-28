@@ -12,7 +12,7 @@ import (
 
 //go:generate counterfeiter . LayerCreator
 type LayerCreator interface {
-	Create(id string, parentImage *repository_fetcher.Image, spec Spec) (string, []string, error)
+	Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec Spec) (string, []string, error)
 }
 
 //go:generate counterfeiter . RepositoryFetcher
@@ -67,7 +67,7 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 		return "", nil, err
 	}
 
-	return c.layerCreator.Create(id, image, spec)
+	return c.layerCreator.Create(logger, id, image, spec)
 }
 
 func (c *CakeOrdinator) Metrics(logger lager.Logger, id string) (garden.ContainerDiskStat, error) {

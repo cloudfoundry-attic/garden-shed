@@ -23,6 +23,7 @@ type ImageRetainer struct {
 
 func (i *ImageRetainer) Retain(imageList []string) {
 	log := i.Logger.Session("retain")
+
 	log.Info("starting")
 	defer log.Info("retained")
 
@@ -32,13 +33,13 @@ func (i *ImageRetainer) Retain(imageList []string) {
 
 		rootfsURL, err := url.Parse(image)
 		if err != nil {
-			log.Error("parse", err)
+			log.Error("parse-rootfs-failed", err)
 			continue
 		}
 
 		var id layercake.ID
 		if id, err = i.toID(rootfsURL); err != nil {
-			log.Error("convert", err)
+			log.Error("convert-to-id-failed", err)
 			continue
 		}
 

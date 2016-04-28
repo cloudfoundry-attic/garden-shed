@@ -59,7 +59,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				Expect(err).To(MatchError("cake"))
 
 				Expect(fakeLayerCreator.CreateCallCount()).To(Equal(1))
-				containerID, parentImage, layerCreatorSpec := fakeLayerCreator.CreateArgsForCall(0)
+				_, containerID, parentImage, layerCreatorSpec := fakeLayerCreator.CreateArgsForCall(0)
 				Expect(containerID).To(Equal("container-id"))
 				Expect(parentImage).To(Equal(image))
 				Expect(layerCreatorSpec).To(Equal(spec))

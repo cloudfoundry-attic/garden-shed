@@ -6,12 +6,14 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
+	"github.com/pivotal-golang/lager"
 )
 
 type FakeLayerCreator struct {
-	CreateStub        func(id string, parentImage *repository_fetcher.Image, spec rootfs_provider.Spec) (string, []string, error)
+	CreateStub        func(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec rootfs_provider.Spec) (string, []string, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
+		log         lager.Logger
 		id          string
 		parentImage *repository_fetcher.Image
 		spec        rootfs_provider.Spec
@@ -23,16 +25,17 @@ type FakeLayerCreator struct {
 	}
 }
 
-func (fake *FakeLayerCreator) Create(id string, parentImage *repository_fetcher.Image, spec rootfs_provider.Spec) (string, []string, error) {
+func (fake *FakeLayerCreator) Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec rootfs_provider.Spec) (string, []string, error) {
 	fake.createMutex.Lock()
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
+		log         lager.Logger
 		id          string
 		parentImage *repository_fetcher.Image
 		spec        rootfs_provider.Spec
-	}{id, parentImage, spec})
+	}{log, id, parentImage, spec})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
-		return fake.CreateStub(id, parentImage, spec)
+		return fake.CreateStub(log, id, parentImage, spec)
 	} else {
 		return fake.createReturns.result1, fake.createReturns.result2, fake.createReturns.result3
 	}
@@ -44,10 +47,10 @@ func (fake *FakeLayerCreator) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeLayerCreator) CreateArgsForCall(i int) (string, *repository_fetcher.Image, rootfs_provider.Spec) {
+func (fake *FakeLayerCreator) CreateArgsForCall(i int) (lager.Logger, string, *repository_fetcher.Image, rootfs_provider.Spec) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
-	return fake.createArgsForCall[i].id, fake.createArgsForCall[i].parentImage, fake.createArgsForCall[i].spec
+	return fake.createArgsForCall[i].log, fake.createArgsForCall[i].id, fake.createArgsForCall[i].parentImage, fake.createArgsForCall[i].spec
 }
 
 func (fake *FakeLayerCreator) CreateReturns(result1 string, result2 []string, result3 error) {
