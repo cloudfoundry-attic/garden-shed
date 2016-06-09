@@ -31,6 +31,8 @@ type FakeConn struct {
 		result1 io.Reader
 		result2 error
 	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeConn) GetManifest(logger lager.Logger, tag string) (*distclient.Manifest, error) {
@@ -39,6 +41,7 @@ func (fake *FakeConn) GetManifest(logger lager.Logger, tag string) (*distclient.
 		logger lager.Logger
 		tag    string
 	}{logger, tag})
+	fake.recordInvocation("GetManifest", []interface{}{logger, tag})
 	fake.getManifestMutex.Unlock()
 	if fake.GetManifestStub != nil {
 		return fake.GetManifestStub(logger, tag)
@@ -73,6 +76,7 @@ func (fake *FakeConn) GetBlobReader(logger lager.Logger, d digest.Digest) (io.Re
 		logger lager.Logger
 		d      digest.Digest
 	}{logger, d})
+	fake.recordInvocation("GetBlobReader", []interface{}{logger, d})
 	fake.getBlobReaderMutex.Unlock()
 	if fake.GetBlobReaderStub != nil {
 		return fake.GetBlobReaderStub(logger, d)
@@ -99,6 +103,28 @@ func (fake *FakeConn) GetBlobReaderReturns(result1 io.Reader, result2 error) {
 		result1 io.Reader
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeConn) Invocations() map[string][][]interface{} {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	fake.getManifestMutex.RLock()
+	defer fake.getManifestMutex.RUnlock()
+	fake.getBlobReaderMutex.RLock()
+	defer fake.getBlobReaderMutex.RUnlock()
+	return fake.invocations
+}
+
+func (fake *FakeConn) recordInvocation(key string, args []interface{}) {
+	fake.invocationsMutex.Lock()
+	defer fake.invocationsMutex.Unlock()
+	if fake.invocations == nil {
+		fake.invocations = map[string][][]interface{}{}
+	}
+	if fake.invocations[key] == nil {
+		fake.invocations[key] = [][]interface{}{}
+	}
+	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
 var _ distclient.Conn = new(FakeConn)

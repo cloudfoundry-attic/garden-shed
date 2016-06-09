@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	. "github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/fakes"
+	fakes "github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/repository_fetcherfakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

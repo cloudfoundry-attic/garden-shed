@@ -15,6 +15,8 @@ type FakeRetainer struct {
 		log lager.Logger
 		id  layercake.ID
 	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeRetainer) Retain(log lager.Logger, id layercake.ID) {
@@ -23,6 +25,7 @@ func (fake *FakeRetainer) Retain(log lager.Logger, id layercake.ID) {
 		log lager.Logger
 		id  layercake.ID
 	}{log, id})
+	fake.recordInvocation("Retain", []interface{}{log, id})
 	fake.retainMutex.Unlock()
 	if fake.RetainStub != nil {
 		fake.RetainStub(log, id)
@@ -39,6 +42,26 @@ func (fake *FakeRetainer) RetainArgsForCall(i int) (lager.Logger, layercake.ID) 
 	fake.retainMutex.RLock()
 	defer fake.retainMutex.RUnlock()
 	return fake.retainArgsForCall[i].log, fake.retainArgsForCall[i].id
+}
+
+func (fake *FakeRetainer) Invocations() map[string][][]interface{} {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	fake.retainMutex.RLock()
+	defer fake.retainMutex.RUnlock()
+	return fake.invocations
+}
+
+func (fake *FakeRetainer) recordInvocation(key string, args []interface{}) {
+	fake.invocationsMutex.Lock()
+	defer fake.invocationsMutex.Unlock()
+	if fake.invocations == nil {
+		fake.invocations = map[string][][]interface{}{}
+	}
+	if fake.invocations[key] == nil {
+		fake.invocations[key] = [][]interface{}{}
+	}
+	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
 var _ layercake.Retainer = new(FakeRetainer)

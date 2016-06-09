@@ -9,7 +9,7 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
-	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fakes"
+	fakes "github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/rootfs_providerfakes"
 	"github.com/pivotal-golang/lager"
 	"github.com/pivotal-golang/lager/lagertest"
 

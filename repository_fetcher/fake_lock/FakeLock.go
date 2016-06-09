@@ -21,6 +21,8 @@ type FakeLock struct {
 	releaseReturns struct {
 		result1 error
 	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeLock) Acquire(key string) {
@@ -28,6 +30,7 @@ func (fake *FakeLock) Acquire(key string) {
 	fake.acquireArgsForCall = append(fake.acquireArgsForCall, struct {
 		key string
 	}{key})
+	fake.recordInvocation("Acquire", []interface{}{key})
 	fake.acquireMutex.Unlock()
 	if fake.AcquireStub != nil {
 		fake.AcquireStub(key)
@@ -51,6 +54,7 @@ func (fake *FakeLock) Release(key string) error {
 	fake.releaseArgsForCall = append(fake.releaseArgsForCall, struct {
 		key string
 	}{key})
+	fake.recordInvocation("Release", []interface{}{key})
 	fake.releaseMutex.Unlock()
 	if fake.ReleaseStub != nil {
 		return fake.ReleaseStub(key)
@@ -76,6 +80,28 @@ func (fake *FakeLock) ReleaseReturns(result1 error) {
 	fake.releaseReturns = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeLock) Invocations() map[string][][]interface{} {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	fake.acquireMutex.RLock()
+	defer fake.acquireMutex.RUnlock()
+	fake.releaseMutex.RLock()
+	defer fake.releaseMutex.RUnlock()
+	return fake.invocations
+}
+
+func (fake *FakeLock) recordInvocation(key string, args []interface{}) {
+	fake.invocationsMutex.Lock()
+	defer fake.invocationsMutex.Unlock()
+	if fake.invocations == nil {
+		fake.invocations = map[string][][]interface{}{}
+	}
+	if fake.invocations[key] == nil {
+		fake.invocations[key] = [][]interface{}{}
+	}
+	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
 var _ repository_fetcher.Lock = new(FakeLock)

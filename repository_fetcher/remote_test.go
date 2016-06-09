@@ -17,7 +17,7 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/fakes"
+	fakes "github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/repository_fetcherfakes"
 	"github.com/docker/distribution/digest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

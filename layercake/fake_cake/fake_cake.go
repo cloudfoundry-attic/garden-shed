@@ -101,11 +101,14 @@ type FakeCake struct {
 	allReturns     struct {
 		result1 []*image.Image
 	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeCake) DriverName() string {
 	fake.driverNameMutex.Lock()
 	fake.driverNameArgsForCall = append(fake.driverNameArgsForCall, struct{}{})
+	fake.recordInvocation("DriverName", []interface{}{})
 	fake.driverNameMutex.Unlock()
 	if fake.DriverNameStub != nil {
 		return fake.DriverNameStub()
@@ -134,6 +137,7 @@ func (fake *FakeCake) Create(layerID layercake.ID, parentID layercake.ID, contai
 		parentID    layercake.ID
 		containerID string
 	}{layerID, parentID, containerID})
+	fake.recordInvocation("Create", []interface{}{layerID, parentID, containerID})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
 		return fake.CreateStub(layerID, parentID, containerID)
@@ -167,6 +171,7 @@ func (fake *FakeCake) Register(img *image.Image, layer archive.ArchiveReader) er
 		img   *image.Image
 		layer archive.ArchiveReader
 	}{img, layer})
+	fake.recordInvocation("Register", []interface{}{img, layer})
 	fake.registerMutex.Unlock()
 	if fake.RegisterStub != nil {
 		return fake.RegisterStub(img, layer)
@@ -199,6 +204,7 @@ func (fake *FakeCake) Get(id layercake.ID) (*image.Image, error) {
 	fake.getArgsForCall = append(fake.getArgsForCall, struct {
 		id layercake.ID
 	}{id})
+	fake.recordInvocation("Get", []interface{}{id})
 	fake.getMutex.Unlock()
 	if fake.GetStub != nil {
 		return fake.GetStub(id)
@@ -232,6 +238,7 @@ func (fake *FakeCake) Unmount(id layercake.ID) error {
 	fake.unmountArgsForCall = append(fake.unmountArgsForCall, struct {
 		id layercake.ID
 	}{id})
+	fake.recordInvocation("Unmount", []interface{}{id})
 	fake.unmountMutex.Unlock()
 	if fake.UnmountStub != nil {
 		return fake.UnmountStub(id)
@@ -264,6 +271,7 @@ func (fake *FakeCake) Remove(id layercake.ID) error {
 	fake.removeArgsForCall = append(fake.removeArgsForCall, struct {
 		id layercake.ID
 	}{id})
+	fake.recordInvocation("Remove", []interface{}{id})
 	fake.removeMutex.Unlock()
 	if fake.RemoveStub != nil {
 		return fake.RemoveStub(id)
@@ -296,6 +304,7 @@ func (fake *FakeCake) Path(id layercake.ID) (string, error) {
 	fake.pathArgsForCall = append(fake.pathArgsForCall, struct {
 		id layercake.ID
 	}{id})
+	fake.recordInvocation("Path", []interface{}{id})
 	fake.pathMutex.Unlock()
 	if fake.PathStub != nil {
 		return fake.PathStub(id)
@@ -330,6 +339,7 @@ func (fake *FakeCake) QuotaedPath(id layercake.ID, quota int64) (string, error) 
 		id    layercake.ID
 		quota int64
 	}{id, quota})
+	fake.recordInvocation("QuotaedPath", []interface{}{id, quota})
 	fake.quotaedPathMutex.Unlock()
 	if fake.QuotaedPathStub != nil {
 		return fake.QuotaedPathStub(id, quota)
@@ -363,6 +373,7 @@ func (fake *FakeCake) IsLeaf(id layercake.ID) (bool, error) {
 	fake.isLeafArgsForCall = append(fake.isLeafArgsForCall, struct {
 		id layercake.ID
 	}{id})
+	fake.recordInvocation("IsLeaf", []interface{}{id})
 	fake.isLeafMutex.Unlock()
 	if fake.IsLeafStub != nil {
 		return fake.IsLeafStub(id)
@@ -394,6 +405,7 @@ func (fake *FakeCake) IsLeafReturns(result1 bool, result2 error) {
 func (fake *FakeCake) GetAllLeaves() ([]layercake.ID, error) {
 	fake.getAllLeavesMutex.Lock()
 	fake.getAllLeavesArgsForCall = append(fake.getAllLeavesArgsForCall, struct{}{})
+	fake.recordInvocation("GetAllLeaves", []interface{}{})
 	fake.getAllLeavesMutex.Unlock()
 	if fake.GetAllLeavesStub != nil {
 		return fake.GetAllLeavesStub()
@@ -419,6 +431,7 @@ func (fake *FakeCake) GetAllLeavesReturns(result1 []layercake.ID, result2 error)
 func (fake *FakeCake) All() []*image.Image {
 	fake.allMutex.Lock()
 	fake.allArgsForCall = append(fake.allArgsForCall, struct{}{})
+	fake.recordInvocation("All", []interface{}{})
 	fake.allMutex.Unlock()
 	if fake.AllStub != nil {
 		return fake.AllStub()
@@ -438,6 +451,46 @@ func (fake *FakeCake) AllReturns(result1 []*image.Image) {
 	fake.allReturns = struct {
 		result1 []*image.Image
 	}{result1}
+}
+
+func (fake *FakeCake) Invocations() map[string][][]interface{} {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	fake.driverNameMutex.RLock()
+	defer fake.driverNameMutex.RUnlock()
+	fake.createMutex.RLock()
+	defer fake.createMutex.RUnlock()
+	fake.registerMutex.RLock()
+	defer fake.registerMutex.RUnlock()
+	fake.getMutex.RLock()
+	defer fake.getMutex.RUnlock()
+	fake.unmountMutex.RLock()
+	defer fake.unmountMutex.RUnlock()
+	fake.removeMutex.RLock()
+	defer fake.removeMutex.RUnlock()
+	fake.pathMutex.RLock()
+	defer fake.pathMutex.RUnlock()
+	fake.quotaedPathMutex.RLock()
+	defer fake.quotaedPathMutex.RUnlock()
+	fake.isLeafMutex.RLock()
+	defer fake.isLeafMutex.RUnlock()
+	fake.getAllLeavesMutex.RLock()
+	defer fake.getAllLeavesMutex.RUnlock()
+	fake.allMutex.RLock()
+	defer fake.allMutex.RUnlock()
+	return fake.invocations
+}
+
+func (fake *FakeCake) recordInvocation(key string, args []interface{}) {
+	fake.invocationsMutex.Lock()
+	defer fake.invocationsMutex.Unlock()
+	if fake.invocations == nil {
+		fake.invocations = map[string][][]interface{}{}
+	}
+	if fake.invocations[key] == nil {
+		fake.invocations[key] = [][]interface{}{}
+	}
+	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
 var _ layercake.Cake = new(FakeCake)

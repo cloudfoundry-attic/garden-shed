@@ -5,7 +5,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/cleaner"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake/cleaner/fakes"
+	fakes "github.com/cloudfoundry-incubator/garden-shed/layercake/cleaner/cleanerfakes"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/docker/docker/image"
 	. "github.com/onsi/ginkgo"

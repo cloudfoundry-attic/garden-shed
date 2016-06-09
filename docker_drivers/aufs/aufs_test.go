@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
-	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/fakes"
+	fakes "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/aufsfakes"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

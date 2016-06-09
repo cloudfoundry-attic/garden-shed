@@ -7,7 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/cloudfoundry-incubator/garden-shed/quota_manager"
-	"github.com/cloudfoundry-incubator/garden-shed/quota_manager/fakes"
+	fakes "github.com/cloudfoundry-incubator/garden-shed/quota_manager/quota_managerfakes"
 	"github.com/pivotal-golang/lager"
 	"github.com/pivotal-golang/lager/lagertest"
 
