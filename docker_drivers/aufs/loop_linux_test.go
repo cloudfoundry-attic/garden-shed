@@ -65,7 +65,7 @@ var _ = Describe("LoopLinux", func() {
 	})
 
 	Describe("MountFile", func() {
-		It("mounts the file with noatime and journal_data_writeback options", func() {
+		It("mounts the file with noatime but not the journal_data_writeback options", func() {
 			Expect(loop.MountFile(bsFilePath, destPath)).To(Succeed())
 
 			session, err := gexec.Start(exec.Command("losetup", "-j", bsFilePath), GinkgoWriter, GinkgoWriter)
@@ -74,7 +74,8 @@ var _ = Describe("LoopLinux", func() {
 
 			session, err = gexec.Start(exec.Command("cat", "/proc/mounts"), GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(session).Should(gbytes.Say(fmt.Sprintf("%s %s ext4 rw,noatime,data=writeback", loopDev, destPath)))
+			Eventually(session).Should(gbytes.Say(fmt.Sprintf("%s %s ext4 rw,noatime", loopDev, destPath)))
+			Expect(session).NotTo(gbytes.Say(",data=writeback"))
 		})
 
 		Context("when using a file that does not exist", func() {
