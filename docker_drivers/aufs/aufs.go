@@ -7,7 +7,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/daemon/graphdriver"
-	"github.com/pivotal-golang/lager"
+	"code.cloudfoundry.org/lager"
 )
 
 type UnmountFunc func(target string) error

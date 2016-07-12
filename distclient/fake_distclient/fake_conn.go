@@ -7,7 +7,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden-shed/distclient"
 	"github.com/docker/distribution/digest"
-	"github.com/pivotal-golang/lager"
+	"code.cloudfoundry.org/lager"
 )
 
 type FakeConn struct {

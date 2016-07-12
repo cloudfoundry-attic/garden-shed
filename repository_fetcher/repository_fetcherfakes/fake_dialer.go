@@ -6,7 +6,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden-shed/distclient"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
-	"github.com/pivotal-golang/lager"
+	"code.cloudfoundry.org/lager"
 )
 
 type FakeDialer struct {

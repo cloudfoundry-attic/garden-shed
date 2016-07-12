@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/pivotal-golang/lager"
+	"code.cloudfoundry.org/lager"
 )
 
 const MAX_ATTEMPTS = 3

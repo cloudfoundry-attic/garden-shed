@@ -1,6 +1,6 @@
 package layercake
 
-import "github.com/pivotal-golang/lager"
+import "code.cloudfoundry.org/lager"
 
 //go:generate counterfeiter -o fake_id_provider/fake_id_provider.go . IDProvider
 type IDProvider interface {

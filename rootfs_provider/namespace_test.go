@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fake_translator"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-golang/lager/lagertest"
+	"code.cloudfoundry.org/lager/lagertest"
 )
 
 var _ = Describe("Namespacer", func() {

@@ -11,7 +11,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/garden-shed/distclient"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/pivotal-golang/lager"
+	"code.cloudfoundry.org/lager"
 )
 
 type Remote struct {

@@ -3,7 +3,7 @@ package rootfs_provider
 import (
 	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/pivotal-golang/lager"
+	"code.cloudfoundry.org/lager"
 )
 
 type GetUsageFunc func(logger lager.Logger, rootfsPath string) (garden.ContainerDiskStat, error)

@@ -7,8 +7,8 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-golang/lager"
-	"github.com/pivotal-golang/lager/lagertest"
+	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/lagertest"
 )
 
 var _ = Describe("Metrics Adapter", func() {

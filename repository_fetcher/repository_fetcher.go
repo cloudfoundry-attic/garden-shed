@@ -8,7 +8,7 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/distribution"
 	"github.com/docker/docker/registry"
-	"github.com/pivotal-golang/lager"
+	"code.cloudfoundry.org/lager"
 )
 
 //go:generate counterfeiter -o fake_lock/FakeLock.go . Lock

@@ -2,7 +2,7 @@ package quota_manager
 
 import (
 	"github.com/cloudfoundry-incubator/garden"
-	"github.com/pivotal-golang/lager"
+	"code.cloudfoundry.org/lager"
 )
 
 type DisabledQuotaManager struct{}

@@ -2,7 +2,7 @@ package cleaner
 
 import (
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/pivotal-golang/lager"
+	"code.cloudfoundry.org/lager"
 )
 
 type threshold int64
