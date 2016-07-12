@@ -4,10 +4,10 @@ package rootfs_providerfakes
 import (
 	"sync"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
-	"code.cloudfoundry.org/lager"
 )
 
 type FakeMetricser struct {

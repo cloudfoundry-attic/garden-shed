@@ -4,12 +4,12 @@ import (
 	"errors"
 	"net/url"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	fakes "github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/repository_fetcherfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/lager/lagertest"
 )
 
 var _ = Describe("Retryable", func() {

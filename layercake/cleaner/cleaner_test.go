@@ -3,6 +3,8 @@ package cleaner_test
 import (
 	"errors"
 
+	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/cleaner"
 	fakes "github.com/cloudfoundry-incubator/garden-shed/layercake/cleaner/cleanerfakes"
@@ -10,8 +12,6 @@ import (
 	"github.com/docker/docker/image"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/lager"
-	"code.cloudfoundry.org/lager/lagertest"
 )
 
 var _ = Describe("Oven cleaner", func() {

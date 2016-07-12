@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	quotaedaufs "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/daemon/graphdriver"
@@ -17,7 +18,6 @@ import (
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/eapache/go-resiliency/retrier"
-	"code.cloudfoundry.org/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

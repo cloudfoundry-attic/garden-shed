@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fake_translator"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/lager/lagertest"
 )
 
 var _ = Describe("Namespacer", func() {

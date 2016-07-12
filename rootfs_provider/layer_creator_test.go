@@ -3,6 +3,8 @@ package rootfs_provider_test
 import (
 	"errors"
 
+	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
@@ -10,8 +12,6 @@ import (
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/fake_namespacer"
 	"github.com/docker/docker/image"
-	"code.cloudfoundry.org/lager"
-	"code.cloudfoundry.org/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

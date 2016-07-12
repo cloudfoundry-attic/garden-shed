@@ -11,13 +11,13 @@ import (
 
 	"github.com/docker/docker/image"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/digest"
 	"github.com/docker/distribution/manifest"
 	"github.com/docker/distribution/registry/client"
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
-	"code.cloudfoundry.org/lager"
 	"golang.org/x/net/context"
 )
 

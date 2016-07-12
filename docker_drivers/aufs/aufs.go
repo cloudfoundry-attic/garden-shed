@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/daemon/graphdriver"
-	"code.cloudfoundry.org/lager"
 )
 
 type UnmountFunc func(target string) error

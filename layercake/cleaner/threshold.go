@@ -1,8 +1,8 @@
 package cleaner
 
 import (
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"code.cloudfoundry.org/lager"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 )
 
 type threshold int64

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"code.cloudfoundry.org/lager"
+	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 )
 
 type AUFSBaseSizer struct {

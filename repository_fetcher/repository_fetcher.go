@@ -5,10 +5,10 @@ import (
 	"io"
 	"net/url"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/distribution"
 	"github.com/docker/docker/registry"
-	"code.cloudfoundry.org/lager"
 )
 
 //go:generate counterfeiter -o fake_lock/FakeLock.go . Lock

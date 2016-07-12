@@ -1,13 +1,13 @@
 package cleaner_test
 
 import (
+	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/cleaner"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/docker/docker/image"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/lager"
-	"code.cloudfoundry.org/lager/lagertest"
 )
 
 var _ = Describe("Threshold", func() {

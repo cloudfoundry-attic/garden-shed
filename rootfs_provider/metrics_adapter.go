@@ -1,9 +1,9 @@
 package rootfs_provider
 
 import (
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"code.cloudfoundry.org/lager"
 )
 
 type GetUsageFunc func(logger lager.Logger, rootfsPath string) (garden.ContainerDiskStat, error)

@@ -6,10 +6,10 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/cloudfoundry-incubator/garden-shed/quota_manager"
-	fakes "github.com/cloudfoundry-incubator/garden-shed/quota_manager/quota_managerfakes"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagertest"
+	"github.com/cloudfoundry-incubator/garden-shed/quota_manager"
+	fakes "github.com/cloudfoundry-incubator/garden-shed/quota_manager/quota_managerfakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -10,13 +10,13 @@ import (
 	"syscall"
 	"time"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
 	fakes "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/aufsfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"code.cloudfoundry.org/lager/lagertest"
 )
 
 const (

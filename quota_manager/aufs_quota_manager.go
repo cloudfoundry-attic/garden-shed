@@ -1,8 +1,8 @@
 package quota_manager
 
 import (
-	"github.com/cloudfoundry-incubator/garden"
 	"code.cloudfoundry.org/lager"
+	"github.com/cloudfoundry-incubator/garden"
 )
 
 //go:generate counterfeiter . AUFSDiffPathFinder

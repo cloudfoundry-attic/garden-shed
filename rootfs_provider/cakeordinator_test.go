@@ -4,14 +4,14 @@ import (
 	"errors"
 	"net/url"
 
+	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
 	fakes "github.com/cloudfoundry-incubator/garden-shed/rootfs_provider/rootfs_providerfakes"
-	"code.cloudfoundry.org/lager"
-	"code.cloudfoundry.org/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

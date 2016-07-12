@@ -12,6 +12,8 @@ import (
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/runconfig"
 
+	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden-shed/distclient"
 	"github.com/cloudfoundry-incubator/garden-shed/distclient/fake_distclient"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
@@ -21,8 +23,6 @@ import (
 	"github.com/docker/distribution/digest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/lager"
-	"code.cloudfoundry.org/lager/lagertest"
 )
 
 var _ = Describe("Fetching from a Remote repo", func() {

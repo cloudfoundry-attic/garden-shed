@@ -3,12 +3,12 @@ package aufs_test
 import (
 	"errors"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
 	fakes "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/aufsfakes"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/lager/lagertest"
 )
 
 var _ = Describe("QuotaedDriver", func() {

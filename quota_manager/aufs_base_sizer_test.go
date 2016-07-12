@@ -3,12 +3,12 @@ package quota_manager_test
 import (
 	"errors"
 
+	"code.cloudfoundry.org/lager"
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
 	"github.com/cloudfoundry-incubator/garden-shed/quota_manager"
 	"github.com/docker/docker/image"
-	"code.cloudfoundry.org/lager"
-	"code.cloudfoundry.org/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

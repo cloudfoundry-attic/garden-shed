@@ -5,9 +5,9 @@ import (
 	"io"
 	"sync"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/garden-shed/distclient"
 	"github.com/docker/distribution/digest"
-	"code.cloudfoundry.org/lager"
 )
 
 type FakeConn struct {
