@@ -1,7 +1,7 @@
 package distclient_test
 
 import (
-	"github.com/cloudfoundry-incubator/garden-shed/distclient"
+	"code.cloudfoundry.org/garden-shed/distclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

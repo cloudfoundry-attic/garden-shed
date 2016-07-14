@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
+	"code.cloudfoundry.org/garden-shed/rootfs_provider"
 )
 
 type FakeTranslator struct {

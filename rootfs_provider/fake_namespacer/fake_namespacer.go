@@ -4,8 +4,8 @@ package fake_namespacer
 import (
 	"sync"
 
+	"code.cloudfoundry.org/garden-shed/rootfs_provider"
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
 )
 
 type FakeNamespacer struct {

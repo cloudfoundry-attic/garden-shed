@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cloudfoundry-incubator/garden-shed/pkg/chown"
+	"code.cloudfoundry.org/garden-shed/pkg/chown"
 )
 
 var chownFunc = chown.Chown

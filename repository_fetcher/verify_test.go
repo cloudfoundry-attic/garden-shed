@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
+	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"github.com/docker/distribution/digest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

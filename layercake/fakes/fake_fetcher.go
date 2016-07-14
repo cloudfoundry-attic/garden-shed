@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/layercake"
 	"github.com/docker/docker/image"
 )
 

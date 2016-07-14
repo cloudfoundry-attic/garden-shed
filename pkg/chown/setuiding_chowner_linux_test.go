@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/garden-shed/pkg/chown"
+	"code.cloudfoundry.org/garden-shed/pkg/chown"
 	"github.com/onsi/gomega/gexec"
 )
 

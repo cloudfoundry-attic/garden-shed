@@ -3,10 +3,10 @@ package rootfs_provider
 import (
 	"sync"
 
+	"code.cloudfoundry.org/garden"
+	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/garden"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 )
 
 type ContainerLayerCreator struct {

@@ -4,7 +4,7 @@ package aufsfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
+	"code.cloudfoundry.org/garden-shed/docker_drivers/aufs"
 	"github.com/docker/docker/pkg/archive"
 )
 

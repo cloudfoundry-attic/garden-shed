@@ -4,9 +4,9 @@ package cleanerfakes
 import (
 	"sync"
 
+	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/layercake/cleaner"
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake/cleaner"
 )
 
 type FakeThreshold struct {

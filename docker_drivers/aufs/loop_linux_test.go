@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"code.cloudfoundry.org/garden-shed/docker_drivers/aufs"
+	fakes "code.cloudfoundry.org/garden-shed/docker_drivers/aufs/aufsfakes"
 	"code.cloudfoundry.org/lager/lagertest"
-	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
-	fakes "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/aufsfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"

@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/layercake"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

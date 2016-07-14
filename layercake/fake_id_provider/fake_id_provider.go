@@ -4,7 +4,7 @@ package fake_id_provider
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/layercake"
 )
 
 type FakeIDProvider struct {

@@ -3,8 +3,8 @@ package rootfs_provider
 import (
 	"net/url"
 
-	"github.com/cloudfoundry-incubator/garden"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
+	"code.cloudfoundry.org/garden"
+	"code.cloudfoundry.org/garden-shed/layercake"
 )
 
 type Spec struct {

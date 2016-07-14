@@ -4,7 +4,7 @@ package quota_managerfakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-shed/quota_manager"
+	"code.cloudfoundry.org/garden-shed/quota_manager"
 )
 
 type FakeAUFSDiffPathFinder struct {

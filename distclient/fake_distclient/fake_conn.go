@@ -5,8 +5,8 @@ import (
 	"io"
 	"sync"
 
+	"code.cloudfoundry.org/garden-shed/distclient"
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/garden-shed/distclient"
 	"github.com/docker/distribution/digest"
 )
 

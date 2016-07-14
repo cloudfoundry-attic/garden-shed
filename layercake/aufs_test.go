@@ -9,9 +9,9 @@ import (
 
 	"os"
 
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_cake"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_id"
+	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/layercake/fake_cake"
+	"code.cloudfoundry.org/garden-shed/layercake/fake_id"
 	"github.com/cloudfoundry/gunk/command_runner"
 	"github.com/cloudfoundry/gunk/command_runner/fake_command_runner"
 	"github.com/cloudfoundry/gunk/command_runner/linux_command_runner"

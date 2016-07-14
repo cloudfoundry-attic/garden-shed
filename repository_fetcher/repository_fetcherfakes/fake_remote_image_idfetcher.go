@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
+	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 )
 
 type FakeRemoteImageIDFetcher struct {

@@ -4,9 +4,9 @@ package repository_fetcherfakes
 import (
 	"sync"
 
+	"code.cloudfoundry.org/garden-shed/distclient"
+	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/garden-shed/distclient"
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
 )
 
 type FakeDialer struct {

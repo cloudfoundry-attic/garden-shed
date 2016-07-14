@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	quotaedaufs "code.cloudfoundry.org/garden-shed/docker_drivers/aufs"
+	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/lager/lagertest"
-	quotaedaufs "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/docker/docker/graph"
 	"github.com/docker/docker/image"

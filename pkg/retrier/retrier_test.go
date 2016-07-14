@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/cloudfoundry-incubator/garden-shed/pkg/retrier"
+	"code.cloudfoundry.org/garden-shed/pkg/retrier"
 	"github.com/pivotal-golang/clock"
 	"github.com/pivotal-golang/clock/fakeclock"
 

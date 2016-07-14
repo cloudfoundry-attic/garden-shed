@@ -1,7 +1,7 @@
 package rootfs_provider_test
 
 import (
-	"github.com/cloudfoundry-incubator/garden-shed/rootfs_provider"
+	"code.cloudfoundry.org/garden-shed/rootfs_provider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

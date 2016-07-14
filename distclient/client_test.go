@@ -7,9 +7,9 @@ import (
 
 	"github.com/docker/docker/image"
 
+	"code.cloudfoundry.org/garden-shed/distclient"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagertest"
-	"github.com/cloudfoundry-incubator/garden-shed/distclient"
 	"github.com/docker/docker/runconfig"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

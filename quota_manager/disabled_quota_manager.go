@@ -1,8 +1,8 @@
 package quota_manager
 
 import (
+	"code.cloudfoundry.org/garden"
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/garden"
 )
 
 type DisabledQuotaManager struct{}

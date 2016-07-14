@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"code.cloudfoundry.org/garden-shed/docker_drivers/aufs"
 	"code.cloudfoundry.org/lager/lagertest"
-	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"

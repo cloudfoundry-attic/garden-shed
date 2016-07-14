@@ -5,12 +5,12 @@ import (
 	"net/url"
 	"time"
 
+	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/layercake/fake_retainer"
+	"code.cloudfoundry.org/garden-shed/repository_fetcher"
+	"code.cloudfoundry.org/garden-shed/repository_fetcher/fake_container_id_provider"
+	fakes "code.cloudfoundry.org/garden-shed/repository_fetcher/repository_fetcherfakes"
 	"code.cloudfoundry.org/lager/lagertest"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake/fake_retainer"
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/fake_container_id_provider"
-	fakes "github.com/cloudfoundry-incubator/garden-shed/repository_fetcher/repository_fetcherfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

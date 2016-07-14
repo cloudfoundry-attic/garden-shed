@@ -3,10 +3,10 @@ package aufs_test
 import (
 	"errors"
 
+	"code.cloudfoundry.org/garden-shed/docker_drivers/aufs"
+	fakes "code.cloudfoundry.org/garden-shed/docker_drivers/aufs/aufsfakes"
+	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/lager/lagertest"
-	"github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs"
-	fakes "github.com/cloudfoundry-incubator/garden-shed/docker_drivers/aufs/aufsfakes"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

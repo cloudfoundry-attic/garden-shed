@@ -4,7 +4,7 @@ package fake_remote_v1_metadata_provider
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
+	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 )
 
 type FakeRemoteV1MetadataProvider struct {

@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
+	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"github.com/docker/distribution/digest"
 )
 

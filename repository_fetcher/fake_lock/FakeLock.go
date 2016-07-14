@@ -4,7 +4,7 @@ package fake_lock
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/garden-shed/repository_fetcher"
+	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 )
 
 type FakeLock struct {

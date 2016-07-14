@@ -4,8 +4,8 @@ package quota_managerfakes
 import (
 	"sync"
 
+	"code.cloudfoundry.org/garden-shed/quota_manager"
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/garden-shed/quota_manager"
 )
 
 type FakeDiffSizer struct {

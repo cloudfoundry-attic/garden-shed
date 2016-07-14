@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	"github.com/docker/docker/daemon/graphdriver"
 )
 

@@ -3,9 +3,9 @@ package quota_manager_test
 import (
 	"errors"
 
+	"code.cloudfoundry.org/garden-shed/quota_manager"
+	fakes "code.cloudfoundry.org/garden-shed/quota_manager/quota_managerfakes"
 	"code.cloudfoundry.org/lager/lagertest"
-	"github.com/cloudfoundry-incubator/garden-shed/quota_manager"
-	fakes "github.com/cloudfoundry-incubator/garden-shed/quota_manager/quota_managerfakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

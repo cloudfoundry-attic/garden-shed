@@ -3,10 +3,10 @@ package rootfs_provider
 import (
 	"errors"
 
+	"code.cloudfoundry.org/garden"
+	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagertest"
-	"github.com/cloudfoundry-incubator/garden"
-	"github.com/cloudfoundry-incubator/garden-shed/layercake"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
