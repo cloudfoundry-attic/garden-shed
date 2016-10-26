@@ -140,7 +140,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 	Describe("Destroy", func() {
 		It("delegates removal", func() {
-			Expect(cakeOrdinator.Destroy(logger, "something")).To(Succeed())
+			Expect(cakeOrdinator.Destroy(logger, "something", "rootfs")).To(Succeed())
 			Expect(fakeCake.RemoveCallCount()).To(Equal(1))
 			Expect(fakeCake.RemoveArgsForCall(0)).To(Equal(layercake.ContainerID("something")))
 		})
@@ -149,7 +149,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			It("does not destroy again", func() {
 				fakeCake.GetReturns(nil, errors.New("cannae find it"))
 
-				Expect(cakeOrdinator.Destroy(logger, "something")).To(Succeed())
+				Expect(cakeOrdinator.Destroy(logger, "something", "rootfs")).To(Succeed())
 				Expect(fakeCake.RemoveCallCount()).To(Equal(0))
 			})
 		})
@@ -160,7 +160,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			})
 
 			It("skips destroy and logs the error instead", func() {
-				Expect(cakeOrdinator.Destroy(logger, "something")).To(Succeed())
+				Expect(cakeOrdinator.Destroy(logger, "something", "rootfs")).To(Succeed())
 				Expect(logger.LogMessages()).To(ContainElement("test.layer-already-deleted-skipping"))
 			})
 		})
