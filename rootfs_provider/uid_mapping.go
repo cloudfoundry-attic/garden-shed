@@ -7,7 +7,7 @@ import (
 	"github.com/opencontainers/runtime-spec/specs-go"
 )
 
-type MappingList []specs.IDMapping
+type MappingList []specs.LinuxIDMapping
 
 func (m MappingList) Map(id int) int {
 	for _, m := range m {
