@@ -70,7 +70,7 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 	return c.layerCreator.Create(logger, id, image, spec)
 }
 
-func (c *CakeOrdinator) Metrics(logger lager.Logger, id string) (garden.ContainerDiskStat, error) {
+func (c *CakeOrdinator) Metrics(logger lager.Logger, id, _ string) (garden.ContainerDiskStat, error) {
 	cid := layercake.ContainerID(id)
 	return c.metrics.Metrics(logger, cid)
 }

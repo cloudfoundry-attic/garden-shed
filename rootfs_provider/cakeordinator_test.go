@@ -115,7 +115,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				TotalBytesUsed: 12,
 			}, nil)
 
-			metrics, err := cakeOrdinator.Metrics(logger, "something")
+			metrics, err := cakeOrdinator.Metrics(logger, "something", "")
 			Expect(err).NotTo(HaveOccurred())
 
 			_, path := fakeMetrics.MetricsArgsForCall(0)
@@ -132,7 +132,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			})
 
 			It("should return an error", func() {
-				_, err := cakeOrdinator.Metrics(logger, "something")
+				_, err := cakeOrdinator.Metrics(logger, "something", "")
 				Expect(err).To(MatchError("rotten banana"))
 			})
 		})
