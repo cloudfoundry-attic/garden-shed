@@ -57,8 +57,14 @@ func (d *Docker) Remove(id ID) error {
 	return d.Graph.Delete(id.GraphID())
 }
 
-func (d *Docker) Path(id ID) (string, error) {
-	return d.Driver.Get(id.GraphID(), "")
+func (d *Docker) Path(id ID) (result string, err error) {
+	for i := 0; i < 5; i++ {
+		result, err = d.Driver.Get(id.GraphID(), "")
+		if err == nil {
+			return
+		}
+	}
+	return
 }
 
 func (d *Docker) QuotaedPath(id ID, quota int64) (string, error) {
