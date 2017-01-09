@@ -67,7 +67,7 @@ func (l *Local) fetch(log lager.Logger, path string) (string, error) {
 	defer l.mu.Unlock()
 
 	if _, err := l.Cake.Get(id); err == nil {
-		log.Info("using-cache")
+		log.Info("using-cache", lager.Data{"graphID": id.GraphID()})
 		return id.GraphID(), nil // use cache
 	}
 
@@ -81,6 +81,7 @@ func (l *Local) fetch(log lager.Logger, path string) (string, error) {
 		return "", fmt.Errorf("repository_fetcher: fetch local rootfs: register rootfs: %v", err)
 	}
 
+	log.Info("fetched-uncached-rootfs", lager.Data{"graphID": id.GraphID()})
 	return id.GraphID(), nil
 }
 
