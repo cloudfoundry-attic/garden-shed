@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/lager"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
 )
@@ -19,6 +20,7 @@ type ContainerIDProvider interface {
 }
 
 type Local struct {
+	Logger            lager.Logger
 	Cake              layercake.Cake
 	DefaultRootFSPath string
 	IDProvider        ContainerIDProvider
@@ -27,6 +29,10 @@ type Local struct {
 }
 
 func (l *Local) Fetch(repoURL *url.URL, _ int64) (*Image, error) {
+	log := l.Logger.Session("local-fetch", lager.Data{"path": repoURL})
+
+	log.Info("start")
+	defer log.Info("end")
 	path := repoURL.Path
 	if len(path) == 0 {
 		path = l.DefaultRootFSPath
@@ -36,7 +42,7 @@ func (l *Local) Fetch(repoURL *url.URL, _ int64) (*Image, error) {
 		return nil, errors.New("RootFSPath: is a required parameter, since no default rootfs was provided to the server.")
 	}
 
-	id, err := l.fetch(path)
+	id, err := l.fetch(log, path)
 	return &Image{
 		ImageID: id,
 	}, err
@@ -46,7 +52,7 @@ func (l *Local) FetchID(repoURL *url.URL) (layercake.ID, error) {
 	return l.IDProvider.ProvideID(repoURL.Path), nil
 }
 
-func (l *Local) fetch(path string) (string, error) {
+func (l *Local) fetch(log lager.Logger, path string) (string, error) {
 	path, err := resolve(path)
 	if err != nil {
 		return "", err
@@ -61,6 +67,7 @@ func (l *Local) fetch(path string) (string, error) {
 	defer l.mu.Unlock()
 
 	if _, err := l.Cake.Get(id); err == nil {
+		log.Info("using-cache")
 		return id.GraphID(), nil // use cache
 	}
 

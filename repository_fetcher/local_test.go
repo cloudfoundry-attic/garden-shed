@@ -14,10 +14,12 @@ import (
 	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/garden-shed/layercake/fake_cake"
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/pkg/archive"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 )
 
 var _ = Describe("LayerIDProvider", func() {
@@ -94,12 +96,14 @@ var _ = Describe("Local", func() {
 		fakeCake          *fake_cake.FakeCake
 		defaultRootFSPath string
 		idProvider        UnderscoreIDer
+		fakeLogger        *lagertest.TestLogger
 	)
 
 	BeforeEach(func() {
 		fakeCake = new(fake_cake.FakeCake)
 		defaultRootFSPath = ""
 		idProvider = UnderscoreIDer{}
+		fakeLogger = lagertest.NewTestLogger("local-fetcher")
 
 		// default to not containing an image
 		fakeCake.GetReturns(nil, errors.New("no image"))
@@ -107,6 +111,7 @@ var _ = Describe("Local", func() {
 
 	JustBeforeEach(func() {
 		fetcher = &repository_fetcher.Local{
+			Logger:            fakeLogger,
 			Cake:              fakeCake,
 			IDProvider:        idProvider,
 			DefaultRootFSPath: defaultRootFSPath,
@@ -120,15 +125,20 @@ var _ = Describe("Local", func() {
 	})
 
 	Context("when the image already exists in the graph", func() {
-		It("returns the image id", func() {
+		var rootFSPath string
+
+		BeforeEach(func() {
 			fakeCake.GetReturns(&image.Image{}, nil)
 
-			rootFSPath, err := ioutil.TempDir("", "testdir")
+			var err error
+			rootFSPath, err = ioutil.TempDir("", "testdir")
 			Expect(err).NotTo(HaveOccurred())
 
 			rootFSPath = path.Join(rootFSPath, "foo_bar_baz")
 			Expect(os.MkdirAll(rootFSPath, 0600)).To(Succeed())
+		})
 
+		It("returns the image id", func() {
 			response, err := fetcher.Fetch(&url.URL{Path: rootFSPath}, 0)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(response.ImageID).To(HaveSuffix("foo_bar_baz"))
@@ -146,8 +156,6 @@ var _ = Describe("Local", func() {
 				})
 
 				It("should use the default", func() {
-					fakeCake.GetReturns(&image.Image{}, nil)
-
 					response, err := fetcher.Fetch(&url.URL{Path: ""}, 0)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(response.ImageID).To(HaveSuffix("the_default_path"))
@@ -160,6 +168,22 @@ var _ = Describe("Local", func() {
 					Expect(err).To(MatchError("RootFSPath: is a required parameter, since no default rootfs was provided to the server."))
 				})
 			})
+		})
+
+		It("provides import time profile info", func() {
+			_, err := fetcher.Fetch(&url.URL{Path: rootFSPath}, 0)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("logging with timestamps")
+			Expect(fakeLogger).To(gbytes.Say("local-fetch.start"))
+			Expect(fakeLogger).To(gbytes.Say("local-fetch.end"))
+		})
+
+		It("logs that it is using the cache", func() {
+			_, err := fetcher.Fetch(&url.URL{Path: rootFSPath}, 0)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeLogger).To(gbytes.Say("local-fetch.using-cache"))
 		})
 	})
 
@@ -281,6 +305,22 @@ var _ = Describe("Local", func() {
 				_, err := fetcher.Fetch(&url.URL{Path: tmpDir}, 0)
 				Expect(err).To(MatchError("repository_fetcher: fetch local rootfs: register rootfs: sold out"))
 			})
+		})
+
+		It("provides import time profile info", func() {
+			_, err := fetcher.Fetch(&url.URL{Path: tmpDir}, 0)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("logging with timestamps")
+			Expect(fakeLogger).To(gbytes.Say("local-fetch.start"))
+			Expect(fakeLogger).To(gbytes.Say("local-fetch.end"))
+		})
+
+		It("does not log that it is using cache", func() {
+			_, err := fetcher.Fetch(&url.URL{Path: tmpDir}, 0)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeLogger).NotTo(gbytes.Say("local-fetch.using-cache"))
 		})
 	})
 })
