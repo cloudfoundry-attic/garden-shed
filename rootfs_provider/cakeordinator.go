@@ -70,12 +70,12 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 	return c.layerCreator.Create(logger, id, image, spec)
 }
 
-func (c *CakeOrdinator) Metrics(logger lager.Logger, id, _ string) (garden.ContainerDiskStat, error) {
+func (c *CakeOrdinator) Metrics(logger lager.Logger, id string, _ bool) (garden.ContainerDiskStat, error) {
 	cid := layercake.ContainerID(id)
 	return c.metrics.Metrics(logger, cid)
 }
 
-func (c *CakeOrdinator) Destroy(logger lager.Logger, id, rootfs string) error {
+func (c *CakeOrdinator) Destroy(logger lager.Logger, id string) error {
 	cid := layercake.ContainerID(id)
 	if _, err := c.cake.Get(cid); err != nil {
 		logger.Info("layer-already-deleted-skipping", lager.Data{"id": id, "graphID": cid, "error": err.Error()})
