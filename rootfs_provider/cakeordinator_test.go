@@ -107,6 +107,17 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				Expect(diskQuota).To(BeNumerically("==", 33))
 			})
 		})
+
+		Context("when username or password is passed", func() {
+			It("returns an error", func() {
+				_, _, err := cakeOrdinator.Create(logger, "", rootfs_provider.Spec{
+					Username: "rootfsuser",
+					Password: "secretpasswrd",
+				})
+				Expect(err).To(MatchError("private docker registries are not supported"))
+			})
+		})
+
 	})
 
 	Describe("Metrics", func() {

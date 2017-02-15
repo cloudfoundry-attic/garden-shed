@@ -1,6 +1,7 @@
 package rootfs_provider
 
 import (
+	"errors"
 	"net/url"
 	"sync"
 
@@ -56,6 +57,10 @@ func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreat
 func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (string, []string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+
+	if spec.Username != "" || spec.Password != "" {
+		return "", nil, errors.New("private docker registries are not supported")
+	}
 
 	fetcherDiskQuota := spec.QuotaSize
 	if spec.QuotaScope == garden.DiskLimitScopeExclusive {
