@@ -15,7 +15,6 @@ import (
 )
 
 type Remote struct {
-	Logger      lager.Logger
 	DefaultHost string
 	Dial        Dialer
 	Cake        layercake.Cake
@@ -24,9 +23,8 @@ type Remote struct {
 	FetchLock *FetchLock
 }
 
-func NewRemote(logger lager.Logger, defaultHost string, cake layercake.Cake, dialer Dialer, verifier Verifier) *Remote {
+func NewRemote(defaultHost string, cake layercake.Cake, dialer Dialer, verifier Verifier) *Remote {
 	return &Remote{
-		Logger:      logger,
 		DefaultHost: defaultHost,
 		Dial:        dialer,
 		Cake:        cake,
@@ -35,8 +33,8 @@ func NewRemote(logger lager.Logger, defaultHost string, cake layercake.Cake, dia
 	}
 }
 
-func (r *Remote) Fetch(u *url.URL, diskQuota int64) (*Image, error) {
-	log := r.Logger.Session("fetch", lager.Data{"url": u})
+func (r *Remote) Fetch(log lager.Logger, u *url.URL, diskQuota int64) (*Image, error) {
+	log = log.Session("fetch", lager.Data{"url": u})
 
 	log.Info("start")
 	defer log.Info("finished")
@@ -76,8 +74,8 @@ func (r *Remote) Fetch(u *url.URL, diskQuota int64) (*Image, error) {
 	}, nil
 }
 
-func (r *Remote) FetchID(u *url.URL) (layercake.ID, error) {
-	_, manifest, err := r.manifest(r.Logger.Session("fetch-id"), u)
+func (r *Remote) FetchID(log lager.Logger, u *url.URL) (layercake.ID, error) {
+	_, manifest, err := r.manifest(log.Session("fetch-id"), u)
 	if err != nil {
 		return nil, err
 	}
@@ -109,12 +107,12 @@ func (r *Remote) manifest(log lager.Logger, u *url.URL) (distclient.Conn, *distc
 		tag = "latest"
 	}
 
-	conn, err := r.Dial.Dial(r.Logger, host, path)
+	conn, err := r.Dial.Dial(log, host, path)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	manifest, err := conn.GetManifest(r.Logger, tag)
+	manifest, err := conn.GetManifest(log, tag)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get manifest for tag %s on repo %s: %s", u.Fragment, u, err)
 	}
@@ -137,7 +135,7 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 		return nil
 	}
 
-	blob, err := conn.GetBlobReader(r.Logger, layer.BlobSum)
+	blob, err := conn.GetBlobReader(log, layer.BlobSum)
 	if err != nil {
 		return err
 	}

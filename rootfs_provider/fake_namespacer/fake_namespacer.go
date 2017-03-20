@@ -35,9 +35,8 @@ func (fake *FakeNamespacer) CacheKey() string {
 	fake.cacheKeyMutex.Unlock()
 	if fake.CacheKeyStub != nil {
 		return fake.CacheKeyStub()
-	} else {
-		return fake.cacheKeyReturns.result1
 	}
+	return fake.cacheKeyReturns.result1
 }
 
 func (fake *FakeNamespacer) CacheKeyCallCount() int {
@@ -63,9 +62,8 @@ func (fake *FakeNamespacer) Namespace(log lager.Logger, rootfsPath string) error
 	fake.namespaceMutex.Unlock()
 	if fake.NamespaceStub != nil {
 		return fake.NamespaceStub(log, rootfsPath)
-	} else {
-		return fake.namespaceReturns.result1
 	}
+	return fake.namespaceReturns.result1
 }
 
 func (fake *FakeNamespacer) NamespaceCallCount() int {

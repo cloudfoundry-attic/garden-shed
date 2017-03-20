@@ -30,9 +30,8 @@ func (fake *FakeContainerIDProvider) ProvideID(path string) layercake.ID {
 	fake.provideIDMutex.Unlock()
 	if fake.ProvideIDStub != nil {
 		return fake.ProvideIDStub(path)
-	} else {
-		return fake.provideIDReturns.result1
 	}
+	return fake.provideIDReturns.result1
 }
 
 func (fake *FakeContainerIDProvider) ProvideIDCallCount() int {

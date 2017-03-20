@@ -34,9 +34,8 @@ func (fake *FakeVerifier) Verify(arg1 io.Reader, arg2 digest.Digest) (io.ReadClo
 	fake.verifyMutex.Unlock()
 	if fake.VerifyStub != nil {
 		return fake.VerifyStub(arg1, arg2)
-	} else {
-		return fake.verifyReturns.result1, fake.verifyReturns.result2
 	}
+	return fake.verifyReturns.result1, fake.verifyReturns.result2
 }
 
 func (fake *FakeVerifier) VerifyCallCount() int {

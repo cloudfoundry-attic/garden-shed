@@ -36,9 +36,8 @@ func (fake *FakeDialer) Dial(logger lager.Logger, host string, repo string) (dis
 	fake.dialMutex.Unlock()
 	if fake.DialStub != nil {
 		return fake.DialStub(logger, host, repo)
-	} else {
-		return fake.dialReturns.result1, fake.dialReturns.result2
 	}
+	return fake.dialReturns.result1, fake.dialReturns.result2
 }
 
 func (fake *FakeDialer) DialCallCount() int {

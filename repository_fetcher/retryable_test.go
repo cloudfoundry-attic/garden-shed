@@ -7,6 +7,7 @@ import (
 	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	fakes "code.cloudfoundry.org/garden-shed/repository_fetcher/repository_fetcherfakes"
+	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagertest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,14 +32,13 @@ var _ = Describe("Retryable", func() {
 
 		retryable = repository_fetcher.Retryable{
 			RepositoryFetcher: fakeRemoteFetcher,
-			Logger:            logger,
 		}
 	})
 
 	Describe("Fetch failures", func() {
 		Context("when fetching fails twice", func() {
 			BeforeEach(func() {
-				fakeRemoteFetcher.FetchStub = func(u *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
+				fakeRemoteFetcher.FetchStub = func(log lager.Logger, u *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
 					if fakeRemoteFetcher.FetchCallCount() <= 2 {
 						return nil, errors.New("error-talking-to-remote-repo")
 					} else {
@@ -46,7 +46,7 @@ var _ = Describe("Retryable", func() {
 					}
 				}
 
-				_, err := retryable.Fetch(repoURL, 0)
+				_, err := retryable.Fetch(logger, repoURL, 0)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -61,10 +61,10 @@ var _ = Describe("Retryable", func() {
 
 		Context("when fetching fails three times", func() {
 			BeforeEach(func() {
-				fakeRemoteFetcher.FetchStub = func(u *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
+				fakeRemoteFetcher.FetchStub = func(log lager.Logger, u *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
 					return nil, errors.New("error-talking-to-remote-repo")
 				}
-				_, err := retryable.Fetch(repoURL, 0)
+				_, err := retryable.Fetch(logger, repoURL, 0)
 				Expect(err).To(HaveOccurred())
 			})
 
@@ -81,7 +81,7 @@ var _ = Describe("Retryable", func() {
 	Describe("FetchID failures", func() {
 		Context("when fetching IDs fails twice", func() {
 			BeforeEach(func() {
-				fakeRemoteFetcher.FetchIDStub = func(u *url.URL) (layercake.ID, error) {
+				fakeRemoteFetcher.FetchIDStub = func(log lager.Logger, u *url.URL) (layercake.ID, error) {
 					if fakeRemoteFetcher.FetchIDCallCount() <= 2 {
 						return nil, errors.New("error-talking-to-remote-repo")
 					} else {
@@ -89,7 +89,7 @@ var _ = Describe("Retryable", func() {
 					}
 				}
 
-				_, err := retryable.FetchID(repoURL)
+				_, err := retryable.FetchID(logger, repoURL)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -104,11 +104,11 @@ var _ = Describe("Retryable", func() {
 
 		Context("when fetching IDs fails three times", func() {
 			BeforeEach(func() {
-				fakeRemoteFetcher.FetchIDStub = func(u *url.URL) (layercake.ID, error) {
+				fakeRemoteFetcher.FetchIDStub = func(log lager.Logger, u *url.URL) (layercake.ID, error) {
 					return nil, errors.New("error-talking-to-remote-repo")
 				}
 
-				_, err := retryable.FetchID(repoURL)
+				_, err := retryable.FetchID(logger, repoURL)
 				Expect(err).To(HaveOccurred())
 			})
 

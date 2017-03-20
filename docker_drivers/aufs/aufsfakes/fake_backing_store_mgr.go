@@ -40,9 +40,8 @@ func (fake *FakeBackingStoreMgr) Create(id string, quota int64) (string, error) 
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
 		return fake.CreateStub(id, quota)
-	} else {
-		return fake.createReturns.result1, fake.createReturns.result2
 	}
+	return fake.createReturns.result1, fake.createReturns.result2
 }
 
 func (fake *FakeBackingStoreMgr) CreateCallCount() int {
@@ -74,9 +73,8 @@ func (fake *FakeBackingStoreMgr) Delete(id string) error {
 	fake.deleteMutex.Unlock()
 	if fake.DeleteStub != nil {
 		return fake.DeleteStub(id)
-	} else {
-		return fake.deleteReturns.result1
 	}
+	return fake.deleteReturns.result1
 }
 
 func (fake *FakeBackingStoreMgr) DeleteCallCount() int {

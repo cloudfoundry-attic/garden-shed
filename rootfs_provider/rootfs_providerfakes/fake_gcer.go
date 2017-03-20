@@ -33,9 +33,8 @@ func (fake *FakeGCer) GC(log lager.Logger, cake layercake.Cake) error {
 	fake.gCMutex.Unlock()
 	if fake.GCStub != nil {
 		return fake.GCStub(log, cake)
-	} else {
-		return fake.gCReturns.result1
 	}
+	return fake.gCReturns.result1
 }
 
 func (fake *FakeGCer) GCCallCount() int {

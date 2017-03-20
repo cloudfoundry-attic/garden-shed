@@ -25,9 +25,8 @@ func (fake *FakeID) GraphID() string {
 	fake.graphIDMutex.Unlock()
 	if fake.GraphIDStub != nil {
 		return fake.GraphIDStub()
-	} else {
-		return fake.graphIDReturns.result1
 	}
+	return fake.graphIDReturns.result1
 }
 
 func (fake *FakeID) GraphIDCallCount() int {

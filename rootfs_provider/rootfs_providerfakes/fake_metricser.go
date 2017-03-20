@@ -35,9 +35,8 @@ func (fake *FakeMetricser) Metrics(logger lager.Logger, id layercake.ID) (garden
 	fake.metricsMutex.Unlock()
 	if fake.MetricsStub != nil {
 		return fake.MetricsStub(logger, id)
-	} else {
-		return fake.metricsReturns.result1, fake.metricsReturns.result2
 	}
+	return fake.metricsReturns.result1, fake.metricsReturns.result2
 }
 
 func (fake *FakeMetricser) MetricsCallCount() int {

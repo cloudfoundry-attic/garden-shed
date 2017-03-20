@@ -88,7 +88,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))
-				_, diskQuota := fakeFetcher.FetchArgsForCall(0)
+				_, _, diskQuota := fakeFetcher.FetchArgsForCall(0)
 				Expect(diskQuota).To(BeNumerically("==", 0))
 			})
 		})
@@ -103,7 +103,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))
-				_, diskQuota := fakeFetcher.FetchArgsForCall(0)
+				_, _, diskQuota := fakeFetcher.FetchArgsForCall(0)
 				Expect(diskQuota).To(BeNumerically("==", 33))
 			})
 		})
@@ -212,7 +212,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 	It("allows concurrent creation as long as deletion is not ongoing", func() {
 		fakeBlocks := make(chan struct{})
-		fakeFetcher.FetchStub = func(*url.URL, int64) (*repository_fetcher.Image, error) {
+		fakeFetcher.FetchStub = func(lager.Logger, *url.URL, int64) (*repository_fetcher.Image, error) {
 			<-fakeBlocks
 			return nil, nil
 		}

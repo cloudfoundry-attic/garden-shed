@@ -39,9 +39,8 @@ func (fake *FakeLayerCreator) Create(log lager.Logger, id string, parentImage *r
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
 		return fake.CreateStub(log, id, parentImage, spec)
-	} else {
-		return fake.createReturns.result1, fake.createReturns.result2, fake.createReturns.result3
 	}
+	return fake.createReturns.result1, fake.createReturns.result2, fake.createReturns.result3
 }
 
 func (fake *FakeLayerCreator) CreateCallCount() int {

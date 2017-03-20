@@ -9,7 +9,7 @@ import (
 
 //go:generate counterfeiter . RemoteImageIDFetcher
 type RemoteImageIDFetcher interface {
-	FetchID(u *url.URL) (layercake.ID, error)
+	FetchID(log lager.Logger, u *url.URL) (layercake.ID, error)
 }
 
 type ImageRetainer struct {
@@ -53,7 +53,7 @@ func (i *ImageRetainer) Retain(imageList []string) {
 func (i *ImageRetainer) toID(u *url.URL) (id layercake.ID, err error) {
 	switch u.Scheme {
 	case "docker":
-		return i.DockerImageIDFetcher.FetchID(u)
+		return i.DockerImageIDFetcher.FetchID(i.Logger, u)
 	default:
 		return i.DirectoryRootfsIDProvider.ProvideID(u.Path), nil
 	}

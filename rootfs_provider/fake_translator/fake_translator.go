@@ -36,9 +36,8 @@ func (fake *FakeTranslator) CacheKey() string {
 	fake.cacheKeyMutex.Unlock()
 	if fake.CacheKeyStub != nil {
 		return fake.CacheKeyStub()
-	} else {
-		return fake.cacheKeyReturns.result1
 	}
+	return fake.cacheKeyReturns.result1
 }
 
 func (fake *FakeTranslator) CacheKeyCallCount() int {
@@ -65,9 +64,8 @@ func (fake *FakeTranslator) Translate(path string, info os.FileInfo, err error) 
 	fake.translateMutex.Unlock()
 	if fake.TranslateStub != nil {
 		return fake.TranslateStub(path, info, err)
-	} else {
-		return fake.translateReturns.result1
 	}
+	return fake.translateReturns.result1
 }
 
 func (fake *FakeTranslator) TranslateCallCount() int {

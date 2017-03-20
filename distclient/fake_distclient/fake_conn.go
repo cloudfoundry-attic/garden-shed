@@ -45,9 +45,8 @@ func (fake *FakeConn) GetManifest(logger lager.Logger, tag string) (*distclient.
 	fake.getManifestMutex.Unlock()
 	if fake.GetManifestStub != nil {
 		return fake.GetManifestStub(logger, tag)
-	} else {
-		return fake.getManifestReturns.result1, fake.getManifestReturns.result2
 	}
+	return fake.getManifestReturns.result1, fake.getManifestReturns.result2
 }
 
 func (fake *FakeConn) GetManifestCallCount() int {
@@ -80,9 +79,8 @@ func (fake *FakeConn) GetBlobReader(logger lager.Logger, d digest.Digest) (io.Re
 	fake.getBlobReaderMutex.Unlock()
 	if fake.GetBlobReaderStub != nil {
 		return fake.GetBlobReaderStub(logger, d)
-	} else {
-		return fake.getBlobReaderReturns.result1, fake.getBlobReaderReturns.result2
 	}
+	return fake.getBlobReaderReturns.result1, fake.getBlobReaderReturns.result2
 }
 
 func (fake *FakeConn) GetBlobReaderCallCount() int {

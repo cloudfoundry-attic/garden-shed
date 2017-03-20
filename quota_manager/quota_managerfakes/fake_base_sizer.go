@@ -33,9 +33,8 @@ func (fake *FakeBaseSizer) BaseSize(logger lager.Logger, rootfsPath string) (uin
 	fake.baseSizeMutex.Unlock()
 	if fake.BaseSizeStub != nil {
 		return fake.BaseSizeStub(logger, rootfsPath)
-	} else {
-		return fake.baseSizeReturns.result1, fake.baseSizeReturns.result2
 	}
+	return fake.baseSizeReturns.result1, fake.baseSizeReturns.result2
 }
 
 func (fake *FakeBaseSizer) BaseSizeCallCount() int {

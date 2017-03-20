@@ -18,7 +18,7 @@ type LayerCreator interface {
 
 //go:generate counterfeiter . RepositoryFetcher
 type RepositoryFetcher interface {
-	Fetch(*url.URL, int64) (*repository_fetcher.Image, error)
+	Fetch(log lager.Logger, rootfs *url.URL, diskQuota int64) (*repository_fetcher.Image, error)
 }
 
 //go:generate counterfeiter . GCer
@@ -67,7 +67,7 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 		fetcherDiskQuota = 0
 	}
 
-	image, err := c.fetcher.Fetch(spec.RootFS, fetcherDiskQuota)
+	image, err := c.fetcher.Fetch(logger, spec.RootFS, fetcherDiskQuota)
 	if err != nil {
 		return "", nil, err
 	}

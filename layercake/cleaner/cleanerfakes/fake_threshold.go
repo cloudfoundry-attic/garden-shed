@@ -33,9 +33,8 @@ func (fake *FakeThreshold) Exceeded(log lager.Logger, cake layercake.Cake) bool 
 	fake.exceededMutex.Unlock()
 	if fake.ExceededStub != nil {
 		return fake.ExceededStub(log, cake)
-	} else {
-		return fake.exceededReturns.result1
 	}
+	return fake.exceededReturns.result1
 }
 
 func (fake *FakeThreshold) ExceededCallCount() int {

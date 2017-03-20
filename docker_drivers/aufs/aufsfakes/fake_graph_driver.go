@@ -131,9 +131,8 @@ func (fake *FakeGraphDriver) String() string {
 	fake.stringMutex.Unlock()
 	if fake.StringStub != nil {
 		return fake.StringStub()
-	} else {
-		return fake.stringReturns.result1
 	}
+	return fake.stringReturns.result1
 }
 
 func (fake *FakeGraphDriver) StringCallCount() int {
@@ -159,9 +158,8 @@ func (fake *FakeGraphDriver) Create(id string, parent string) error {
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
 		return fake.CreateStub(id, parent)
-	} else {
-		return fake.createReturns.result1
 	}
+	return fake.createReturns.result1
 }
 
 func (fake *FakeGraphDriver) CreateCallCount() int {
@@ -192,9 +190,8 @@ func (fake *FakeGraphDriver) Remove(id string) error {
 	fake.removeMutex.Unlock()
 	if fake.RemoveStub != nil {
 		return fake.RemoveStub(id)
-	} else {
-		return fake.removeReturns.result1
 	}
+	return fake.removeReturns.result1
 }
 
 func (fake *FakeGraphDriver) RemoveCallCount() int {
@@ -226,9 +223,8 @@ func (fake *FakeGraphDriver) Get(id string, mountLabel string) (dir string, err 
 	fake.getMutex.Unlock()
 	if fake.GetStub != nil {
 		return fake.GetStub(id, mountLabel)
-	} else {
-		return fake.getReturns.result1, fake.getReturns.result2
 	}
+	return fake.getReturns.result1, fake.getReturns.result2
 }
 
 func (fake *FakeGraphDriver) GetCallCount() int {
@@ -260,9 +256,8 @@ func (fake *FakeGraphDriver) Put(id string) error {
 	fake.putMutex.Unlock()
 	if fake.PutStub != nil {
 		return fake.PutStub(id)
-	} else {
-		return fake.putReturns.result1
 	}
+	return fake.putReturns.result1
 }
 
 func (fake *FakeGraphDriver) PutCallCount() int {
@@ -293,9 +288,8 @@ func (fake *FakeGraphDriver) Exists(id string) bool {
 	fake.existsMutex.Unlock()
 	if fake.ExistsStub != nil {
 		return fake.ExistsStub(id)
-	} else {
-		return fake.existsReturns.result1
 	}
+	return fake.existsReturns.result1
 }
 
 func (fake *FakeGraphDriver) ExistsCallCount() int {
@@ -324,9 +318,8 @@ func (fake *FakeGraphDriver) Status() [][2]string {
 	fake.statusMutex.Unlock()
 	if fake.StatusStub != nil {
 		return fake.StatusStub()
-	} else {
-		return fake.statusReturns.result1
 	}
+	return fake.statusReturns.result1
 }
 
 func (fake *FakeGraphDriver) StatusCallCount() int {
@@ -351,9 +344,8 @@ func (fake *FakeGraphDriver) GetMetadata(id string) (map[string]string, error) {
 	fake.getMetadataMutex.Unlock()
 	if fake.GetMetadataStub != nil {
 		return fake.GetMetadataStub(id)
-	} else {
-		return fake.getMetadataReturns.result1, fake.getMetadataReturns.result2
 	}
+	return fake.getMetadataReturns.result1, fake.getMetadataReturns.result2
 }
 
 func (fake *FakeGraphDriver) GetMetadataCallCount() int {
@@ -383,9 +375,8 @@ func (fake *FakeGraphDriver) Cleanup() error {
 	fake.cleanupMutex.Unlock()
 	if fake.CleanupStub != nil {
 		return fake.CleanupStub()
-	} else {
-		return fake.cleanupReturns.result1
 	}
+	return fake.cleanupReturns.result1
 }
 
 func (fake *FakeGraphDriver) CleanupCallCount() int {
@@ -411,9 +402,8 @@ func (fake *FakeGraphDriver) Diff(id string, parent string) (archive.Archive, er
 	fake.diffMutex.Unlock()
 	if fake.DiffStub != nil {
 		return fake.DiffStub(id, parent)
-	} else {
-		return fake.diffReturns.result1, fake.diffReturns.result2
 	}
+	return fake.diffReturns.result1, fake.diffReturns.result2
 }
 
 func (fake *FakeGraphDriver) DiffCallCount() int {
@@ -446,9 +436,8 @@ func (fake *FakeGraphDriver) Changes(id string, parent string) ([]archive.Change
 	fake.changesMutex.Unlock()
 	if fake.ChangesStub != nil {
 		return fake.ChangesStub(id, parent)
-	} else {
-		return fake.changesReturns.result1, fake.changesReturns.result2
 	}
+	return fake.changesReturns.result1, fake.changesReturns.result2
 }
 
 func (fake *FakeGraphDriver) ChangesCallCount() int {
@@ -482,9 +471,8 @@ func (fake *FakeGraphDriver) ApplyDiff(id string, parent string, diff archive.Ar
 	fake.applyDiffMutex.Unlock()
 	if fake.ApplyDiffStub != nil {
 		return fake.ApplyDiffStub(id, parent, diff)
-	} else {
-		return fake.applyDiffReturns.result1, fake.applyDiffReturns.result2
 	}
+	return fake.applyDiffReturns.result1, fake.applyDiffReturns.result2
 }
 
 func (fake *FakeGraphDriver) ApplyDiffCallCount() int {
@@ -517,9 +505,8 @@ func (fake *FakeGraphDriver) DiffSize(id string, parent string) (size int64, err
 	fake.diffSizeMutex.Unlock()
 	if fake.DiffSizeStub != nil {
 		return fake.DiffSizeStub(id, parent)
-	} else {
-		return fake.diffSizeReturns.result1, fake.diffSizeReturns.result2
 	}
+	return fake.diffSizeReturns.result1, fake.diffSizeReturns.result2
 }
 
 func (fake *FakeGraphDriver) DiffSizeCallCount() int {

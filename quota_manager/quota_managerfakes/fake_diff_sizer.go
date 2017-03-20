@@ -33,9 +33,8 @@ func (fake *FakeDiffSizer) DiffSize(logger lager.Logger, loopdevPath string) (ui
 	fake.diffSizeMutex.Unlock()
 	if fake.DiffSizeStub != nil {
 		return fake.DiffSizeStub(logger, loopdevPath)
-	} else {
-		return fake.diffSizeReturns.result1, fake.diffSizeReturns.result2
 	}
+	return fake.diffSizeReturns.result1, fake.diffSizeReturns.result2
 }
 
 func (fake *FakeDiffSizer) DiffSizeCallCount() int {

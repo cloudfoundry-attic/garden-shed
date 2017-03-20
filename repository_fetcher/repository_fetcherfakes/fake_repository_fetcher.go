@@ -7,12 +7,14 @@ import (
 
 	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
+	"code.cloudfoundry.org/lager"
 )
 
 type FakeRepositoryFetcher struct {
-	FetchStub        func(u *url.URL, diskQuota int64) (*repository_fetcher.Image, error)
+	FetchStub        func(log lager.Logger, u *url.URL, diskQuota int64) (*repository_fetcher.Image, error)
 	fetchMutex       sync.RWMutex
 	fetchArgsForCall []struct {
+		log       lager.Logger
 		u         *url.URL
 		diskQuota int64
 	}
@@ -20,10 +22,11 @@ type FakeRepositoryFetcher struct {
 		result1 *repository_fetcher.Image
 		result2 error
 	}
-	FetchIDStub        func(u *url.URL) (layercake.ID, error)
+	FetchIDStub        func(log lager.Logger, u *url.URL) (layercake.ID, error)
 	fetchIDMutex       sync.RWMutex
 	fetchIDArgsForCall []struct {
-		u *url.URL
+		log lager.Logger
+		u   *url.URL
 	}
 	fetchIDReturns struct {
 		result1 layercake.ID
@@ -33,19 +36,19 @@ type FakeRepositoryFetcher struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRepositoryFetcher) Fetch(u *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
+func (fake *FakeRepositoryFetcher) Fetch(log lager.Logger, u *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
 	fake.fetchMutex.Lock()
 	fake.fetchArgsForCall = append(fake.fetchArgsForCall, struct {
+		log       lager.Logger
 		u         *url.URL
 		diskQuota int64
-	}{u, diskQuota})
-	fake.recordInvocation("Fetch", []interface{}{u, diskQuota})
+	}{log, u, diskQuota})
+	fake.recordInvocation("Fetch", []interface{}{log, u, diskQuota})
 	fake.fetchMutex.Unlock()
 	if fake.FetchStub != nil {
-		return fake.FetchStub(u, diskQuota)
-	} else {
-		return fake.fetchReturns.result1, fake.fetchReturns.result2
+		return fake.FetchStub(log, u, diskQuota)
 	}
+	return fake.fetchReturns.result1, fake.fetchReturns.result2
 }
 
 func (fake *FakeRepositoryFetcher) FetchCallCount() int {
@@ -54,10 +57,10 @@ func (fake *FakeRepositoryFetcher) FetchCallCount() int {
 	return len(fake.fetchArgsForCall)
 }
 
-func (fake *FakeRepositoryFetcher) FetchArgsForCall(i int) (*url.URL, int64) {
+func (fake *FakeRepositoryFetcher) FetchArgsForCall(i int) (lager.Logger, *url.URL, int64) {
 	fake.fetchMutex.RLock()
 	defer fake.fetchMutex.RUnlock()
-	return fake.fetchArgsForCall[i].u, fake.fetchArgsForCall[i].diskQuota
+	return fake.fetchArgsForCall[i].log, fake.fetchArgsForCall[i].u, fake.fetchArgsForCall[i].diskQuota
 }
 
 func (fake *FakeRepositoryFetcher) FetchReturns(result1 *repository_fetcher.Image, result2 error) {
@@ -68,18 +71,18 @@ func (fake *FakeRepositoryFetcher) FetchReturns(result1 *repository_fetcher.Imag
 	}{result1, result2}
 }
 
-func (fake *FakeRepositoryFetcher) FetchID(u *url.URL) (layercake.ID, error) {
+func (fake *FakeRepositoryFetcher) FetchID(log lager.Logger, u *url.URL) (layercake.ID, error) {
 	fake.fetchIDMutex.Lock()
 	fake.fetchIDArgsForCall = append(fake.fetchIDArgsForCall, struct {
-		u *url.URL
-	}{u})
-	fake.recordInvocation("FetchID", []interface{}{u})
+		log lager.Logger
+		u   *url.URL
+	}{log, u})
+	fake.recordInvocation("FetchID", []interface{}{log, u})
 	fake.fetchIDMutex.Unlock()
 	if fake.FetchIDStub != nil {
-		return fake.FetchIDStub(u)
-	} else {
-		return fake.fetchIDReturns.result1, fake.fetchIDReturns.result2
+		return fake.FetchIDStub(log, u)
 	}
+	return fake.fetchIDReturns.result1, fake.fetchIDReturns.result2
 }
 
 func (fake *FakeRepositoryFetcher) FetchIDCallCount() int {
@@ -88,10 +91,10 @@ func (fake *FakeRepositoryFetcher) FetchIDCallCount() int {
 	return len(fake.fetchIDArgsForCall)
 }
 
-func (fake *FakeRepositoryFetcher) FetchIDArgsForCall(i int) *url.URL {
+func (fake *FakeRepositoryFetcher) FetchIDArgsForCall(i int) (lager.Logger, *url.URL) {
 	fake.fetchIDMutex.RLock()
 	defer fake.fetchIDMutex.RUnlock()
-	return fake.fetchIDArgsForCall[i].u
+	return fake.fetchIDArgsForCall[i].log, fake.fetchIDArgsForCall[i].u
 }
 
 func (fake *FakeRepositoryFetcher) FetchIDReturns(result1 layercake.ID, result2 error) {

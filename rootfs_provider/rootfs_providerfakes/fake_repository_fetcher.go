@@ -7,14 +7,16 @@ import (
 
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"code.cloudfoundry.org/garden-shed/rootfs_provider"
+	"code.cloudfoundry.org/lager"
 )
 
 type FakeRepositoryFetcher struct {
-	FetchStub        func(*url.URL, int64) (*repository_fetcher.Image, error)
+	FetchStub        func(log lager.Logger, rootfs *url.URL, diskQuota int64) (*repository_fetcher.Image, error)
 	fetchMutex       sync.RWMutex
 	fetchArgsForCall []struct {
-		arg1 *url.URL
-		arg2 int64
+		log       lager.Logger
+		rootfs    *url.URL
+		diskQuota int64
 	}
 	fetchReturns struct {
 		result1 *repository_fetcher.Image
@@ -24,19 +26,19 @@ type FakeRepositoryFetcher struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRepositoryFetcher) Fetch(arg1 *url.URL, arg2 int64) (*repository_fetcher.Image, error) {
+func (fake *FakeRepositoryFetcher) Fetch(log lager.Logger, rootfs *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
 	fake.fetchMutex.Lock()
 	fake.fetchArgsForCall = append(fake.fetchArgsForCall, struct {
-		arg1 *url.URL
-		arg2 int64
-	}{arg1, arg2})
-	fake.recordInvocation("Fetch", []interface{}{arg1, arg2})
+		log       lager.Logger
+		rootfs    *url.URL
+		diskQuota int64
+	}{log, rootfs, diskQuota})
+	fake.recordInvocation("Fetch", []interface{}{log, rootfs, diskQuota})
 	fake.fetchMutex.Unlock()
 	if fake.FetchStub != nil {
-		return fake.FetchStub(arg1, arg2)
-	} else {
-		return fake.fetchReturns.result1, fake.fetchReturns.result2
+		return fake.FetchStub(log, rootfs, diskQuota)
 	}
+	return fake.fetchReturns.result1, fake.fetchReturns.result2
 }
 
 func (fake *FakeRepositoryFetcher) FetchCallCount() int {
@@ -45,10 +47,10 @@ func (fake *FakeRepositoryFetcher) FetchCallCount() int {
 	return len(fake.fetchArgsForCall)
 }
 
-func (fake *FakeRepositoryFetcher) FetchArgsForCall(i int) (*url.URL, int64) {
+func (fake *FakeRepositoryFetcher) FetchArgsForCall(i int) (lager.Logger, *url.URL, int64) {
 	fake.fetchMutex.RLock()
 	defer fake.fetchMutex.RUnlock()
-	return fake.fetchArgsForCall[i].arg1, fake.fetchArgsForCall[i].arg2
+	return fake.fetchArgsForCall[i].log, fake.fetchArgsForCall[i].rootfs, fake.fetchArgsForCall[i].diskQuota
 }
 
 func (fake *FakeRepositoryFetcher) FetchReturns(result1 *repository_fetcher.Image, result2 error) {

@@ -7,13 +7,15 @@ import (
 
 	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
+	"code.cloudfoundry.org/lager"
 )
 
 type FakeRemoteImageIDFetcher struct {
-	FetchIDStub        func(u *url.URL) (layercake.ID, error)
+	FetchIDStub        func(log lager.Logger, u *url.URL) (layercake.ID, error)
 	fetchIDMutex       sync.RWMutex
 	fetchIDArgsForCall []struct {
-		u *url.URL
+		log lager.Logger
+		u   *url.URL
 	}
 	fetchIDReturns struct {
 		result1 layercake.ID
@@ -23,18 +25,18 @@ type FakeRemoteImageIDFetcher struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRemoteImageIDFetcher) FetchID(u *url.URL) (layercake.ID, error) {
+func (fake *FakeRemoteImageIDFetcher) FetchID(log lager.Logger, u *url.URL) (layercake.ID, error) {
 	fake.fetchIDMutex.Lock()
 	fake.fetchIDArgsForCall = append(fake.fetchIDArgsForCall, struct {
-		u *url.URL
-	}{u})
-	fake.recordInvocation("FetchID", []interface{}{u})
+		log lager.Logger
+		u   *url.URL
+	}{log, u})
+	fake.recordInvocation("FetchID", []interface{}{log, u})
 	fake.fetchIDMutex.Unlock()
 	if fake.FetchIDStub != nil {
-		return fake.FetchIDStub(u)
-	} else {
-		return fake.fetchIDReturns.result1, fake.fetchIDReturns.result2
+		return fake.FetchIDStub(log, u)
 	}
+	return fake.fetchIDReturns.result1, fake.fetchIDReturns.result2
 }
 
 func (fake *FakeRemoteImageIDFetcher) FetchIDCallCount() int {
@@ -43,10 +45,10 @@ func (fake *FakeRemoteImageIDFetcher) FetchIDCallCount() int {
 	return len(fake.fetchIDArgsForCall)
 }
 
-func (fake *FakeRemoteImageIDFetcher) FetchIDArgsForCall(i int) *url.URL {
+func (fake *FakeRemoteImageIDFetcher) FetchIDArgsForCall(i int) (lager.Logger, *url.URL) {
 	fake.fetchIDMutex.RLock()
 	defer fake.fetchIDMutex.RUnlock()
-	return fake.fetchIDArgsForCall[i].u
+	return fake.fetchIDArgsForCall[i].log, fake.fetchIDArgsForCall[i].u
 }
 
 func (fake *FakeRemoteImageIDFetcher) FetchIDReturns(result1 layercake.ID, result2 error) {

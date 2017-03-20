@@ -112,9 +112,8 @@ func (fake *FakeCake) DriverName() string {
 	fake.driverNameMutex.Unlock()
 	if fake.DriverNameStub != nil {
 		return fake.DriverNameStub()
-	} else {
-		return fake.driverNameReturns.result1
 	}
+	return fake.driverNameReturns.result1
 }
 
 func (fake *FakeCake) DriverNameCallCount() int {
@@ -141,9 +140,8 @@ func (fake *FakeCake) Create(layerID layercake.ID, parentID layercake.ID, contai
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
 		return fake.CreateStub(layerID, parentID, containerID)
-	} else {
-		return fake.createReturns.result1
 	}
+	return fake.createReturns.result1
 }
 
 func (fake *FakeCake) CreateCallCount() int {
@@ -175,9 +173,8 @@ func (fake *FakeCake) Register(img *image.Image, layer archive.ArchiveReader) er
 	fake.registerMutex.Unlock()
 	if fake.RegisterStub != nil {
 		return fake.RegisterStub(img, layer)
-	} else {
-		return fake.registerReturns.result1
 	}
+	return fake.registerReturns.result1
 }
 
 func (fake *FakeCake) RegisterCallCount() int {
@@ -208,9 +205,8 @@ func (fake *FakeCake) Get(id layercake.ID) (*image.Image, error) {
 	fake.getMutex.Unlock()
 	if fake.GetStub != nil {
 		return fake.GetStub(id)
-	} else {
-		return fake.getReturns.result1, fake.getReturns.result2
 	}
+	return fake.getReturns.result1, fake.getReturns.result2
 }
 
 func (fake *FakeCake) GetCallCount() int {
@@ -242,9 +238,8 @@ func (fake *FakeCake) Unmount(id layercake.ID) error {
 	fake.unmountMutex.Unlock()
 	if fake.UnmountStub != nil {
 		return fake.UnmountStub(id)
-	} else {
-		return fake.unmountReturns.result1
 	}
+	return fake.unmountReturns.result1
 }
 
 func (fake *FakeCake) UnmountCallCount() int {
@@ -275,9 +270,8 @@ func (fake *FakeCake) Remove(id layercake.ID) error {
 	fake.removeMutex.Unlock()
 	if fake.RemoveStub != nil {
 		return fake.RemoveStub(id)
-	} else {
-		return fake.removeReturns.result1
 	}
+	return fake.removeReturns.result1
 }
 
 func (fake *FakeCake) RemoveCallCount() int {
@@ -308,9 +302,8 @@ func (fake *FakeCake) Path(id layercake.ID) (string, error) {
 	fake.pathMutex.Unlock()
 	if fake.PathStub != nil {
 		return fake.PathStub(id)
-	} else {
-		return fake.pathReturns.result1, fake.pathReturns.result2
 	}
+	return fake.pathReturns.result1, fake.pathReturns.result2
 }
 
 func (fake *FakeCake) PathCallCount() int {
@@ -343,9 +336,8 @@ func (fake *FakeCake) QuotaedPath(id layercake.ID, quota int64) (string, error) 
 	fake.quotaedPathMutex.Unlock()
 	if fake.QuotaedPathStub != nil {
 		return fake.QuotaedPathStub(id, quota)
-	} else {
-		return fake.quotaedPathReturns.result1, fake.quotaedPathReturns.result2
 	}
+	return fake.quotaedPathReturns.result1, fake.quotaedPathReturns.result2
 }
 
 func (fake *FakeCake) QuotaedPathCallCount() int {
@@ -377,9 +369,8 @@ func (fake *FakeCake) IsLeaf(id layercake.ID) (bool, error) {
 	fake.isLeafMutex.Unlock()
 	if fake.IsLeafStub != nil {
 		return fake.IsLeafStub(id)
-	} else {
-		return fake.isLeafReturns.result1, fake.isLeafReturns.result2
 	}
+	return fake.isLeafReturns.result1, fake.isLeafReturns.result2
 }
 
 func (fake *FakeCake) IsLeafCallCount() int {
@@ -409,9 +400,8 @@ func (fake *FakeCake) GetAllLeaves() ([]layercake.ID, error) {
 	fake.getAllLeavesMutex.Unlock()
 	if fake.GetAllLeavesStub != nil {
 		return fake.GetAllLeavesStub()
-	} else {
-		return fake.getAllLeavesReturns.result1, fake.getAllLeavesReturns.result2
 	}
+	return fake.getAllLeavesReturns.result1, fake.getAllLeavesReturns.result2
 }
 
 func (fake *FakeCake) GetAllLeavesCallCount() int {
@@ -435,9 +425,8 @@ func (fake *FakeCake) All() []*image.Image {
 	fake.allMutex.Unlock()
 	if fake.AllStub != nil {
 		return fake.AllStub()
-	} else {
-		return fake.allReturns.result1
 	}
+	return fake.allReturns.result1
 }
 
 func (fake *FakeCake) AllCallCount() int {

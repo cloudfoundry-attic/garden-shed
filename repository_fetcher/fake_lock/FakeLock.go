@@ -58,9 +58,8 @@ func (fake *FakeLock) Release(key string) error {
 	fake.releaseMutex.Unlock()
 	if fake.ReleaseStub != nil {
 		return fake.ReleaseStub(key)
-	} else {
-		return fake.releaseReturns.result1
 	}
+	return fake.releaseReturns.result1
 }
 
 func (fake *FakeLock) ReleaseCallCount() int {

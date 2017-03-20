@@ -6,6 +6,7 @@ import (
 
 	"code.cloudfoundry.org/garden"
 	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/lager"
 )
 
 type CompositeFetcher struct {
@@ -16,20 +17,20 @@ type CompositeFetcher struct {
 	RemoteFetcher RepositoryFetcher
 }
 
-func (f *CompositeFetcher) Fetch(repoURL *url.URL, diskQuota int64) (*Image, error) {
+func (f *CompositeFetcher) Fetch(log lager.Logger, repoURL *url.URL, diskQuota int64) (*Image, error) {
 	if repoURL.Scheme == "" {
-		return f.LocalFetcher.Fetch(repoURL, diskQuota)
+		return f.LocalFetcher.Fetch(log, repoURL, diskQuota)
 	}
 
-	return f.RemoteFetcher.Fetch(repoURL, diskQuota)
+	return f.RemoteFetcher.Fetch(log, repoURL, diskQuota)
 }
 
-func (f *CompositeFetcher) FetchID(repoURL *url.URL) (layercake.ID, error) {
+func (f *CompositeFetcher) FetchID(log lager.Logger, repoURL *url.URL) (layercake.ID, error) {
 	if repoURL.Scheme == "" {
-		return f.LocalFetcher.FetchID(repoURL)
+		return f.LocalFetcher.FetchID(log, repoURL)
 	}
 
-	return f.RemoteFetcher.FetchID(repoURL)
+	return f.RemoteFetcher.FetchID(log, repoURL)
 }
 
 type dockerImage struct {

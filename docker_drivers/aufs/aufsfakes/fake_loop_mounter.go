@@ -39,9 +39,8 @@ func (fake *FakeLoopMounter) MountFile(filePath string, destPath string) error {
 	fake.mountFileMutex.Unlock()
 	if fake.MountFileStub != nil {
 		return fake.MountFileStub(filePath, destPath)
-	} else {
-		return fake.mountFileReturns.result1
 	}
+	return fake.mountFileReturns.result1
 }
 
 func (fake *FakeLoopMounter) MountFileCallCount() int {
@@ -72,9 +71,8 @@ func (fake *FakeLoopMounter) Unmount(path string) error {
 	fake.unmountMutex.Unlock()
 	if fake.UnmountStub != nil {
 		return fake.UnmountStub(path)
-	} else {
-		return fake.unmountReturns.result1
 	}
+	return fake.unmountReturns.result1
 }
 
 func (fake *FakeLoopMounter) UnmountCallCount() int {

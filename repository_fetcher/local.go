@@ -20,7 +20,6 @@ type ContainerIDProvider interface {
 }
 
 type Local struct {
-	Logger            lager.Logger
 	Cake              layercake.Cake
 	DefaultRootFSPath string
 	IDProvider        ContainerIDProvider
@@ -28,11 +27,12 @@ type Local struct {
 	mu sync.RWMutex
 }
 
-func (l *Local) Fetch(repoURL *url.URL, _ int64) (*Image, error) {
-	log := l.Logger.Session("local-fetch", lager.Data{"path": repoURL})
+func (l *Local) Fetch(log lager.Logger, repoURL *url.URL, _ int64) (*Image, error) {
+	log = log.Session("local-fetch", lager.Data{"path": repoURL})
 
 	log.Info("start")
 	defer log.Info("end")
+
 	path := repoURL.Path
 	if len(path) == 0 {
 		path = l.DefaultRootFSPath
@@ -48,7 +48,7 @@ func (l *Local) Fetch(repoURL *url.URL, _ int64) (*Image, error) {
 	}, err
 }
 
-func (l *Local) FetchID(repoURL *url.URL) (layercake.ID, error) {
+func (l *Local) FetchID(log lager.Logger, repoURL *url.URL) (layercake.ID, error) {
 	return l.IDProvider.ProvideID(repoURL.Path), nil
 }
 

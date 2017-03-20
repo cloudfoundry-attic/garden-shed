@@ -10,6 +10,7 @@ import (
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"code.cloudfoundry.org/garden-shed/repository_fetcher/fake_container_id_provider"
 	fakes "code.cloudfoundry.org/garden-shed/repository_fetcher/repository_fetcherfakes"
+	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagertest"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -36,7 +37,7 @@ var _ = Describe("ImageRetainer", func() {
 			}
 		}
 
-		fakeRemoteImageIDProvider.FetchIDStub = func(id *url.URL) (layercake.ID, error) {
+		fakeRemoteImageIDProvider.FetchIDStub = func(log lager.Logger, id *url.URL) (layercake.ID, error) {
 			return layercake.DockerImageID("/fetched/" + id.Path), nil
 		}
 
@@ -114,7 +115,7 @@ var _ = Describe("ImageRetainer", func() {
 
 		Context("when an image id cannot be fetched", func() {
 			It("still retains the other images", func() {
-				fakeRemoteImageIDProvider.FetchIDStub = func(u *url.URL) (layercake.ID, error) {
+				fakeRemoteImageIDProvider.FetchIDStub = func(log lager.Logger, u *url.URL) (layercake.ID, error) {
 					if u.Path == "/potato" {
 						return nil, errors.New("boom")
 					}

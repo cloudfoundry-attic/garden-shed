@@ -29,9 +29,8 @@ func (fake *FakeAUFSDiffPathFinder) GetDiffLayerPath(rootFSPath string) string {
 	fake.getDiffLayerPathMutex.Unlock()
 	if fake.GetDiffLayerPathStub != nil {
 		return fake.GetDiffLayerPathStub(rootFSPath)
-	} else {
-		return fake.getDiffLayerPathReturns.result1
 	}
+	return fake.getDiffLayerPathReturns.result1
 }
 
 func (fake *FakeAUFSDiffPathFinder) GetDiffLayerPathCallCount() int {

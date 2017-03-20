@@ -11,23 +11,21 @@ const MAX_ATTEMPTS = 3
 
 type Retryable struct {
 	RepositoryFetcher interface {
-		Fetch(*url.URL, int64) (*Image, error)
-		FetchID(*url.URL) (layercake.ID, error)
+		Fetch(lager.Logger, *url.URL, int64) (*Image, error)
+		FetchID(lager.Logger, *url.URL) (layercake.ID, error)
 	}
-
-	Logger lager.Logger
 }
 
-func (retryable Retryable) Fetch(repoName *url.URL, diskQuota int64) (*Image, error) {
+func (retryable Retryable) Fetch(log lager.Logger, repoName *url.URL, diskQuota int64) (*Image, error) {
 	var err error
 	var response *Image
 	for attempt := 1; attempt <= MAX_ATTEMPTS; attempt++ {
-		response, err = retryable.RepositoryFetcher.Fetch(repoName, diskQuota)
+		response, err = retryable.RepositoryFetcher.Fetch(log, repoName, diskQuota)
 		if err == nil {
 			break
 		}
 
-		retryable.Logger.Error("failed-to-fetch", err, lager.Data{
+		log.Error("failed-to-fetch", err, lager.Data{
 			"attempt": attempt,
 			"of":      MAX_ATTEMPTS,
 		})
@@ -36,16 +34,16 @@ func (retryable Retryable) Fetch(repoName *url.URL, diskQuota int64) (*Image, er
 	return response, err
 }
 
-func (retryable Retryable) FetchID(repoURL *url.URL) (layercake.ID, error) {
+func (retryable Retryable) FetchID(log lager.Logger, repoURL *url.URL) (layercake.ID, error) {
 	var err error
 	var response layercake.ID
 	for attempt := 1; attempt <= MAX_ATTEMPTS; attempt++ {
-		response, err = retryable.RepositoryFetcher.FetchID(repoURL)
+		response, err = retryable.RepositoryFetcher.FetchID(log, repoURL)
 		if err == nil {
 			break
 		}
 
-		retryable.Logger.Error("failed-to-fetch-ID", err, lager.Data{
+		log.Error("failed-to-fetch-ID", err, lager.Data{
 			"attempt": attempt,
 			"of":      MAX_ATTEMPTS,
 		})

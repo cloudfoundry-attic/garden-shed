@@ -27,6 +27,7 @@ import (
 
 var _ = Describe("Fetching from a Remote repo", func() {
 	var (
+		logger       *lagertest.TestLogger
 		fakeDialer   *fakes.FakeDialer
 		fakeConn     *fake_distclient.FakeConn
 		fakeCake     *fake_cake.FakeCake
@@ -41,6 +42,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	)
 
 	BeforeEach(func() {
+		logger = lagertest.NewTestLogger("test")
 		defaultDockerRegistryHost = "registry-1.docker.io"
 	})
 
@@ -132,12 +134,12 @@ var _ = Describe("Fetching from a Remote repo", func() {
 			return &verified{Reader: r}, nil
 		}
 
-		remote = repository_fetcher.NewRemote(lagertest.NewTestLogger("test"), defaultDockerRegistryHost, fakeCake, fakeDialer, fakeVerifier)
+		remote = repository_fetcher.NewRemote(defaultDockerRegistryHost, fakeCake, fakeDialer, fakeVerifier)
 	})
 
 	Context("when the URL has a host", func() {
 		It("dials that host", func() {
-			_, err := remote.Fetch(parseURL("docker://some-host/some/repo#some-tag"), 1234)
+			_, err := remote.Fetch(logger, parseURL("docker://some-host/some/repo#some-tag"), 1234)
 			Expect(err).NotTo(HaveOccurred())
 
 			_, host, _ := fakeDialer.DialArgsForCall(0)
@@ -147,7 +149,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	Context("when the host is empty", func() {
 		It("uses the default host", func() {
-			_, err := remote.Fetch(parseURL("docker:///some/repo#some-tag"), 1234)
+			_, err := remote.Fetch(logger, parseURL("docker:///some/repo#some-tag"), 1234)
 			Expect(err).NotTo(HaveOccurred())
 
 			_, host, _ := fakeDialer.DialArgsForCall(0)
@@ -157,7 +159,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	Context("when the path contains a slash", func() {
 		It("uses the path explicitly", func() {
-			_, err := remote.Fetch(parseURL("docker://some-host/some/repo#some-tag"), 1234)
+			_, err := remote.Fetch(logger, parseURL("docker://some-host/some/repo#some-tag"), 1234)
 			Expect(err).NotTo(HaveOccurred())
 
 			_, _, repo := fakeDialer.DialArgsForCall(0)
@@ -169,7 +171,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		Context("and the default registry is being used", func() {
 			Context("and the default is DockerHub", func() {
 				It("prepends the implied 'library/' to the path", func() {
-					_, err := remote.Fetch(parseURL("docker://registry-1.docker.io/somerepo#some-tag"), 1234)
+					_, err := remote.Fetch(logger, parseURL("docker://registry-1.docker.io/somerepo#some-tag"), 1234)
 					Expect(err).NotTo(HaveOccurred())
 
 					_, _, repo := fakeDialer.DialArgsForCall(0)
@@ -183,7 +185,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 				})
 
 				It("does not prepend 'library/' to the path", func() {
-					_, err := remote.Fetch(parseURL("docker://some-host/somerepo#some-tag"), 1234)
+					_, err := remote.Fetch(logger, parseURL("docker://some-host/somerepo#some-tag"), 1234)
 					Expect(err).NotTo(HaveOccurred())
 
 					_, _, repo := fakeDialer.DialArgsForCall(0)
@@ -194,7 +196,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 		Context("and a custom registry is being used", func() {
 			It("does not prepend 'library/' to the path", func() {
-				_, err := remote.Fetch(parseURL("docker://some-host/somerepo#some-tag"), 1234)
+				_, err := remote.Fetch(logger, parseURL("docker://some-host/somerepo#some-tag"), 1234)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, _, repo := fakeDialer.DialArgsForCall(0)
@@ -205,7 +207,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	Context("when the cake does not contain any of the layers", func() {
 		JustBeforeEach(func() {
-			_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+			_, err := remote.Fetch(logger, parseURL("docker:///foo#some-tag"), 67)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -235,7 +237,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		})
 
 		It("avoids registering it again", func() {
-			_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+			_, err := remote.Fetch(logger, parseURL("docker:///foo#some-tag"), 67)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeCake.RegisterCallCount()).To(Equal(2))
 		})
@@ -243,7 +245,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	Context("when the url doesnot contain a fragment", func() {
 		It("uses 'latest' as the tag", func() {
-			_, err := remote.Fetch(parseURL("docker:///foo"), 67)
+			_, err := remote.Fetch(logger, parseURL("docker:///foo"), 67)
 			Expect(err).NotTo(HaveOccurred())
 
 			_, tag := fakeConn.GetManifestArgsForCall(0)
@@ -252,27 +254,27 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	})
 
 	It("returns an image with the ID of the top layer", func() {
-		img, _ := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+		img, _ := remote.Fetch(logger, parseURL("docker:///foo#some-tag"), 67)
 		Expect(img.ImageID).To(Equal("klm-id"))
 	})
 
 	It("can fetch just the ID", func() {
-		id, _ := remote.FetchID(parseURL("docker:///foo#some-tag"))
+		id, _ := remote.FetchID(logger, parseURL("docker:///foo#some-tag"))
 		Expect(id).To(Equal(layercake.DockerImageID("klm-id")))
 	})
 
 	It("combines all the environment variable arrays together", func() {
-		img, _ := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+		img, _ := remote.Fetch(logger, parseURL("docker:///foo#some-tag"), 67)
 		Expect(img.Env).To(ConsistOf([]string{"a", "b", "d", "e", "f"}))
 	})
 
 	It("combines all the volumes together", func() {
-		img, _ := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+		img, _ := remote.Fetch(logger, parseURL("docker:///foo#some-tag"), 67)
 		Expect(img.Volumes).To(ConsistOf([]string{"vol1", "vol2"}))
 	})
 
 	It("should verify the image against its digest", func() {
-		remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+		remote.Fetch(logger, parseURL("docker:///foo#some-tag"), 67)
 		_, reader := fakeCake.RegisterArgsForCall(0)
 
 		Expect(reader).To(BeAssignableToTypeOf(&verified{}))
@@ -291,7 +293,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 			return nil
 		}
 
-		remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+		remote.Fetch(logger, parseURL("docker:///foo#some-tag"), 67)
 		Expect(registeredBlob.closed).To(BeTrue())
 	})
 
@@ -301,7 +303,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		})
 
 		It("returns an error", func() {
-			_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+			_, err := remote.Fetch(logger, parseURL("docker:///foo#some-tag"), 67)
 			Expect(err).To(MatchError("boom"))
 		})
 
@@ -339,13 +341,13 @@ var _ = Describe("Fetching from a Remote repo", func() {
 				wg.Add(2)
 				go func() {
 					defer wg.Done()
-					_, err := remote.Fetch(parseURL("docker:///foo#some-tag"), 67)
+					_, err := remote.Fetch(logger, parseURL("docker:///foo#some-tag"), 67)
 					Expect(err).NotTo(HaveOccurred())
 				}()
 
 				go func() {
 					defer wg.Done()
-					_, err := remote.Fetch(parseURL("docker:///foo#shared-layers"), 67)
+					_, err := remote.Fetch(logger, parseURL("docker:///foo#shared-layers"), 67)
 					Expect(err).NotTo(HaveOccurred())
 				}()
 
@@ -358,21 +360,21 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	Context("when a disk quota is provided", func() {
 		Context("and the image is smaller than the quota", func() {
 			It("should succeed", func() {
-				_, err := remote.Fetch(parseURL("docker:///banana#some-tag"), 3)
+				_, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), 3)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
 		Context("and the image is bigger than the quota", func() {
 			It("should return an error", func() {
-				_, err := remote.Fetch(parseURL("docker:///banana#some-tag"), 2)
+				_, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), 2)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
 
 	It("returns the size of the image", func() {
-		image, err := remote.Fetch(parseURL("docker:///banana#some-tag"), 3)
+		image, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), 3)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(image.Size).To(BeNumerically("==", 3))
 	})
