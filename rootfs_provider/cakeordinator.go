@@ -55,8 +55,14 @@ func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreat
 }
 
 func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (string, []string, error) {
+	logger = logger.Session("create", lager.Data{"id": id})
+	logger.Info("start")
 	c.mu.RLock()
-	defer c.mu.RUnlock()
+	defer func() {
+		c.mu.RUnlock()
+		logger.Info("finished")
+	}()
+	logger.Info("lock-acquired")
 
 	if spec.Username != "" || spec.Password != "" {
 		return "", nil, errors.New("private docker registries are not supported")
@@ -76,11 +82,19 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 }
 
 func (c *CakeOrdinator) Metrics(logger lager.Logger, id string, _ bool) (garden.ContainerDiskStat, error) {
+	logger = logger.Session("metrics", lager.Data{"id": id})
+	logger.Info("start")
+	defer logger.Info("finished")
+
 	cid := layercake.ContainerID(id)
 	return c.metrics.Metrics(logger, cid)
 }
 
 func (c *CakeOrdinator) Destroy(logger lager.Logger, id string) error {
+	logger = logger.Session("destroy", lager.Data{"id": id})
+	logger.Info("start")
+	defer logger.Info("finished")
+
 	cid := layercake.ContainerID(id)
 	if _, err := c.cake.Get(cid); err != nil {
 		logger.Info("layer-already-deleted-skipping", lager.Data{"id": id, "graphID": cid, "error": err.Error()})
@@ -91,8 +105,14 @@ func (c *CakeOrdinator) Destroy(logger lager.Logger, id string) error {
 }
 
 func (c *CakeOrdinator) GC(logger lager.Logger) error {
+	logger = logger.Session("gc")
+	logger.Info("start")
 	c.mu.Lock()
-	defer c.mu.Unlock()
+	defer func() {
+		c.mu.Unlock()
+		logger.Info("finished")
+	}()
+	logger.Info("lock-acquired")
 
 	return c.gc.GC(logger, c.cake)
 }

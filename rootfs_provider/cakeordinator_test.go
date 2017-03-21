@@ -172,7 +172,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 			It("skips destroy and logs the error instead", func() {
 				Expect(cakeOrdinator.Destroy(logger, "something")).To(Succeed())
-				Expect(logger.LogMessages()).To(ContainElement("test.layer-already-deleted-skipping"))
+				Expect(logger.LogMessages()).To(ContainElement("test.destroy.layer-already-deleted-skipping"))
 			})
 		})
 	})
