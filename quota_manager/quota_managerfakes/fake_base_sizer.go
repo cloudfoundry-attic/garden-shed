@@ -19,12 +19,17 @@ type FakeBaseSizer struct {
 		result1 uint64
 		result2 error
 	}
+	baseSizeReturnsOnCall map[int]struct {
+		result1 uint64
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeBaseSizer) BaseSize(logger lager.Logger, rootfsPath string) (uint64, error) {
 	fake.baseSizeMutex.Lock()
+	ret, specificReturn := fake.baseSizeReturnsOnCall[len(fake.baseSizeArgsForCall)]
 	fake.baseSizeArgsForCall = append(fake.baseSizeArgsForCall, struct {
 		logger     lager.Logger
 		rootfsPath string
@@ -33,6 +38,9 @@ func (fake *FakeBaseSizer) BaseSize(logger lager.Logger, rootfsPath string) (uin
 	fake.baseSizeMutex.Unlock()
 	if fake.BaseSizeStub != nil {
 		return fake.BaseSizeStub(logger, rootfsPath)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.baseSizeReturns.result1, fake.baseSizeReturns.result2
 }
@@ -52,6 +60,20 @@ func (fake *FakeBaseSizer) BaseSizeArgsForCall(i int) (lager.Logger, string) {
 func (fake *FakeBaseSizer) BaseSizeReturns(result1 uint64, result2 error) {
 	fake.BaseSizeStub = nil
 	fake.baseSizeReturns = struct {
+		result1 uint64
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBaseSizer) BaseSizeReturnsOnCall(i int, result1 uint64, result2 error) {
+	fake.BaseSizeStub = nil
+	if fake.baseSizeReturnsOnCall == nil {
+		fake.baseSizeReturnsOnCall = make(map[int]struct {
+			result1 uint64
+			result2 error
+		})
+	}
+	fake.baseSizeReturnsOnCall[i] = struct {
 		result1 uint64
 		result2 error
 	}{result1, result2}

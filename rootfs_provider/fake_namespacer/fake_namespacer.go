@@ -15,6 +15,9 @@ type FakeNamespacer struct {
 	cacheKeyReturns     struct {
 		result1 string
 	}
+	cacheKeyReturnsOnCall map[int]struct {
+		result1 string
+	}
 	NamespaceStub        func(log lager.Logger, rootfsPath string) error
 	namespaceMutex       sync.RWMutex
 	namespaceArgsForCall []struct {
@@ -24,17 +27,24 @@ type FakeNamespacer struct {
 	namespaceReturns struct {
 		result1 error
 	}
+	namespaceReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeNamespacer) CacheKey() string {
 	fake.cacheKeyMutex.Lock()
+	ret, specificReturn := fake.cacheKeyReturnsOnCall[len(fake.cacheKeyArgsForCall)]
 	fake.cacheKeyArgsForCall = append(fake.cacheKeyArgsForCall, struct{}{})
 	fake.recordInvocation("CacheKey", []interface{}{})
 	fake.cacheKeyMutex.Unlock()
 	if fake.CacheKeyStub != nil {
 		return fake.CacheKeyStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.cacheKeyReturns.result1
 }
@@ -52,8 +62,21 @@ func (fake *FakeNamespacer) CacheKeyReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeNamespacer) CacheKeyReturnsOnCall(i int, result1 string) {
+	fake.CacheKeyStub = nil
+	if fake.cacheKeyReturnsOnCall == nil {
+		fake.cacheKeyReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.cacheKeyReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeNamespacer) Namespace(log lager.Logger, rootfsPath string) error {
 	fake.namespaceMutex.Lock()
+	ret, specificReturn := fake.namespaceReturnsOnCall[len(fake.namespaceArgsForCall)]
 	fake.namespaceArgsForCall = append(fake.namespaceArgsForCall, struct {
 		log        lager.Logger
 		rootfsPath string
@@ -62,6 +85,9 @@ func (fake *FakeNamespacer) Namespace(log lager.Logger, rootfsPath string) error
 	fake.namespaceMutex.Unlock()
 	if fake.NamespaceStub != nil {
 		return fake.NamespaceStub(log, rootfsPath)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.namespaceReturns.result1
 }
@@ -81,6 +107,18 @@ func (fake *FakeNamespacer) NamespaceArgsForCall(i int) (lager.Logger, string) {
 func (fake *FakeNamespacer) NamespaceReturns(result1 error) {
 	fake.NamespaceStub = nil
 	fake.namespaceReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeNamespacer) NamespaceReturnsOnCall(i int, result1 error) {
+	fake.NamespaceStub = nil
+	if fake.namespaceReturnsOnCall == nil {
+		fake.namespaceReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.namespaceReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }

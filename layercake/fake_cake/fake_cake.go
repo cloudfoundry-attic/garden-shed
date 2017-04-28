@@ -16,6 +16,9 @@ type FakeCake struct {
 	driverNameReturns     struct {
 		result1 string
 	}
+	driverNameReturnsOnCall map[int]struct {
+		result1 string
+	}
 	CreateStub        func(layerID, parentID layercake.ID, containerID string) error
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
@@ -24,6 +27,9 @@ type FakeCake struct {
 		containerID string
 	}
 	createReturns struct {
+		result1 error
+	}
+	createReturnsOnCall map[int]struct {
 		result1 error
 	}
 	RegisterStub        func(img *image.Image, layer archive.ArchiveReader) error
@@ -35,12 +41,19 @@ type FakeCake struct {
 	registerReturns struct {
 		result1 error
 	}
+	registerReturnsOnCall map[int]struct {
+		result1 error
+	}
 	GetStub        func(id layercake.ID) (*image.Image, error)
 	getMutex       sync.RWMutex
 	getArgsForCall []struct {
 		id layercake.ID
 	}
 	getReturns struct {
+		result1 *image.Image
+		result2 error
+	}
+	getReturnsOnCall map[int]struct {
 		result1 *image.Image
 		result2 error
 	}
@@ -52,6 +65,9 @@ type FakeCake struct {
 	unmountReturns struct {
 		result1 error
 	}
+	unmountReturnsOnCall map[int]struct {
+		result1 error
+	}
 	RemoveStub        func(id layercake.ID) error
 	removeMutex       sync.RWMutex
 	removeArgsForCall []struct {
@@ -60,12 +76,19 @@ type FakeCake struct {
 	removeReturns struct {
 		result1 error
 	}
+	removeReturnsOnCall map[int]struct {
+		result1 error
+	}
 	PathStub        func(id layercake.ID) (string, error)
 	pathMutex       sync.RWMutex
 	pathArgsForCall []struct {
 		id layercake.ID
 	}
 	pathReturns struct {
+		result1 string
+		result2 error
+	}
+	pathReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
 	}
@@ -79,12 +102,20 @@ type FakeCake struct {
 		result1 string
 		result2 error
 	}
+	quotaedPathReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	IsLeafStub        func(id layercake.ID) (bool, error)
 	isLeafMutex       sync.RWMutex
 	isLeafArgsForCall []struct {
 		id layercake.ID
 	}
 	isLeafReturns struct {
+		result1 bool
+		result2 error
+	}
+	isLeafReturnsOnCall map[int]struct {
 		result1 bool
 		result2 error
 	}
@@ -95,10 +126,17 @@ type FakeCake struct {
 		result1 []layercake.ID
 		result2 error
 	}
+	getAllLeavesReturnsOnCall map[int]struct {
+		result1 []layercake.ID
+		result2 error
+	}
 	AllStub        func() []*image.Image
 	allMutex       sync.RWMutex
 	allArgsForCall []struct{}
 	allReturns     struct {
+		result1 []*image.Image
+	}
+	allReturnsOnCall map[int]struct {
 		result1 []*image.Image
 	}
 	invocations      map[string][][]interface{}
@@ -107,11 +145,15 @@ type FakeCake struct {
 
 func (fake *FakeCake) DriverName() string {
 	fake.driverNameMutex.Lock()
+	ret, specificReturn := fake.driverNameReturnsOnCall[len(fake.driverNameArgsForCall)]
 	fake.driverNameArgsForCall = append(fake.driverNameArgsForCall, struct{}{})
 	fake.recordInvocation("DriverName", []interface{}{})
 	fake.driverNameMutex.Unlock()
 	if fake.DriverNameStub != nil {
 		return fake.DriverNameStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.driverNameReturns.result1
 }
@@ -129,8 +171,21 @@ func (fake *FakeCake) DriverNameReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeCake) DriverNameReturnsOnCall(i int, result1 string) {
+	fake.DriverNameStub = nil
+	if fake.driverNameReturnsOnCall == nil {
+		fake.driverNameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.driverNameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeCake) Create(layerID layercake.ID, parentID layercake.ID, containerID string) error {
 	fake.createMutex.Lock()
+	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		layerID     layercake.ID
 		parentID    layercake.ID
@@ -140,6 +195,9 @@ func (fake *FakeCake) Create(layerID layercake.ID, parentID layercake.ID, contai
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
 		return fake.CreateStub(layerID, parentID, containerID)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.createReturns.result1
 }
@@ -163,8 +221,21 @@ func (fake *FakeCake) CreateReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeCake) CreateReturnsOnCall(i int, result1 error) {
+	fake.CreateStub = nil
+	if fake.createReturnsOnCall == nil {
+		fake.createReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.createReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeCake) Register(img *image.Image, layer archive.ArchiveReader) error {
 	fake.registerMutex.Lock()
+	ret, specificReturn := fake.registerReturnsOnCall[len(fake.registerArgsForCall)]
 	fake.registerArgsForCall = append(fake.registerArgsForCall, struct {
 		img   *image.Image
 		layer archive.ArchiveReader
@@ -173,6 +244,9 @@ func (fake *FakeCake) Register(img *image.Image, layer archive.ArchiveReader) er
 	fake.registerMutex.Unlock()
 	if fake.RegisterStub != nil {
 		return fake.RegisterStub(img, layer)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.registerReturns.result1
 }
@@ -196,8 +270,21 @@ func (fake *FakeCake) RegisterReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeCake) RegisterReturnsOnCall(i int, result1 error) {
+	fake.RegisterStub = nil
+	if fake.registerReturnsOnCall == nil {
+		fake.registerReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.registerReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeCake) Get(id layercake.ID) (*image.Image, error) {
 	fake.getMutex.Lock()
+	ret, specificReturn := fake.getReturnsOnCall[len(fake.getArgsForCall)]
 	fake.getArgsForCall = append(fake.getArgsForCall, struct {
 		id layercake.ID
 	}{id})
@@ -205,6 +292,9 @@ func (fake *FakeCake) Get(id layercake.ID) (*image.Image, error) {
 	fake.getMutex.Unlock()
 	if fake.GetStub != nil {
 		return fake.GetStub(id)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.getReturns.result1, fake.getReturns.result2
 }
@@ -229,8 +319,23 @@ func (fake *FakeCake) GetReturns(result1 *image.Image, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeCake) GetReturnsOnCall(i int, result1 *image.Image, result2 error) {
+	fake.GetStub = nil
+	if fake.getReturnsOnCall == nil {
+		fake.getReturnsOnCall = make(map[int]struct {
+			result1 *image.Image
+			result2 error
+		})
+	}
+	fake.getReturnsOnCall[i] = struct {
+		result1 *image.Image
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeCake) Unmount(id layercake.ID) error {
 	fake.unmountMutex.Lock()
+	ret, specificReturn := fake.unmountReturnsOnCall[len(fake.unmountArgsForCall)]
 	fake.unmountArgsForCall = append(fake.unmountArgsForCall, struct {
 		id layercake.ID
 	}{id})
@@ -238,6 +343,9 @@ func (fake *FakeCake) Unmount(id layercake.ID) error {
 	fake.unmountMutex.Unlock()
 	if fake.UnmountStub != nil {
 		return fake.UnmountStub(id)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.unmountReturns.result1
 }
@@ -261,8 +369,21 @@ func (fake *FakeCake) UnmountReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeCake) UnmountReturnsOnCall(i int, result1 error) {
+	fake.UnmountStub = nil
+	if fake.unmountReturnsOnCall == nil {
+		fake.unmountReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.unmountReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeCake) Remove(id layercake.ID) error {
 	fake.removeMutex.Lock()
+	ret, specificReturn := fake.removeReturnsOnCall[len(fake.removeArgsForCall)]
 	fake.removeArgsForCall = append(fake.removeArgsForCall, struct {
 		id layercake.ID
 	}{id})
@@ -270,6 +391,9 @@ func (fake *FakeCake) Remove(id layercake.ID) error {
 	fake.removeMutex.Unlock()
 	if fake.RemoveStub != nil {
 		return fake.RemoveStub(id)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.removeReturns.result1
 }
@@ -293,8 +417,21 @@ func (fake *FakeCake) RemoveReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeCake) RemoveReturnsOnCall(i int, result1 error) {
+	fake.RemoveStub = nil
+	if fake.removeReturnsOnCall == nil {
+		fake.removeReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.removeReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeCake) Path(id layercake.ID) (string, error) {
 	fake.pathMutex.Lock()
+	ret, specificReturn := fake.pathReturnsOnCall[len(fake.pathArgsForCall)]
 	fake.pathArgsForCall = append(fake.pathArgsForCall, struct {
 		id layercake.ID
 	}{id})
@@ -302,6 +439,9 @@ func (fake *FakeCake) Path(id layercake.ID) (string, error) {
 	fake.pathMutex.Unlock()
 	if fake.PathStub != nil {
 		return fake.PathStub(id)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.pathReturns.result1, fake.pathReturns.result2
 }
@@ -326,8 +466,23 @@ func (fake *FakeCake) PathReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeCake) PathReturnsOnCall(i int, result1 string, result2 error) {
+	fake.PathStub = nil
+	if fake.pathReturnsOnCall == nil {
+		fake.pathReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.pathReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeCake) QuotaedPath(id layercake.ID, quota int64) (string, error) {
 	fake.quotaedPathMutex.Lock()
+	ret, specificReturn := fake.quotaedPathReturnsOnCall[len(fake.quotaedPathArgsForCall)]
 	fake.quotaedPathArgsForCall = append(fake.quotaedPathArgsForCall, struct {
 		id    layercake.ID
 		quota int64
@@ -336,6 +491,9 @@ func (fake *FakeCake) QuotaedPath(id layercake.ID, quota int64) (string, error) 
 	fake.quotaedPathMutex.Unlock()
 	if fake.QuotaedPathStub != nil {
 		return fake.QuotaedPathStub(id, quota)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.quotaedPathReturns.result1, fake.quotaedPathReturns.result2
 }
@@ -360,8 +518,23 @@ func (fake *FakeCake) QuotaedPathReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeCake) QuotaedPathReturnsOnCall(i int, result1 string, result2 error) {
+	fake.QuotaedPathStub = nil
+	if fake.quotaedPathReturnsOnCall == nil {
+		fake.quotaedPathReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.quotaedPathReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeCake) IsLeaf(id layercake.ID) (bool, error) {
 	fake.isLeafMutex.Lock()
+	ret, specificReturn := fake.isLeafReturnsOnCall[len(fake.isLeafArgsForCall)]
 	fake.isLeafArgsForCall = append(fake.isLeafArgsForCall, struct {
 		id layercake.ID
 	}{id})
@@ -369,6 +542,9 @@ func (fake *FakeCake) IsLeaf(id layercake.ID) (bool, error) {
 	fake.isLeafMutex.Unlock()
 	if fake.IsLeafStub != nil {
 		return fake.IsLeafStub(id)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.isLeafReturns.result1, fake.isLeafReturns.result2
 }
@@ -393,13 +569,31 @@ func (fake *FakeCake) IsLeafReturns(result1 bool, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeCake) IsLeafReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.IsLeafStub = nil
+	if fake.isLeafReturnsOnCall == nil {
+		fake.isLeafReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.isLeafReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeCake) GetAllLeaves() ([]layercake.ID, error) {
 	fake.getAllLeavesMutex.Lock()
+	ret, specificReturn := fake.getAllLeavesReturnsOnCall[len(fake.getAllLeavesArgsForCall)]
 	fake.getAllLeavesArgsForCall = append(fake.getAllLeavesArgsForCall, struct{}{})
 	fake.recordInvocation("GetAllLeaves", []interface{}{})
 	fake.getAllLeavesMutex.Unlock()
 	if fake.GetAllLeavesStub != nil {
 		return fake.GetAllLeavesStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.getAllLeavesReturns.result1, fake.getAllLeavesReturns.result2
 }
@@ -418,13 +612,31 @@ func (fake *FakeCake) GetAllLeavesReturns(result1 []layercake.ID, result2 error)
 	}{result1, result2}
 }
 
+func (fake *FakeCake) GetAllLeavesReturnsOnCall(i int, result1 []layercake.ID, result2 error) {
+	fake.GetAllLeavesStub = nil
+	if fake.getAllLeavesReturnsOnCall == nil {
+		fake.getAllLeavesReturnsOnCall = make(map[int]struct {
+			result1 []layercake.ID
+			result2 error
+		})
+	}
+	fake.getAllLeavesReturnsOnCall[i] = struct {
+		result1 []layercake.ID
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeCake) All() []*image.Image {
 	fake.allMutex.Lock()
+	ret, specificReturn := fake.allReturnsOnCall[len(fake.allArgsForCall)]
 	fake.allArgsForCall = append(fake.allArgsForCall, struct{}{})
 	fake.recordInvocation("All", []interface{}{})
 	fake.allMutex.Unlock()
 	if fake.AllStub != nil {
 		return fake.AllStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.allReturns.result1
 }
@@ -438,6 +650,18 @@ func (fake *FakeCake) AllCallCount() int {
 func (fake *FakeCake) AllReturns(result1 []*image.Image) {
 	fake.AllStub = nil
 	fake.allReturns = struct {
+		result1 []*image.Image
+	}{result1}
+}
+
+func (fake *FakeCake) AllReturnsOnCall(i int, result1 []*image.Image) {
+	fake.AllStub = nil
+	if fake.allReturnsOnCall == nil {
+		fake.allReturnsOnCall = make(map[int]struct {
+			result1 []*image.Image
+		})
+	}
+	fake.allReturnsOnCall[i] = struct {
 		result1 []*image.Image
 	}{result1}
 }

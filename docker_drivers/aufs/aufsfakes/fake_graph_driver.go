@@ -15,6 +15,9 @@ type FakeGraphDriver struct {
 	stringReturns     struct {
 		result1 string
 	}
+	stringReturnsOnCall map[int]struct {
+		result1 string
+	}
 	CreateStub        func(id, parent string) error
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
@@ -24,12 +27,18 @@ type FakeGraphDriver struct {
 	createReturns struct {
 		result1 error
 	}
+	createReturnsOnCall map[int]struct {
+		result1 error
+	}
 	RemoveStub        func(id string) error
 	removeMutex       sync.RWMutex
 	removeArgsForCall []struct {
 		id string
 	}
 	removeReturns struct {
+		result1 error
+	}
+	removeReturnsOnCall map[int]struct {
 		result1 error
 	}
 	GetStub        func(id, mountLabel string) (dir string, err error)
@@ -42,12 +51,19 @@ type FakeGraphDriver struct {
 		result1 string
 		result2 error
 	}
+	getReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	PutStub        func(id string) error
 	putMutex       sync.RWMutex
 	putArgsForCall []struct {
 		id string
 	}
 	putReturns struct {
+		result1 error
+	}
+	putReturnsOnCall map[int]struct {
 		result1 error
 	}
 	ExistsStub        func(id string) bool
@@ -58,10 +74,16 @@ type FakeGraphDriver struct {
 	existsReturns struct {
 		result1 bool
 	}
+	existsReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	StatusStub        func() [][2]string
 	statusMutex       sync.RWMutex
 	statusArgsForCall []struct{}
 	statusReturns     struct {
+		result1 [][2]string
+	}
+	statusReturnsOnCall map[int]struct {
 		result1 [][2]string
 	}
 	GetMetadataStub        func(id string) (map[string]string, error)
@@ -73,10 +95,17 @@ type FakeGraphDriver struct {
 		result1 map[string]string
 		result2 error
 	}
+	getMetadataReturnsOnCall map[int]struct {
+		result1 map[string]string
+		result2 error
+	}
 	CleanupStub        func() error
 	cleanupMutex       sync.RWMutex
 	cleanupArgsForCall []struct{}
 	cleanupReturns     struct {
+		result1 error
+	}
+	cleanupReturnsOnCall map[int]struct {
 		result1 error
 	}
 	DiffStub        func(id, parent string) (archive.Archive, error)
@@ -89,6 +118,10 @@ type FakeGraphDriver struct {
 		result1 archive.Archive
 		result2 error
 	}
+	diffReturnsOnCall map[int]struct {
+		result1 archive.Archive
+		result2 error
+	}
 	ChangesStub        func(id, parent string) ([]archive.Change, error)
 	changesMutex       sync.RWMutex
 	changesArgsForCall []struct {
@@ -96,6 +129,10 @@ type FakeGraphDriver struct {
 		parent string
 	}
 	changesReturns struct {
+		result1 []archive.Change
+		result2 error
+	}
+	changesReturnsOnCall map[int]struct {
 		result1 []archive.Change
 		result2 error
 	}
@@ -110,6 +147,10 @@ type FakeGraphDriver struct {
 		result1 int64
 		result2 error
 	}
+	applyDiffReturnsOnCall map[int]struct {
+		result1 int64
+		result2 error
+	}
 	DiffSizeStub        func(id, parent string) (size int64, err error)
 	diffSizeMutex       sync.RWMutex
 	diffSizeArgsForCall []struct {
@@ -120,17 +161,25 @@ type FakeGraphDriver struct {
 		result1 int64
 		result2 error
 	}
+	diffSizeReturnsOnCall map[int]struct {
+		result1 int64
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeGraphDriver) String() string {
 	fake.stringMutex.Lock()
+	ret, specificReturn := fake.stringReturnsOnCall[len(fake.stringArgsForCall)]
 	fake.stringArgsForCall = append(fake.stringArgsForCall, struct{}{})
 	fake.recordInvocation("String", []interface{}{})
 	fake.stringMutex.Unlock()
 	if fake.StringStub != nil {
 		return fake.StringStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.stringReturns.result1
 }
@@ -148,8 +197,21 @@ func (fake *FakeGraphDriver) StringReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeGraphDriver) StringReturnsOnCall(i int, result1 string) {
+	fake.StringStub = nil
+	if fake.stringReturnsOnCall == nil {
+		fake.stringReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.stringReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeGraphDriver) Create(id string, parent string) error {
 	fake.createMutex.Lock()
+	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		id     string
 		parent string
@@ -158,6 +220,9 @@ func (fake *FakeGraphDriver) Create(id string, parent string) error {
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
 		return fake.CreateStub(id, parent)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.createReturns.result1
 }
@@ -181,8 +246,21 @@ func (fake *FakeGraphDriver) CreateReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeGraphDriver) CreateReturnsOnCall(i int, result1 error) {
+	fake.CreateStub = nil
+	if fake.createReturnsOnCall == nil {
+		fake.createReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.createReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeGraphDriver) Remove(id string) error {
 	fake.removeMutex.Lock()
+	ret, specificReturn := fake.removeReturnsOnCall[len(fake.removeArgsForCall)]
 	fake.removeArgsForCall = append(fake.removeArgsForCall, struct {
 		id string
 	}{id})
@@ -190,6 +268,9 @@ func (fake *FakeGraphDriver) Remove(id string) error {
 	fake.removeMutex.Unlock()
 	if fake.RemoveStub != nil {
 		return fake.RemoveStub(id)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.removeReturns.result1
 }
@@ -213,8 +294,21 @@ func (fake *FakeGraphDriver) RemoveReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeGraphDriver) RemoveReturnsOnCall(i int, result1 error) {
+	fake.RemoveStub = nil
+	if fake.removeReturnsOnCall == nil {
+		fake.removeReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.removeReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeGraphDriver) Get(id string, mountLabel string) (dir string, err error) {
 	fake.getMutex.Lock()
+	ret, specificReturn := fake.getReturnsOnCall[len(fake.getArgsForCall)]
 	fake.getArgsForCall = append(fake.getArgsForCall, struct {
 		id         string
 		mountLabel string
@@ -223,6 +317,9 @@ func (fake *FakeGraphDriver) Get(id string, mountLabel string) (dir string, err 
 	fake.getMutex.Unlock()
 	if fake.GetStub != nil {
 		return fake.GetStub(id, mountLabel)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.getReturns.result1, fake.getReturns.result2
 }
@@ -247,8 +344,23 @@ func (fake *FakeGraphDriver) GetReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeGraphDriver) GetReturnsOnCall(i int, result1 string, result2 error) {
+	fake.GetStub = nil
+	if fake.getReturnsOnCall == nil {
+		fake.getReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGraphDriver) Put(id string) error {
 	fake.putMutex.Lock()
+	ret, specificReturn := fake.putReturnsOnCall[len(fake.putArgsForCall)]
 	fake.putArgsForCall = append(fake.putArgsForCall, struct {
 		id string
 	}{id})
@@ -256,6 +368,9 @@ func (fake *FakeGraphDriver) Put(id string) error {
 	fake.putMutex.Unlock()
 	if fake.PutStub != nil {
 		return fake.PutStub(id)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.putReturns.result1
 }
@@ -279,8 +394,21 @@ func (fake *FakeGraphDriver) PutReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeGraphDriver) PutReturnsOnCall(i int, result1 error) {
+	fake.PutStub = nil
+	if fake.putReturnsOnCall == nil {
+		fake.putReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.putReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeGraphDriver) Exists(id string) bool {
 	fake.existsMutex.Lock()
+	ret, specificReturn := fake.existsReturnsOnCall[len(fake.existsArgsForCall)]
 	fake.existsArgsForCall = append(fake.existsArgsForCall, struct {
 		id string
 	}{id})
@@ -288,6 +416,9 @@ func (fake *FakeGraphDriver) Exists(id string) bool {
 	fake.existsMutex.Unlock()
 	if fake.ExistsStub != nil {
 		return fake.ExistsStub(id)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.existsReturns.result1
 }
@@ -311,13 +442,29 @@ func (fake *FakeGraphDriver) ExistsReturns(result1 bool) {
 	}{result1}
 }
 
+func (fake *FakeGraphDriver) ExistsReturnsOnCall(i int, result1 bool) {
+	fake.ExistsStub = nil
+	if fake.existsReturnsOnCall == nil {
+		fake.existsReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.existsReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeGraphDriver) Status() [][2]string {
 	fake.statusMutex.Lock()
+	ret, specificReturn := fake.statusReturnsOnCall[len(fake.statusArgsForCall)]
 	fake.statusArgsForCall = append(fake.statusArgsForCall, struct{}{})
 	fake.recordInvocation("Status", []interface{}{})
 	fake.statusMutex.Unlock()
 	if fake.StatusStub != nil {
 		return fake.StatusStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.statusReturns.result1
 }
@@ -335,8 +482,21 @@ func (fake *FakeGraphDriver) StatusReturns(result1 [][2]string) {
 	}{result1}
 }
 
+func (fake *FakeGraphDriver) StatusReturnsOnCall(i int, result1 [][2]string) {
+	fake.StatusStub = nil
+	if fake.statusReturnsOnCall == nil {
+		fake.statusReturnsOnCall = make(map[int]struct {
+			result1 [][2]string
+		})
+	}
+	fake.statusReturnsOnCall[i] = struct {
+		result1 [][2]string
+	}{result1}
+}
+
 func (fake *FakeGraphDriver) GetMetadata(id string) (map[string]string, error) {
 	fake.getMetadataMutex.Lock()
+	ret, specificReturn := fake.getMetadataReturnsOnCall[len(fake.getMetadataArgsForCall)]
 	fake.getMetadataArgsForCall = append(fake.getMetadataArgsForCall, struct {
 		id string
 	}{id})
@@ -344,6 +504,9 @@ func (fake *FakeGraphDriver) GetMetadata(id string) (map[string]string, error) {
 	fake.getMetadataMutex.Unlock()
 	if fake.GetMetadataStub != nil {
 		return fake.GetMetadataStub(id)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.getMetadataReturns.result1, fake.getMetadataReturns.result2
 }
@@ -368,13 +531,31 @@ func (fake *FakeGraphDriver) GetMetadataReturns(result1 map[string]string, resul
 	}{result1, result2}
 }
 
+func (fake *FakeGraphDriver) GetMetadataReturnsOnCall(i int, result1 map[string]string, result2 error) {
+	fake.GetMetadataStub = nil
+	if fake.getMetadataReturnsOnCall == nil {
+		fake.getMetadataReturnsOnCall = make(map[int]struct {
+			result1 map[string]string
+			result2 error
+		})
+	}
+	fake.getMetadataReturnsOnCall[i] = struct {
+		result1 map[string]string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGraphDriver) Cleanup() error {
 	fake.cleanupMutex.Lock()
+	ret, specificReturn := fake.cleanupReturnsOnCall[len(fake.cleanupArgsForCall)]
 	fake.cleanupArgsForCall = append(fake.cleanupArgsForCall, struct{}{})
 	fake.recordInvocation("Cleanup", []interface{}{})
 	fake.cleanupMutex.Unlock()
 	if fake.CleanupStub != nil {
 		return fake.CleanupStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.cleanupReturns.result1
 }
@@ -392,8 +573,21 @@ func (fake *FakeGraphDriver) CleanupReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeGraphDriver) CleanupReturnsOnCall(i int, result1 error) {
+	fake.CleanupStub = nil
+	if fake.cleanupReturnsOnCall == nil {
+		fake.cleanupReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.cleanupReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeGraphDriver) Diff(id string, parent string) (archive.Archive, error) {
 	fake.diffMutex.Lock()
+	ret, specificReturn := fake.diffReturnsOnCall[len(fake.diffArgsForCall)]
 	fake.diffArgsForCall = append(fake.diffArgsForCall, struct {
 		id     string
 		parent string
@@ -402,6 +596,9 @@ func (fake *FakeGraphDriver) Diff(id string, parent string) (archive.Archive, er
 	fake.diffMutex.Unlock()
 	if fake.DiffStub != nil {
 		return fake.DiffStub(id, parent)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.diffReturns.result1, fake.diffReturns.result2
 }
@@ -426,8 +623,23 @@ func (fake *FakeGraphDriver) DiffReturns(result1 archive.Archive, result2 error)
 	}{result1, result2}
 }
 
+func (fake *FakeGraphDriver) DiffReturnsOnCall(i int, result1 archive.Archive, result2 error) {
+	fake.DiffStub = nil
+	if fake.diffReturnsOnCall == nil {
+		fake.diffReturnsOnCall = make(map[int]struct {
+			result1 archive.Archive
+			result2 error
+		})
+	}
+	fake.diffReturnsOnCall[i] = struct {
+		result1 archive.Archive
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGraphDriver) Changes(id string, parent string) ([]archive.Change, error) {
 	fake.changesMutex.Lock()
+	ret, specificReturn := fake.changesReturnsOnCall[len(fake.changesArgsForCall)]
 	fake.changesArgsForCall = append(fake.changesArgsForCall, struct {
 		id     string
 		parent string
@@ -436,6 +648,9 @@ func (fake *FakeGraphDriver) Changes(id string, parent string) ([]archive.Change
 	fake.changesMutex.Unlock()
 	if fake.ChangesStub != nil {
 		return fake.ChangesStub(id, parent)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.changesReturns.result1, fake.changesReturns.result2
 }
@@ -460,8 +675,23 @@ func (fake *FakeGraphDriver) ChangesReturns(result1 []archive.Change, result2 er
 	}{result1, result2}
 }
 
+func (fake *FakeGraphDriver) ChangesReturnsOnCall(i int, result1 []archive.Change, result2 error) {
+	fake.ChangesStub = nil
+	if fake.changesReturnsOnCall == nil {
+		fake.changesReturnsOnCall = make(map[int]struct {
+			result1 []archive.Change
+			result2 error
+		})
+	}
+	fake.changesReturnsOnCall[i] = struct {
+		result1 []archive.Change
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGraphDriver) ApplyDiff(id string, parent string, diff archive.ArchiveReader) (size int64, err error) {
 	fake.applyDiffMutex.Lock()
+	ret, specificReturn := fake.applyDiffReturnsOnCall[len(fake.applyDiffArgsForCall)]
 	fake.applyDiffArgsForCall = append(fake.applyDiffArgsForCall, struct {
 		id     string
 		parent string
@@ -471,6 +701,9 @@ func (fake *FakeGraphDriver) ApplyDiff(id string, parent string, diff archive.Ar
 	fake.applyDiffMutex.Unlock()
 	if fake.ApplyDiffStub != nil {
 		return fake.ApplyDiffStub(id, parent, diff)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.applyDiffReturns.result1, fake.applyDiffReturns.result2
 }
@@ -495,8 +728,23 @@ func (fake *FakeGraphDriver) ApplyDiffReturns(result1 int64, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeGraphDriver) ApplyDiffReturnsOnCall(i int, result1 int64, result2 error) {
+	fake.ApplyDiffStub = nil
+	if fake.applyDiffReturnsOnCall == nil {
+		fake.applyDiffReturnsOnCall = make(map[int]struct {
+			result1 int64
+			result2 error
+		})
+	}
+	fake.applyDiffReturnsOnCall[i] = struct {
+		result1 int64
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGraphDriver) DiffSize(id string, parent string) (size int64, err error) {
 	fake.diffSizeMutex.Lock()
+	ret, specificReturn := fake.diffSizeReturnsOnCall[len(fake.diffSizeArgsForCall)]
 	fake.diffSizeArgsForCall = append(fake.diffSizeArgsForCall, struct {
 		id     string
 		parent string
@@ -505,6 +753,9 @@ func (fake *FakeGraphDriver) DiffSize(id string, parent string) (size int64, err
 	fake.diffSizeMutex.Unlock()
 	if fake.DiffSizeStub != nil {
 		return fake.DiffSizeStub(id, parent)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.diffSizeReturns.result1, fake.diffSizeReturns.result2
 }
@@ -524,6 +775,20 @@ func (fake *FakeGraphDriver) DiffSizeArgsForCall(i int) (string, string) {
 func (fake *FakeGraphDriver) DiffSizeReturns(result1 int64, result2 error) {
 	fake.DiffSizeStub = nil
 	fake.diffSizeReturns = struct {
+		result1 int64
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGraphDriver) DiffSizeReturnsOnCall(i int, result1 int64, result2 error) {
+	fake.DiffSizeStub = nil
+	if fake.diffSizeReturnsOnCall == nil {
+		fake.diffSizeReturnsOnCall = make(map[int]struct {
+			result1 int64
+			result2 error
+		})
+	}
+	fake.diffSizeReturnsOnCall[i] = struct {
 		result1 int64
 		result2 error
 	}{result1, result2}

@@ -1,7 +1,6 @@
 package rootfs_provider
 
 import (
-	"errors"
 	"net/url"
 	"sync"
 
@@ -18,7 +17,7 @@ type LayerCreator interface {
 
 //go:generate counterfeiter . RepositoryFetcher
 type RepositoryFetcher interface {
-	Fetch(log lager.Logger, rootfs *url.URL, diskQuota int64) (*repository_fetcher.Image, error)
+	Fetch(log lager.Logger, rootfs *url.URL, username, password string, diskQuota int64) (*repository_fetcher.Image, error)
 }
 
 //go:generate counterfeiter . GCer
@@ -64,16 +63,12 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec Spec) (strin
 	}()
 	logger.Info("lock-acquired")
 
-	if spec.Username != "" || spec.Password != "" {
-		return "", nil, errors.New("private docker registries are not supported")
-	}
-
 	fetcherDiskQuota := spec.QuotaSize
 	if spec.QuotaScope == garden.DiskLimitScopeExclusive {
 		fetcherDiskQuota = 0
 	}
 
-	image, err := c.fetcher.Fetch(logger, spec.RootFS, fetcherDiskQuota)
+	image, err := c.fetcher.Fetch(logger, spec.RootFS, spec.Username, spec.Password, fetcherDiskQuota)
 	if err != nil {
 		return "", nil, err
 	}

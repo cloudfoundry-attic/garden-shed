@@ -88,7 +88,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))
-				_, _, diskQuota := fakeFetcher.FetchArgsForCall(0)
+				_, _, _, _, diskQuota := fakeFetcher.FetchArgsForCall(0)
 				Expect(diskQuota).To(BeNumerically("==", 0))
 			})
 		})
@@ -103,18 +103,22 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))
-				_, _, diskQuota := fakeFetcher.FetchArgsForCall(0)
+				_, _, _, _, diskQuota := fakeFetcher.FetchArgsForCall(0)
 				Expect(diskQuota).To(BeNumerically("==", 33))
 			})
 		})
 
 		Context("when username or password is passed", func() {
-			It("returns an error", func() {
+			It("passes them to the fetcher", func() {
 				_, _, err := cakeOrdinator.Create(logger, "", rootfs_provider.Spec{
 					Username: "rootfsuser",
 					Password: "secretpasswrd",
 				})
-				Expect(err).To(MatchError("private docker registries are not supported"))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeFetcher.FetchCallCount()).To(Equal(1))
+				_, _, username, password, _ := fakeFetcher.FetchArgsForCall(0)
+				Expect(username).To(Equal("rootfsuser"))
+				Expect(password).To(Equal("secretpasswrd"))
 			})
 		})
 
@@ -212,7 +216,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 	It("allows concurrent creation as long as deletion is not ongoing", func() {
 		fakeBlocks := make(chan struct{})
-		fakeFetcher.FetchStub = func(lager.Logger, *url.URL, int64) (*repository_fetcher.Image, error) {
+		fakeFetcher.FetchStub = func(lager.Logger, *url.URL, string, string, int64) (*repository_fetcher.Image, error) {
 			<-fakeBlocks
 			return nil, nil
 		}

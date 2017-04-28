@@ -17,6 +17,9 @@ type FakeLoopMounter struct {
 	mountFileReturns struct {
 		result1 error
 	}
+	mountFileReturnsOnCall map[int]struct {
+		result1 error
+	}
 	UnmountStub        func(path string) error
 	unmountMutex       sync.RWMutex
 	unmountArgsForCall []struct {
@@ -25,12 +28,16 @@ type FakeLoopMounter struct {
 	unmountReturns struct {
 		result1 error
 	}
+	unmountReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeLoopMounter) MountFile(filePath string, destPath string) error {
 	fake.mountFileMutex.Lock()
+	ret, specificReturn := fake.mountFileReturnsOnCall[len(fake.mountFileArgsForCall)]
 	fake.mountFileArgsForCall = append(fake.mountFileArgsForCall, struct {
 		filePath string
 		destPath string
@@ -39,6 +46,9 @@ func (fake *FakeLoopMounter) MountFile(filePath string, destPath string) error {
 	fake.mountFileMutex.Unlock()
 	if fake.MountFileStub != nil {
 		return fake.MountFileStub(filePath, destPath)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.mountFileReturns.result1
 }
@@ -62,8 +72,21 @@ func (fake *FakeLoopMounter) MountFileReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeLoopMounter) MountFileReturnsOnCall(i int, result1 error) {
+	fake.MountFileStub = nil
+	if fake.mountFileReturnsOnCall == nil {
+		fake.mountFileReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.mountFileReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeLoopMounter) Unmount(path string) error {
 	fake.unmountMutex.Lock()
+	ret, specificReturn := fake.unmountReturnsOnCall[len(fake.unmountArgsForCall)]
 	fake.unmountArgsForCall = append(fake.unmountArgsForCall, struct {
 		path string
 	}{path})
@@ -71,6 +94,9 @@ func (fake *FakeLoopMounter) Unmount(path string) error {
 	fake.unmountMutex.Unlock()
 	if fake.UnmountStub != nil {
 		return fake.UnmountStub(path)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.unmountReturns.result1
 }
@@ -90,6 +116,18 @@ func (fake *FakeLoopMounter) UnmountArgsForCall(i int) string {
 func (fake *FakeLoopMounter) UnmountReturns(result1 error) {
 	fake.UnmountStub = nil
 	fake.unmountReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeLoopMounter) UnmountReturnsOnCall(i int, result1 error) {
+	fake.UnmountStub = nil
+	if fake.unmountReturnsOnCall == nil {
+		fake.unmountReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.unmountReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }

@@ -21,6 +21,9 @@ type FakeLock struct {
 	releaseReturns struct {
 		result1 error
 	}
+	releaseReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -51,6 +54,7 @@ func (fake *FakeLock) AcquireArgsForCall(i int) string {
 
 func (fake *FakeLock) Release(key string) error {
 	fake.releaseMutex.Lock()
+	ret, specificReturn := fake.releaseReturnsOnCall[len(fake.releaseArgsForCall)]
 	fake.releaseArgsForCall = append(fake.releaseArgsForCall, struct {
 		key string
 	}{key})
@@ -58,6 +62,9 @@ func (fake *FakeLock) Release(key string) error {
 	fake.releaseMutex.Unlock()
 	if fake.ReleaseStub != nil {
 		return fake.ReleaseStub(key)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.releaseReturns.result1
 }
@@ -77,6 +84,18 @@ func (fake *FakeLock) ReleaseArgsForCall(i int) string {
 func (fake *FakeLock) ReleaseReturns(result1 error) {
 	fake.ReleaseStub = nil
 	fake.releaseReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeLock) ReleaseReturnsOnCall(i int, result1 error) {
+	fake.ReleaseStub = nil
+	if fake.releaseReturnsOnCall == nil {
+		fake.releaseReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.releaseReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }

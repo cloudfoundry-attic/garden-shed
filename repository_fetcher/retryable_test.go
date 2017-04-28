@@ -38,7 +38,7 @@ var _ = Describe("Retryable", func() {
 	Describe("Fetch failures", func() {
 		Context("when fetching fails twice", func() {
 			BeforeEach(func() {
-				fakeRemoteFetcher.FetchStub = func(log lager.Logger, u *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
+				fakeRemoteFetcher.FetchStub = func(log lager.Logger, u *url.URL, username, password string, diskQuota int64) (*repository_fetcher.Image, error) {
 					if fakeRemoteFetcher.FetchCallCount() <= 2 {
 						return nil, errors.New("error-talking-to-remote-repo")
 					} else {
@@ -46,7 +46,7 @@ var _ = Describe("Retryable", func() {
 					}
 				}
 
-				_, err := retryable.Fetch(logger, repoURL, 0)
+				_, err := retryable.Fetch(logger, repoURL, "", "", 0)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -61,10 +61,10 @@ var _ = Describe("Retryable", func() {
 
 		Context("when fetching fails three times", func() {
 			BeforeEach(func() {
-				fakeRemoteFetcher.FetchStub = func(log lager.Logger, u *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
+				fakeRemoteFetcher.FetchStub = func(log lager.Logger, u *url.URL, username, password string, diskQuota int64) (*repository_fetcher.Image, error) {
 					return nil, errors.New("error-talking-to-remote-repo")
 				}
-				_, err := retryable.Fetch(logger, repoURL, 0)
+				_, err := retryable.Fetch(logger, repoURL, "", "", 0)
 				Expect(err).To(HaveOccurred())
 			})
 

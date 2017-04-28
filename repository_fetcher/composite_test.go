@@ -32,7 +32,7 @@ var _ = Describe("CompositeFetcher", func() {
 
 	Context("when the URL does not contain a scheme", func() {
 		It("delegates .Fetch to the local fetcher", func() {
-			factory.Fetch(logger, &url.URL{Path: "cake"}, 24)
+			factory.Fetch(logger, &url.URL{Path: "cake"}, "", "", 24)
 			Expect(fakeLocalFetcher.FetchCallCount()).To(Equal(1))
 			Expect(fakeRemoteFetcher.FetchCallCount()).To(Equal(0))
 		})
@@ -46,7 +46,7 @@ var _ = Describe("CompositeFetcher", func() {
 
 	Context("when the scheme is docker://", func() {
 		It("delegates .Fetch to the remote fetcher", func() {
-			factory.Fetch(logger, &url.URL{Scheme: "docker", Path: "cake"}, 24)
+			factory.Fetch(logger, &url.URL{Scheme: "docker", Path: "cake"}, "", "", 24)
 			Expect(fakeRemoteFetcher.FetchCallCount()).To(Equal(1))
 			Expect(fakeLocalFetcher.FetchCallCount()).To(Equal(0))
 		})

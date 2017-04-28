@@ -10,14 +10,20 @@ import (
 )
 
 type FakeDialer struct {
-	DialStub        func(logger lager.Logger, host, repo string) (distclient.Conn, error)
+	DialStub        func(logger lager.Logger, host, repo, username, password string) (distclient.Conn, error)
 	dialMutex       sync.RWMutex
 	dialArgsForCall []struct {
-		logger lager.Logger
-		host   string
-		repo   string
+		logger   lager.Logger
+		host     string
+		repo     string
+		username string
+		password string
 	}
 	dialReturns struct {
+		result1 distclient.Conn
+		result2 error
+	}
+	dialReturnsOnCall map[int]struct {
 		result1 distclient.Conn
 		result2 error
 	}
@@ -25,17 +31,23 @@ type FakeDialer struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDialer) Dial(logger lager.Logger, host string, repo string) (distclient.Conn, error) {
+func (fake *FakeDialer) Dial(logger lager.Logger, host string, repo string, username string, password string) (distclient.Conn, error) {
 	fake.dialMutex.Lock()
+	ret, specificReturn := fake.dialReturnsOnCall[len(fake.dialArgsForCall)]
 	fake.dialArgsForCall = append(fake.dialArgsForCall, struct {
-		logger lager.Logger
-		host   string
-		repo   string
-	}{logger, host, repo})
-	fake.recordInvocation("Dial", []interface{}{logger, host, repo})
+		logger   lager.Logger
+		host     string
+		repo     string
+		username string
+		password string
+	}{logger, host, repo, username, password})
+	fake.recordInvocation("Dial", []interface{}{logger, host, repo, username, password})
 	fake.dialMutex.Unlock()
 	if fake.DialStub != nil {
-		return fake.DialStub(logger, host, repo)
+		return fake.DialStub(logger, host, repo, username, password)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.dialReturns.result1, fake.dialReturns.result2
 }
@@ -46,15 +58,29 @@ func (fake *FakeDialer) DialCallCount() int {
 	return len(fake.dialArgsForCall)
 }
 
-func (fake *FakeDialer) DialArgsForCall(i int) (lager.Logger, string, string) {
+func (fake *FakeDialer) DialArgsForCall(i int) (lager.Logger, string, string, string, string) {
 	fake.dialMutex.RLock()
 	defer fake.dialMutex.RUnlock()
-	return fake.dialArgsForCall[i].logger, fake.dialArgsForCall[i].host, fake.dialArgsForCall[i].repo
+	return fake.dialArgsForCall[i].logger, fake.dialArgsForCall[i].host, fake.dialArgsForCall[i].repo, fake.dialArgsForCall[i].username, fake.dialArgsForCall[i].password
 }
 
 func (fake *FakeDialer) DialReturns(result1 distclient.Conn, result2 error) {
 	fake.DialStub = nil
 	fake.dialReturns = struct {
+		result1 distclient.Conn
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDialer) DialReturnsOnCall(i int, result1 distclient.Conn, result2 error) {
+	fake.DialStub = nil
+	if fake.dialReturnsOnCall == nil {
+		fake.dialReturnsOnCall = make(map[int]struct {
+			result1 distclient.Conn
+			result2 error
+		})
+	}
+	fake.dialReturnsOnCall[i] = struct {
 		result1 distclient.Conn
 		result2 error
 	}{result1, result2}

@@ -16,12 +16,16 @@ type FakeAUFSDiffPathFinder struct {
 	getDiffLayerPathReturns struct {
 		result1 string
 	}
+	getDiffLayerPathReturnsOnCall map[int]struct {
+		result1 string
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeAUFSDiffPathFinder) GetDiffLayerPath(rootFSPath string) string {
 	fake.getDiffLayerPathMutex.Lock()
+	ret, specificReturn := fake.getDiffLayerPathReturnsOnCall[len(fake.getDiffLayerPathArgsForCall)]
 	fake.getDiffLayerPathArgsForCall = append(fake.getDiffLayerPathArgsForCall, struct {
 		rootFSPath string
 	}{rootFSPath})
@@ -29,6 +33,9 @@ func (fake *FakeAUFSDiffPathFinder) GetDiffLayerPath(rootFSPath string) string {
 	fake.getDiffLayerPathMutex.Unlock()
 	if fake.GetDiffLayerPathStub != nil {
 		return fake.GetDiffLayerPathStub(rootFSPath)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.getDiffLayerPathReturns.result1
 }
@@ -48,6 +55,18 @@ func (fake *FakeAUFSDiffPathFinder) GetDiffLayerPathArgsForCall(i int) string {
 func (fake *FakeAUFSDiffPathFinder) GetDiffLayerPathReturns(result1 string) {
 	fake.GetDiffLayerPathStub = nil
 	fake.getDiffLayerPathReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeAUFSDiffPathFinder) GetDiffLayerPathReturnsOnCall(i int, result1 string) {
+	fake.GetDiffLayerPathStub = nil
+	if fake.getDiffLayerPathReturnsOnCall == nil {
+		fake.getDiffLayerPathReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.getDiffLayerPathReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
 }

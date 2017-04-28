@@ -11,14 +11,20 @@ import (
 )
 
 type FakeRepositoryFetcher struct {
-	FetchStub        func(log lager.Logger, rootfs *url.URL, diskQuota int64) (*repository_fetcher.Image, error)
+	FetchStub        func(log lager.Logger, rootfs *url.URL, username, password string, diskQuota int64) (*repository_fetcher.Image, error)
 	fetchMutex       sync.RWMutex
 	fetchArgsForCall []struct {
 		log       lager.Logger
 		rootfs    *url.URL
+		username  string
+		password  string
 		diskQuota int64
 	}
 	fetchReturns struct {
+		result1 *repository_fetcher.Image
+		result2 error
+	}
+	fetchReturnsOnCall map[int]struct {
 		result1 *repository_fetcher.Image
 		result2 error
 	}
@@ -26,17 +32,23 @@ type FakeRepositoryFetcher struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRepositoryFetcher) Fetch(log lager.Logger, rootfs *url.URL, diskQuota int64) (*repository_fetcher.Image, error) {
+func (fake *FakeRepositoryFetcher) Fetch(log lager.Logger, rootfs *url.URL, username string, password string, diskQuota int64) (*repository_fetcher.Image, error) {
 	fake.fetchMutex.Lock()
+	ret, specificReturn := fake.fetchReturnsOnCall[len(fake.fetchArgsForCall)]
 	fake.fetchArgsForCall = append(fake.fetchArgsForCall, struct {
 		log       lager.Logger
 		rootfs    *url.URL
+		username  string
+		password  string
 		diskQuota int64
-	}{log, rootfs, diskQuota})
-	fake.recordInvocation("Fetch", []interface{}{log, rootfs, diskQuota})
+	}{log, rootfs, username, password, diskQuota})
+	fake.recordInvocation("Fetch", []interface{}{log, rootfs, username, password, diskQuota})
 	fake.fetchMutex.Unlock()
 	if fake.FetchStub != nil {
-		return fake.FetchStub(log, rootfs, diskQuota)
+		return fake.FetchStub(log, rootfs, username, password, diskQuota)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.fetchReturns.result1, fake.fetchReturns.result2
 }
@@ -47,15 +59,29 @@ func (fake *FakeRepositoryFetcher) FetchCallCount() int {
 	return len(fake.fetchArgsForCall)
 }
 
-func (fake *FakeRepositoryFetcher) FetchArgsForCall(i int) (lager.Logger, *url.URL, int64) {
+func (fake *FakeRepositoryFetcher) FetchArgsForCall(i int) (lager.Logger, *url.URL, string, string, int64) {
 	fake.fetchMutex.RLock()
 	defer fake.fetchMutex.RUnlock()
-	return fake.fetchArgsForCall[i].log, fake.fetchArgsForCall[i].rootfs, fake.fetchArgsForCall[i].diskQuota
+	return fake.fetchArgsForCall[i].log, fake.fetchArgsForCall[i].rootfs, fake.fetchArgsForCall[i].username, fake.fetchArgsForCall[i].password, fake.fetchArgsForCall[i].diskQuota
 }
 
 func (fake *FakeRepositoryFetcher) FetchReturns(result1 *repository_fetcher.Image, result2 error) {
 	fake.FetchStub = nil
 	fake.fetchReturns = struct {
+		result1 *repository_fetcher.Image
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRepositoryFetcher) FetchReturnsOnCall(i int, result1 *repository_fetcher.Image, result2 error) {
+	fake.FetchStub = nil
+	if fake.fetchReturnsOnCall == nil {
+		fake.fetchReturnsOnCall = make(map[int]struct {
+			result1 *repository_fetcher.Image
+			result2 error
+		})
+	}
+	fake.fetchReturnsOnCall[i] = struct {
 		result1 *repository_fetcher.Image
 		result2 error
 	}{result1, result2}

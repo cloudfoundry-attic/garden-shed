@@ -21,12 +21,17 @@ type FakeMetricser struct {
 		result1 garden.ContainerDiskStat
 		result2 error
 	}
+	metricsReturnsOnCall map[int]struct {
+		result1 garden.ContainerDiskStat
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeMetricser) Metrics(logger lager.Logger, id layercake.ID) (garden.ContainerDiskStat, error) {
 	fake.metricsMutex.Lock()
+	ret, specificReturn := fake.metricsReturnsOnCall[len(fake.metricsArgsForCall)]
 	fake.metricsArgsForCall = append(fake.metricsArgsForCall, struct {
 		logger lager.Logger
 		id     layercake.ID
@@ -35,6 +40,9 @@ func (fake *FakeMetricser) Metrics(logger lager.Logger, id layercake.ID) (garden
 	fake.metricsMutex.Unlock()
 	if fake.MetricsStub != nil {
 		return fake.MetricsStub(logger, id)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.metricsReturns.result1, fake.metricsReturns.result2
 }
@@ -54,6 +62,20 @@ func (fake *FakeMetricser) MetricsArgsForCall(i int) (lager.Logger, layercake.ID
 func (fake *FakeMetricser) MetricsReturns(result1 garden.ContainerDiskStat, result2 error) {
 	fake.MetricsStub = nil
 	fake.metricsReturns = struct {
+		result1 garden.ContainerDiskStat
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeMetricser) MetricsReturnsOnCall(i int, result1 garden.ContainerDiskStat, result2 error) {
+	fake.MetricsStub = nil
+	if fake.metricsReturnsOnCall == nil {
+		fake.metricsReturnsOnCall = make(map[int]struct {
+			result1 garden.ContainerDiskStat
+			result2 error
+		})
+	}
+	fake.metricsReturnsOnCall[i] = struct {
 		result1 garden.ContainerDiskStat
 		result2 error
 	}{result1, result2}

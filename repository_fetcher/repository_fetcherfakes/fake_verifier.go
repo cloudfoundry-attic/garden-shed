@@ -20,12 +20,17 @@ type FakeVerifier struct {
 		result1 io.ReadCloser
 		result2 error
 	}
+	verifyReturnsOnCall map[int]struct {
+		result1 io.ReadCloser
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeVerifier) Verify(arg1 io.Reader, arg2 digest.Digest) (io.ReadCloser, error) {
 	fake.verifyMutex.Lock()
+	ret, specificReturn := fake.verifyReturnsOnCall[len(fake.verifyArgsForCall)]
 	fake.verifyArgsForCall = append(fake.verifyArgsForCall, struct {
 		arg1 io.Reader
 		arg2 digest.Digest
@@ -34,6 +39,9 @@ func (fake *FakeVerifier) Verify(arg1 io.Reader, arg2 digest.Digest) (io.ReadClo
 	fake.verifyMutex.Unlock()
 	if fake.VerifyStub != nil {
 		return fake.VerifyStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.verifyReturns.result1, fake.verifyReturns.result2
 }
@@ -53,6 +61,20 @@ func (fake *FakeVerifier) VerifyArgsForCall(i int) (io.Reader, digest.Digest) {
 func (fake *FakeVerifier) VerifyReturns(result1 io.ReadCloser, result2 error) {
 	fake.VerifyStub = nil
 	fake.verifyReturns = struct {
+		result1 io.ReadCloser
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeVerifier) VerifyReturnsOnCall(i int, result1 io.ReadCloser, result2 error) {
+	fake.VerifyStub = nil
+	if fake.verifyReturnsOnCall == nil {
+		fake.verifyReturnsOnCall = make(map[int]struct {
+			result1 io.ReadCloser
+			result2 error
+		})
+	}
+	fake.verifyReturnsOnCall[i] = struct {
 		result1 io.ReadCloser
 		result2 error
 	}{result1, result2}

@@ -23,12 +23,18 @@ type FakeLayerCreator struct {
 		result2 []string
 		result3 error
 	}
+	createReturnsOnCall map[int]struct {
+		result1 string
+		result2 []string
+		result3 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeLayerCreator) Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec rootfs_provider.Spec) (string, []string, error) {
 	fake.createMutex.Lock()
+	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		log         lager.Logger
 		id          string
@@ -39,6 +45,9 @@ func (fake *FakeLayerCreator) Create(log lager.Logger, id string, parentImage *r
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
 		return fake.CreateStub(log, id, parentImage, spec)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
 	}
 	return fake.createReturns.result1, fake.createReturns.result2, fake.createReturns.result3
 }
@@ -58,6 +67,22 @@ func (fake *FakeLayerCreator) CreateArgsForCall(i int) (lager.Logger, string, *r
 func (fake *FakeLayerCreator) CreateReturns(result1 string, result2 []string, result3 error) {
 	fake.CreateStub = nil
 	fake.createReturns = struct {
+		result1 string
+		result2 []string
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeLayerCreator) CreateReturnsOnCall(i int, result1 string, result2 []string, result3 error) {
+	fake.CreateStub = nil
+	if fake.createReturnsOnCall == nil {
+		fake.createReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 []string
+			result3 error
+		})
+	}
+	fake.createReturnsOnCall[i] = struct {
 		result1 string
 		result2 []string
 		result3 error

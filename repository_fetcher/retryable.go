@@ -10,17 +10,14 @@ import (
 const MAX_ATTEMPTS = 3
 
 type Retryable struct {
-	RepositoryFetcher interface {
-		Fetch(lager.Logger, *url.URL, int64) (*Image, error)
-		FetchID(lager.Logger, *url.URL) (layercake.ID, error)
-	}
+	RepositoryFetcher
 }
 
-func (retryable Retryable) Fetch(log lager.Logger, repoName *url.URL, diskQuota int64) (*Image, error) {
+func (retryable Retryable) Fetch(log lager.Logger, repoName *url.URL, username, password string, diskQuota int64) (*Image, error) {
 	var err error
 	var response *Image
 	for attempt := 1; attempt <= MAX_ATTEMPTS; attempt++ {
-		response, err = retryable.RepositoryFetcher.Fetch(log, repoName, diskQuota)
+		response, err = retryable.RepositoryFetcher.Fetch(log, repoName, username, password, diskQuota)
 		if err == nil {
 			break
 		}

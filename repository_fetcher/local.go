@@ -27,7 +27,7 @@ type Local struct {
 	mu sync.RWMutex
 }
 
-func (l *Local) Fetch(log lager.Logger, repoURL *url.URL, _ int64) (*Image, error) {
+func (l *Local) Fetch(log lager.Logger, repoURL *url.URL, _, _ string, _ int64) (*Image, error) {
 	log = log.Session("local-fetch", lager.Data{"path": repoURL})
 
 	log.Info("start")

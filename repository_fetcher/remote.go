@@ -33,13 +33,13 @@ func NewRemote(defaultHost string, cake layercake.Cake, dialer Dialer, verifier 
 	}
 }
 
-func (r *Remote) Fetch(log lager.Logger, u *url.URL, diskQuota int64) (*Image, error) {
+func (r *Remote) Fetch(log lager.Logger, u *url.URL, username, password string, diskQuota int64) (*Image, error) {
 	log = log.Session("fetch", lager.Data{"url": u})
 
 	log.Info("start")
 	defer log.Info("finished")
 
-	conn, manifest, err := r.manifest(log, u)
+	conn, manifest, err := r.manifest(log, u, username, password)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (r *Remote) Fetch(log lager.Logger, u *url.URL, diskQuota int64) (*Image, e
 }
 
 func (r *Remote) FetchID(log lager.Logger, u *url.URL) (layercake.ID, error) {
-	_, manifest, err := r.manifest(log.Session("fetch-id"), u)
+	_, manifest, err := r.manifest(log.Session("fetch-id"), u, "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (r *Remote) FetchID(log lager.Logger, u *url.URL) (layercake.ID, error) {
 	return layercake.DockerImageID(hex(manifest.Layers[len(manifest.Layers)-1].StrongID)), nil
 }
 
-func (r *Remote) manifest(log lager.Logger, u *url.URL) (distclient.Conn, *distclient.Manifest, error) {
+func (r *Remote) manifest(log lager.Logger, u *url.URL, username, password string) (distclient.Conn, *distclient.Manifest, error) {
 	log = log.Session("get-manifest", lager.Data{"url": u})
 
 	log.Debug("started")
@@ -107,7 +107,7 @@ func (r *Remote) manifest(log lager.Logger, u *url.URL) (distclient.Conn, *distc
 		tag = "latest"
 	}
 
-	conn, err := r.Dial.Dial(log, host, path)
+	conn, err := r.Dial.Dial(log, host, path, username, password)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -164,7 +164,7 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 
 //go:generate counterfeiter . Dialer
 type Dialer interface {
-	Dial(logger lager.Logger, host, repo string) (distclient.Conn, error)
+	Dial(logger lager.Logger, host, repo, username, password string) (distclient.Conn, error)
 }
 
 func keys(m map[string]struct{}) (r []string) {

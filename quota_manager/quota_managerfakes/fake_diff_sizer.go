@@ -19,12 +19,17 @@ type FakeDiffSizer struct {
 		result1 uint64
 		result2 error
 	}
+	diffSizeReturnsOnCall map[int]struct {
+		result1 uint64
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeDiffSizer) DiffSize(logger lager.Logger, loopdevPath string) (uint64, error) {
 	fake.diffSizeMutex.Lock()
+	ret, specificReturn := fake.diffSizeReturnsOnCall[len(fake.diffSizeArgsForCall)]
 	fake.diffSizeArgsForCall = append(fake.diffSizeArgsForCall, struct {
 		logger      lager.Logger
 		loopdevPath string
@@ -33,6 +38,9 @@ func (fake *FakeDiffSizer) DiffSize(logger lager.Logger, loopdevPath string) (ui
 	fake.diffSizeMutex.Unlock()
 	if fake.DiffSizeStub != nil {
 		return fake.DiffSizeStub(logger, loopdevPath)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.diffSizeReturns.result1, fake.diffSizeReturns.result2
 }
@@ -52,6 +60,20 @@ func (fake *FakeDiffSizer) DiffSizeArgsForCall(i int) (lager.Logger, string) {
 func (fake *FakeDiffSizer) DiffSizeReturns(result1 uint64, result2 error) {
 	fake.DiffSizeStub = nil
 	fake.diffSizeReturns = struct {
+		result1 uint64
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeDiffSizer) DiffSizeReturnsOnCall(i int, result1 uint64, result2 error) {
+	fake.DiffSizeStub = nil
+	if fake.diffSizeReturnsOnCall == nil {
+		fake.diffSizeReturnsOnCall = make(map[int]struct {
+			result1 uint64
+			result2 error
+		})
+	}
+	fake.diffSizeReturnsOnCall[i] = struct {
 		result1 uint64
 		result2 error
 	}{result1, result2}

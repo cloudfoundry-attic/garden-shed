@@ -15,6 +15,9 @@ type FakeTranslator struct {
 	cacheKeyReturns     struct {
 		result1 string
 	}
+	cacheKeyReturnsOnCall map[int]struct {
+		result1 string
+	}
 	TranslateStub        func(path string, info os.FileInfo, err error) error
 	translateMutex       sync.RWMutex
 	translateArgsForCall []struct {
@@ -25,17 +28,24 @@ type FakeTranslator struct {
 	translateReturns struct {
 		result1 error
 	}
+	translateReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeTranslator) CacheKey() string {
 	fake.cacheKeyMutex.Lock()
+	ret, specificReturn := fake.cacheKeyReturnsOnCall[len(fake.cacheKeyArgsForCall)]
 	fake.cacheKeyArgsForCall = append(fake.cacheKeyArgsForCall, struct{}{})
 	fake.recordInvocation("CacheKey", []interface{}{})
 	fake.cacheKeyMutex.Unlock()
 	if fake.CacheKeyStub != nil {
 		return fake.CacheKeyStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.cacheKeyReturns.result1
 }
@@ -53,8 +63,21 @@ func (fake *FakeTranslator) CacheKeyReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeTranslator) CacheKeyReturnsOnCall(i int, result1 string) {
+	fake.CacheKeyStub = nil
+	if fake.cacheKeyReturnsOnCall == nil {
+		fake.cacheKeyReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.cacheKeyReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeTranslator) Translate(path string, info os.FileInfo, err error) error {
 	fake.translateMutex.Lock()
+	ret, specificReturn := fake.translateReturnsOnCall[len(fake.translateArgsForCall)]
 	fake.translateArgsForCall = append(fake.translateArgsForCall, struct {
 		path string
 		info os.FileInfo
@@ -64,6 +87,9 @@ func (fake *FakeTranslator) Translate(path string, info os.FileInfo, err error) 
 	fake.translateMutex.Unlock()
 	if fake.TranslateStub != nil {
 		return fake.TranslateStub(path, info, err)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.translateReturns.result1
 }
@@ -83,6 +109,18 @@ func (fake *FakeTranslator) TranslateArgsForCall(i int) (string, os.FileInfo, er
 func (fake *FakeTranslator) TranslateReturns(result1 error) {
 	fake.TranslateStub = nil
 	fake.translateReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeTranslator) TranslateReturnsOnCall(i int, result1 error) {
+	fake.TranslateStub = nil
+	if fake.translateReturnsOnCall == nil {
+		fake.translateReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.translateReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }

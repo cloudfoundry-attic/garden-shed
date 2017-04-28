@@ -19,12 +19,16 @@ type FakeGCer struct {
 	gCReturns struct {
 		result1 error
 	}
+	gCReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeGCer) GC(log lager.Logger, cake layercake.Cake) error {
 	fake.gCMutex.Lock()
+	ret, specificReturn := fake.gCReturnsOnCall[len(fake.gCArgsForCall)]
 	fake.gCArgsForCall = append(fake.gCArgsForCall, struct {
 		log  lager.Logger
 		cake layercake.Cake
@@ -33,6 +37,9 @@ func (fake *FakeGCer) GC(log lager.Logger, cake layercake.Cake) error {
 	fake.gCMutex.Unlock()
 	if fake.GCStub != nil {
 		return fake.GCStub(log, cake)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.gCReturns.result1
 }
@@ -52,6 +59,18 @@ func (fake *FakeGCer) GCArgsForCall(i int) (lager.Logger, layercake.Cake) {
 func (fake *FakeGCer) GCReturns(result1 error) {
 	fake.GCStub = nil
 	fake.gCReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeGCer) GCReturnsOnCall(i int, result1 error) {
+	fake.GCStub = nil
+	if fake.gCReturnsOnCall == nil {
+		fake.gCReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.gCReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }

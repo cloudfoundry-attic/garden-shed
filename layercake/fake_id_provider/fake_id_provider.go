@@ -17,12 +17,17 @@ type FakeIDProvider struct {
 		result1 layercake.ID
 		result2 error
 	}
+	provideIDReturnsOnCall map[int]struct {
+		result1 layercake.ID
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeIDProvider) ProvideID(path string) (layercake.ID, error) {
 	fake.provideIDMutex.Lock()
+	ret, specificReturn := fake.provideIDReturnsOnCall[len(fake.provideIDArgsForCall)]
 	fake.provideIDArgsForCall = append(fake.provideIDArgsForCall, struct {
 		path string
 	}{path})
@@ -30,6 +35,9 @@ func (fake *FakeIDProvider) ProvideID(path string) (layercake.ID, error) {
 	fake.provideIDMutex.Unlock()
 	if fake.ProvideIDStub != nil {
 		return fake.ProvideIDStub(path)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.provideIDReturns.result1, fake.provideIDReturns.result2
 }
@@ -49,6 +57,20 @@ func (fake *FakeIDProvider) ProvideIDArgsForCall(i int) string {
 func (fake *FakeIDProvider) ProvideIDReturns(result1 layercake.ID, result2 error) {
 	fake.ProvideIDStub = nil
 	fake.provideIDReturns = struct {
+		result1 layercake.ID
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeIDProvider) ProvideIDReturnsOnCall(i int, result1 layercake.ID, result2 error) {
+	fake.ProvideIDStub = nil
+	if fake.provideIDReturnsOnCall == nil {
+		fake.provideIDReturnsOnCall = make(map[int]struct {
+			result1 layercake.ID
+			result2 error
+		})
+	}
+	fake.provideIDReturnsOnCall[i] = struct {
 		result1 layercake.ID
 		result2 error
 	}{result1, result2}

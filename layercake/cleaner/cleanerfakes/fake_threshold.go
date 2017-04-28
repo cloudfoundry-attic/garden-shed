@@ -19,12 +19,16 @@ type FakeThreshold struct {
 	exceededReturns struct {
 		result1 bool
 	}
+	exceededReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeThreshold) Exceeded(log lager.Logger, cake layercake.Cake) bool {
 	fake.exceededMutex.Lock()
+	ret, specificReturn := fake.exceededReturnsOnCall[len(fake.exceededArgsForCall)]
 	fake.exceededArgsForCall = append(fake.exceededArgsForCall, struct {
 		log  lager.Logger
 		cake layercake.Cake
@@ -33,6 +37,9 @@ func (fake *FakeThreshold) Exceeded(log lager.Logger, cake layercake.Cake) bool 
 	fake.exceededMutex.Unlock()
 	if fake.ExceededStub != nil {
 		return fake.ExceededStub(log, cake)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.exceededReturns.result1
 }
@@ -52,6 +59,18 @@ func (fake *FakeThreshold) ExceededArgsForCall(i int) (lager.Logger, layercake.C
 func (fake *FakeThreshold) ExceededReturns(result1 bool) {
 	fake.ExceededStub = nil
 	fake.exceededReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeThreshold) ExceededReturnsOnCall(i int, result1 bool) {
+	fake.ExceededStub = nil
+	if fake.exceededReturnsOnCall == nil {
+		fake.exceededReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.exceededReturnsOnCall[i] = struct {
 		result1 bool
 	}{result1}
 }

@@ -21,12 +21,17 @@ type FakeRemoteImageIDFetcher struct {
 		result1 layercake.ID
 		result2 error
 	}
+	fetchIDReturnsOnCall map[int]struct {
+		result1 layercake.ID
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeRemoteImageIDFetcher) FetchID(log lager.Logger, u *url.URL) (layercake.ID, error) {
 	fake.fetchIDMutex.Lock()
+	ret, specificReturn := fake.fetchIDReturnsOnCall[len(fake.fetchIDArgsForCall)]
 	fake.fetchIDArgsForCall = append(fake.fetchIDArgsForCall, struct {
 		log lager.Logger
 		u   *url.URL
@@ -35,6 +40,9 @@ func (fake *FakeRemoteImageIDFetcher) FetchID(log lager.Logger, u *url.URL) (lay
 	fake.fetchIDMutex.Unlock()
 	if fake.FetchIDStub != nil {
 		return fake.FetchIDStub(log, u)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.fetchIDReturns.result1, fake.fetchIDReturns.result2
 }
@@ -54,6 +62,20 @@ func (fake *FakeRemoteImageIDFetcher) FetchIDArgsForCall(i int) (lager.Logger, *
 func (fake *FakeRemoteImageIDFetcher) FetchIDReturns(result1 layercake.ID, result2 error) {
 	fake.FetchIDStub = nil
 	fake.fetchIDReturns = struct {
+		result1 layercake.ID
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRemoteImageIDFetcher) FetchIDReturnsOnCall(i int, result1 layercake.ID, result2 error) {
+	fake.FetchIDStub = nil
+	if fake.fetchIDReturnsOnCall == nil {
+		fake.fetchIDReturnsOnCall = make(map[int]struct {
+			result1 layercake.ID
+			result2 error
+		})
+	}
+	fake.fetchIDReturnsOnCall[i] = struct {
 		result1 layercake.ID
 		result2 error
 	}{result1, result2}

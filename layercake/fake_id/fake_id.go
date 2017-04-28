@@ -14,17 +14,24 @@ type FakeID struct {
 	graphIDReturns     struct {
 		result1 string
 	}
+	graphIDReturnsOnCall map[int]struct {
+		result1 string
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeID) GraphID() string {
 	fake.graphIDMutex.Lock()
+	ret, specificReturn := fake.graphIDReturnsOnCall[len(fake.graphIDArgsForCall)]
 	fake.graphIDArgsForCall = append(fake.graphIDArgsForCall, struct{}{})
 	fake.recordInvocation("GraphID", []interface{}{})
 	fake.graphIDMutex.Unlock()
 	if fake.GraphIDStub != nil {
 		return fake.GraphIDStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.graphIDReturns.result1
 }
@@ -38,6 +45,18 @@ func (fake *FakeID) GraphIDCallCount() int {
 func (fake *FakeID) GraphIDReturns(result1 string) {
 	fake.GraphIDStub = nil
 	fake.graphIDReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeID) GraphIDReturnsOnCall(i int, result1 string) {
+	fake.GraphIDStub = nil
+	if fake.graphIDReturnsOnCall == nil {
+		fake.graphIDReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.graphIDReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
 }

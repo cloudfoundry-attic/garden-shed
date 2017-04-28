@@ -17,12 +17,12 @@ type CompositeFetcher struct {
 	RemoteFetcher RepositoryFetcher
 }
 
-func (f *CompositeFetcher) Fetch(log lager.Logger, repoURL *url.URL, diskQuota int64) (*Image, error) {
+func (f *CompositeFetcher) Fetch(log lager.Logger, repoURL *url.URL, username, password string, diskQuota int64) (*Image, error) {
 	if repoURL.Scheme == "" {
-		return f.LocalFetcher.Fetch(log, repoURL, diskQuota)
+		return f.LocalFetcher.Fetch(log, repoURL, "", "", diskQuota)
 	}
 
-	return f.RemoteFetcher.Fetch(log, repoURL, diskQuota)
+	return f.RemoteFetcher.Fetch(log, repoURL, username, password, diskQuota)
 }
 
 func (f *CompositeFetcher) FetchID(log lager.Logger, repoURL *url.URL) (layercake.ID, error) {

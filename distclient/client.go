@@ -50,8 +50,8 @@ func NewDialer(insecureRegistries []string) *dialer {
 	return &dialer{InsecureRegistryList(insecureRegistries)}
 }
 
-func (d dialer) Dial(logger lager.Logger, host, repo string) (Conn, error) {
-	host, transport, err := newTransport(logger, d.InsecureRegistryList, host, repo)
+func (d dialer) Dial(logger lager.Logger, host, repo, username, password string) (Conn, error) {
+	host, transport, err := newTransport(logger, d.InsecureRegistryList, host, repo, username, password)
 	if err != nil {
 		logger.Error("failed-to-construct-transport", err)
 		return nil, err
@@ -118,7 +118,7 @@ func toLayers(fsl []manifest.FSLayer, history []manifest.History) (r []Layer, er
 	return
 }
 
-func newTransport(logger lager.Logger, insecureRegistries InsecureRegistryList, host, repo string) (string, http.RoundTripper, error) {
+func newTransport(logger lager.Logger, insecureRegistries InsecureRegistryList, host, repo, username, password string) (string, http.RoundTripper, error) {
 	scheme := "https://"
 	baseTransport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -176,7 +176,7 @@ func newTransport(logger lager.Logger, insecureRegistries InsecureRegistryList, 
 		}
 	}
 
-	credentialStore := dumbCredentialStore{"", ""}
+	credentialStore := dumbCredentialStore{username, password}
 	tokenHandler := auth.NewTokenHandler(authTransport, credentialStore, repo, "pull")
 	basicHandler := auth.NewBasicHandler(credentialStore)
 	authorizer := auth.NewAuthorizer(challengeManager, tokenHandler, basicHandler)

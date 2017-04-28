@@ -57,7 +57,7 @@ var _ = Describe("distclient", func() {
 		d := distclient.NewDialer([]string{})
 
 		var err error
-		conn, err = d.Dial(logger, "registry-1.docker.io", "library/busybox")
+		conn, err = d.Dial(logger, "registry-1.docker.io", "library/busybox", "", "")
 		Expect(err).NotTo(HaveOccurred())
 	})
 

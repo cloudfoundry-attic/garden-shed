@@ -21,6 +21,10 @@ type FakeConn struct {
 		result1 *distclient.Manifest
 		result2 error
 	}
+	getManifestReturnsOnCall map[int]struct {
+		result1 *distclient.Manifest
+		result2 error
+	}
 	GetBlobReaderStub        func(logger lager.Logger, d digest.Digest) (io.Reader, error)
 	getBlobReaderMutex       sync.RWMutex
 	getBlobReaderArgsForCall []struct {
@@ -31,12 +35,17 @@ type FakeConn struct {
 		result1 io.Reader
 		result2 error
 	}
+	getBlobReaderReturnsOnCall map[int]struct {
+		result1 io.Reader
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeConn) GetManifest(logger lager.Logger, tag string) (*distclient.Manifest, error) {
 	fake.getManifestMutex.Lock()
+	ret, specificReturn := fake.getManifestReturnsOnCall[len(fake.getManifestArgsForCall)]
 	fake.getManifestArgsForCall = append(fake.getManifestArgsForCall, struct {
 		logger lager.Logger
 		tag    string
@@ -45,6 +54,9 @@ func (fake *FakeConn) GetManifest(logger lager.Logger, tag string) (*distclient.
 	fake.getManifestMutex.Unlock()
 	if fake.GetManifestStub != nil {
 		return fake.GetManifestStub(logger, tag)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.getManifestReturns.result1, fake.getManifestReturns.result2
 }
@@ -69,8 +81,23 @@ func (fake *FakeConn) GetManifestReturns(result1 *distclient.Manifest, result2 e
 	}{result1, result2}
 }
 
+func (fake *FakeConn) GetManifestReturnsOnCall(i int, result1 *distclient.Manifest, result2 error) {
+	fake.GetManifestStub = nil
+	if fake.getManifestReturnsOnCall == nil {
+		fake.getManifestReturnsOnCall = make(map[int]struct {
+			result1 *distclient.Manifest
+			result2 error
+		})
+	}
+	fake.getManifestReturnsOnCall[i] = struct {
+		result1 *distclient.Manifest
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeConn) GetBlobReader(logger lager.Logger, d digest.Digest) (io.Reader, error) {
 	fake.getBlobReaderMutex.Lock()
+	ret, specificReturn := fake.getBlobReaderReturnsOnCall[len(fake.getBlobReaderArgsForCall)]
 	fake.getBlobReaderArgsForCall = append(fake.getBlobReaderArgsForCall, struct {
 		logger lager.Logger
 		d      digest.Digest
@@ -79,6 +106,9 @@ func (fake *FakeConn) GetBlobReader(logger lager.Logger, d digest.Digest) (io.Re
 	fake.getBlobReaderMutex.Unlock()
 	if fake.GetBlobReaderStub != nil {
 		return fake.GetBlobReaderStub(logger, d)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.getBlobReaderReturns.result1, fake.getBlobReaderReturns.result2
 }
@@ -98,6 +128,20 @@ func (fake *FakeConn) GetBlobReaderArgsForCall(i int) (lager.Logger, digest.Dige
 func (fake *FakeConn) GetBlobReaderReturns(result1 io.Reader, result2 error) {
 	fake.GetBlobReaderStub = nil
 	fake.getBlobReaderReturns = struct {
+		result1 io.Reader
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeConn) GetBlobReaderReturnsOnCall(i int, result1 io.Reader, result2 error) {
+	fake.GetBlobReaderStub = nil
+	if fake.getBlobReaderReturnsOnCall == nil {
+		fake.getBlobReaderReturnsOnCall = make(map[int]struct {
+			result1 io.Reader
+			result2 error
+		})
+	}
+	fake.getBlobReaderReturnsOnCall[i] = struct {
 		result1 io.Reader
 		result2 error
 	}{result1, result2}
