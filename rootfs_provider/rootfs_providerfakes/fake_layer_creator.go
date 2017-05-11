@@ -6,17 +6,18 @@ import (
 
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"code.cloudfoundry.org/garden-shed/rootfs_provider"
+	"code.cloudfoundry.org/garden-shed/rootfs_spec"
 	"code.cloudfoundry.org/lager"
 )
 
 type FakeLayerCreator struct {
-	CreateStub        func(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec rootfs_provider.Spec) (string, []string, error)
+	CreateStub        func(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec rootfs_spec.Spec) (string, []string, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		log         lager.Logger
 		id          string
 		parentImage *repository_fetcher.Image
-		spec        rootfs_provider.Spec
+		spec        rootfs_spec.Spec
 	}
 	createReturns struct {
 		result1 string
@@ -32,14 +33,14 @@ type FakeLayerCreator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeLayerCreator) Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec rootfs_provider.Spec) (string, []string, error) {
+func (fake *FakeLayerCreator) Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec rootfs_spec.Spec) (string, []string, error) {
 	fake.createMutex.Lock()
 	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		log         lager.Logger
 		id          string
 		parentImage *repository_fetcher.Image
-		spec        rootfs_provider.Spec
+		spec        rootfs_spec.Spec
 	}{log, id, parentImage, spec})
 	fake.recordInvocation("Create", []interface{}{log, id, parentImage, spec})
 	fake.createMutex.Unlock()
@@ -58,7 +59,7 @@ func (fake *FakeLayerCreator) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeLayerCreator) CreateArgsForCall(i int) (lager.Logger, string, *repository_fetcher.Image, rootfs_provider.Spec) {
+func (fake *FakeLayerCreator) CreateArgsForCall(i int) (lager.Logger, string, *repository_fetcher.Image, rootfs_spec.Spec) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	return fake.createArgsForCall[i].log, fake.createArgsForCall[i].id, fake.createArgsForCall[i].parentImage, fake.createArgsForCall[i].spec
