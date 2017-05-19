@@ -7,9 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"code.cloudfoundry.org/commandrunner"
+
 	"fmt"
 
-	"github.com/cloudfoundry/gunk/command_runner"
 	"github.com/docker/docker/image"
 )
 
@@ -21,7 +22,7 @@ const (
 
 type AufsCake struct {
 	Cake
-	Runner    command_runner.CommandRunner
+	Runner    commandrunner.CommandRunner
 	GraphRoot string
 }
 

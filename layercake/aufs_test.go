@@ -9,12 +9,12 @@ import (
 
 	"os"
 
+	"code.cloudfoundry.org/commandrunner"
+	"code.cloudfoundry.org/commandrunner/fake_command_runner"
+	"code.cloudfoundry.org/commandrunner/linux_command_runner"
 	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/garden-shed/layercake/fake_cake"
 	"code.cloudfoundry.org/garden-shed/layercake/fake_id"
-	"github.com/cloudfoundry/gunk/command_runner"
-	"github.com/cloudfoundry/gunk/command_runner/fake_command_runner"
-	"github.com/cloudfoundry/gunk/command_runner/linux_command_runner"
 	"github.com/docker/docker/image"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,7 +29,7 @@ var _ = Describe("Aufs", func() {
 		testError              error
 		namespacedChildID      layercake.ID
 		otherNamespacedChildID layercake.ID
-		runner                 command_runner.CommandRunner
+		runner                 commandrunner.CommandRunner
 		baseDirectory          string
 	)
 
