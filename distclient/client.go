@@ -140,7 +140,7 @@ func newTransport(logger lager.Logger, insecureRegistries InsecureRegistryList, 
 		Timeout:   15 * time.Second,
 	}
 
-	req, err := http.NewRequest("GET", scheme+host+"/v2", nil)
+	req, err := http.NewRequest("GET", scheme+host+"/v2/", nil)
 	if err != nil {
 		logger.Error("failed-to-create-ping-request", err)
 		return "", nil, err
@@ -157,7 +157,7 @@ func newTransport(logger lager.Logger, insecureRegistries InsecureRegistryList, 
 		}
 
 		scheme = "http://"
-		req, err = http.NewRequest("GET", scheme+host+"/v2", nil)
+		req, err = http.NewRequest("GET", scheme+host+"/v2/", nil)
 		if err != nil {
 			logger.Error("failed-to-create-http-ping-request", err)
 			return "", nil, err
