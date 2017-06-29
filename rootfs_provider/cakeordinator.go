@@ -8,6 +8,7 @@ import (
 	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"code.cloudfoundry.org/garden-shed/rootfs_spec"
+	"code.cloudfoundry.org/guardian/gardener"
 	"code.cloudfoundry.org/lager"
 )
 
@@ -54,7 +55,7 @@ func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreat
 	}
 }
 
-func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec rootfs_spec.Spec) (string, []string, error) {
+func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec rootfs_spec.Spec) (gardener.DesiredImageSpec, error) {
 	logger = logger.Session("create", lager.Data{"id": id})
 	logger.Info("start")
 	c.mu.RLock()
@@ -71,10 +72,21 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec rootfs_spec.
 
 	image, err := c.fetcher.Fetch(logger, spec.RootFS, spec.Username, spec.Password, fetcherDiskQuota)
 	if err != nil {
-		return "", nil, err
+		return gardener.DesiredImageSpec{}, err
 	}
 
-	return c.layerCreator.Create(logger, id, image, spec)
+	rootFS, env, err := c.layerCreator.Create(logger, id, image, spec)
+	if err != nil {
+		return gardener.DesiredImageSpec{}, err
+	}
+	return gardener.DesiredImageSpec{
+		RootFS: rootFS,
+		Image: gardener.Image{
+			Config: gardener.ImageConfig{
+				Env: env,
+			},
+		},
+	}, nil
 }
 
 func (c *CakeOrdinator) Metrics(logger lager.Logger, id string, _ bool) (garden.ContainerDiskStat, error) {

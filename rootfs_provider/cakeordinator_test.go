@@ -47,17 +47,17 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			It("creates a container layer on top of the fetched layer", func() {
 				image := &repository_fetcher.Image{ImageID: "my cool image"}
 				fakeFetcher.FetchReturns(image, nil)
-				fakeLayerCreator.CreateReturns("potato", []string{"foo=bar"}, errors.New("cake"))
+				fakeLayerCreator.CreateReturns("potato", []string{"foo=bar"}, nil)
 
 				spec := rootfs_spec.Spec{
 					RootFS:     &url.URL{Path: "parent"},
 					Namespaced: true,
 					QuotaSize:  55,
 				}
-				rootfsPath, envs, err := cakeOrdinator.Create(logger, "container-id", spec)
-				Expect(rootfsPath).To(Equal("potato"))
-				Expect(envs).To(Equal([]string{"foo=bar"}))
-				Expect(err).To(MatchError("cake"))
+				desiredImageSpec, err := cakeOrdinator.Create(logger, "container-id", spec)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(desiredImageSpec.RootFS).To(Equal("potato"))
+				Expect(desiredImageSpec.Image.Config.Env).To(Equal([]string{"foo=bar"}))
 
 				Expect(fakeLayerCreator.CreateCallCount()).To(Equal(1))
 				_, containerID, parentImage, layerCreatorSpec := fakeLayerCreator.CreateArgsForCall(0)
@@ -67,10 +67,18 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			})
 		})
 
+		Context("when creating a layer fails", func() {
+			It("returns an error", func() {
+				fakeLayerCreator.CreateReturns("", nil, errors.New("cake"))
+				_, err := cakeOrdinator.Create(logger, "container-id", rootfs_spec.Spec{})
+				Expect(err).To(MatchError("cake"))
+			})
+		})
+
 		Context("when fetching fails", func() {
 			It("returns an error", func() {
 				fakeFetcher.FetchReturns(nil, errors.New("amadeus"))
-				_, _, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+				_, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
 					RootFS:     nil,
 					Namespaced: true,
 					QuotaSize:  12,
@@ -81,7 +89,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 		Context("when the quota scope is exclusive", func() {
 			It("disables quota for the fetcher", func() {
-				_, _, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+				_, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
 					RootFS:     &url.URL{},
 					Namespaced: false,
 					QuotaSize:  33,
@@ -96,7 +104,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 		Context("when the quota scope is total", func() {
 			It("passes down the same quota number to the fetcher", func() {
-				_, _, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+				_, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
 					RootFS:     &url.URL{},
 					Namespaced: false,
 					QuotaSize:  33,
@@ -111,7 +119,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 		Context("when username or password is passed", func() {
 			It("passes them to the fetcher", func() {
-				_, _, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+				_, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
 					Username: "rootfsuser",
 					Password: "secretpasswrd",
 				})
