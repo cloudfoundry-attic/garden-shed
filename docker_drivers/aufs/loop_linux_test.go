@@ -93,7 +93,7 @@ var _ = Describe("LoopLinux", func() {
 			for i := 0; i < 10; i++ {
 				var err error
 
-				tempFile, err := ioutil.TempFile("", "")
+				tempFile, err := ioutil.TempFile("", "dinosaur")
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = exec.Command("truncate", "-s", "10M", tempFile.Name()).CombinedOutput()
@@ -107,7 +107,7 @@ var _ = Describe("LoopLinux", func() {
 				Expect(loop.MountFile(tempFile.Name(), destPaths[i])).To(Succeed())
 			}
 
-			output, err := exec.Command("sh", "-c", "losetup -a | wc -l").CombinedOutput()
+			output, err := exec.Command("sh", "-c", "losetup -a | grep dinosaur | wc -l").CombinedOutput()
 			Expect(err).NotTo(HaveOccurred())
 			devicesAfterCreate, err = strconv.Atoi(strings.TrimSpace(string(output)))
 			Expect(err).NotTo(HaveOccurred())
@@ -116,7 +116,7 @@ var _ = Describe("LoopLinux", func() {
 				Expect(loop.Unmount(destPaths[i])).To(Succeed())
 			}
 
-			output, err = exec.Command("sh", "-c", "losetup -a | wc -l").CombinedOutput()
+			output, err = exec.Command("sh", "-c", "losetup -a | grep dinosaur | wc -l").CombinedOutput()
 			Expect(err).NotTo(HaveOccurred())
 			devicesAfterRelease, err = strconv.Atoi(strings.TrimSpace(string(output)))
 			Expect(err).NotTo(HaveOccurred())
