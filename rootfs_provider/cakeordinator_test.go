@@ -54,10 +54,11 @@ var _ = Describe("The Cake Co-ordinator", func() {
 					Namespaced: true,
 					QuotaSize:  55,
 				}
-				desiredImageSpec, err := cakeOrdinator.Create(logger, "container-id", spec)
+
+				baseRuntimeSpec, err := cakeOrdinator.Create(logger, "container-id", spec)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(desiredImageSpec.RootFS).To(Equal("potato"))
-				Expect(desiredImageSpec.Image.Config.Env).To(Equal([]string{"foo=bar"}))
+				Expect(baseRuntimeSpec.Root.Path).To(Equal("potato"))
+				Expect(baseRuntimeSpec.Process.Env).To(Equal([]string{"foo=bar"}))
 
 				Expect(fakeLayerCreator.CreateCallCount()).To(Equal(1))
 				_, containerID, parentImage, layerCreatorSpec := fakeLayerCreator.CreateArgsForCall(0)
