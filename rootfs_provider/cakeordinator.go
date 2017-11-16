@@ -88,8 +88,8 @@ func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec rootfs_spec.
 
 func (c *CakeOrdinator) Metrics(logger lager.Logger, id string, _ bool) (garden.ContainerDiskStat, error) {
 	logger = logger.Session("metrics", lager.Data{"id": id})
-	logger.Info("start")
-	defer logger.Info("finished")
+	logger.Debug("start")
+	defer logger.Debug("finished")
 
 	cid := layercake.ContainerID(id)
 	return c.metrics.Metrics(logger, cid)
