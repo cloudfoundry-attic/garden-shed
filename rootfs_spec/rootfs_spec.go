@@ -8,8 +8,8 @@ import (
 
 type Spec struct {
 	RootFS     *url.URL
-	Username   string
-	Password   string
+	Username   string `json:"-"`
+	Password   string `json:"-"`
 	Namespaced bool
 	QuotaSize  int64
 	QuotaScope garden.DiskLimitScope
