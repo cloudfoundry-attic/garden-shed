@@ -9,13 +9,13 @@ import (
 	"code.cloudfoundry.org/garden"
 	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
-	"code.cloudfoundry.org/garden-shed/rootfs_spec"
+	"code.cloudfoundry.org/guardian/gardener"
 	"code.cloudfoundry.org/lager"
 )
 
 //go:generate counterfeiter . LayerCreator
 type LayerCreator interface {
-	Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec rootfs_spec.Spec) (string, []string, error)
+	Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec gardener.RootfsSpec) (string, []string, error)
 }
 
 //go:generate counterfeiter . RepositoryFetcher
@@ -56,7 +56,7 @@ func NewCakeOrdinator(cake layercake.Cake, fetcher RepositoryFetcher, layerCreat
 	}
 }
 
-func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec rootfs_spec.Spec) (specs.Spec, error) {
+func (c *CakeOrdinator) Create(logger lager.Logger, id string, spec gardener.RootfsSpec) (specs.Spec, error) {
 	logger = logger.Session("create", lager.Data{"id": id})
 	logger.Info("start")
 	c.mu.RLock()

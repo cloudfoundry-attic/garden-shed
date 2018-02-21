@@ -10,7 +10,7 @@ import (
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"code.cloudfoundry.org/garden-shed/rootfs_provider"
 	fakes "code.cloudfoundry.org/garden-shed/rootfs_provider/rootfs_providerfakes"
-	"code.cloudfoundry.org/garden-shed/rootfs_spec"
+	"code.cloudfoundry.org/guardian/gardener"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagertest"
 
@@ -49,7 +49,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 				fakeFetcher.FetchReturns(image, nil)
 				fakeLayerCreator.CreateReturns("potato", []string{"foo=bar"}, nil)
 
-				spec := rootfs_spec.Spec{
+				spec := gardener.RootfsSpec{
 					RootFS:     &url.URL{Path: "parent"},
 					Namespaced: true,
 					QuotaSize:  55,
@@ -71,7 +71,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 		Context("when creating a layer fails", func() {
 			It("returns an error", func() {
 				fakeLayerCreator.CreateReturns("", nil, errors.New("cake"))
-				_, err := cakeOrdinator.Create(logger, "container-id", rootfs_spec.Spec{})
+				_, err := cakeOrdinator.Create(logger, "container-id", gardener.RootfsSpec{})
 				Expect(err).To(MatchError("cake"))
 			})
 		})
@@ -79,7 +79,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 		Context("when fetching fails", func() {
 			It("returns an error", func() {
 				fakeFetcher.FetchReturns(nil, errors.New("amadeus"))
-				_, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+				_, err := cakeOrdinator.Create(logger, "", gardener.RootfsSpec{
 					RootFS:     nil,
 					Namespaced: true,
 					QuotaSize:  12,
@@ -90,7 +90,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 		Context("when the quota scope is exclusive", func() {
 			It("disables quota for the fetcher", func() {
-				_, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+				_, err := cakeOrdinator.Create(logger, "", gardener.RootfsSpec{
 					RootFS:     &url.URL{},
 					Namespaced: false,
 					QuotaSize:  33,
@@ -105,7 +105,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 		Context("when the quota scope is total", func() {
 			It("passes down the same quota number to the fetcher", func() {
-				_, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+				_, err := cakeOrdinator.Create(logger, "", gardener.RootfsSpec{
 					RootFS:     &url.URL{},
 					Namespaced: false,
 					QuotaSize:  33,
@@ -120,7 +120,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 
 		Context("when username or password is passed", func() {
 			It("passes them to the fetcher", func() {
-				_, err := cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+				_, err := cakeOrdinator.Create(logger, "", gardener.RootfsSpec{
 					Username: "rootfsuser",
 					Password: "secretpasswrd",
 				})
@@ -212,7 +212,7 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			go cakeOrdinator.GC(logger)
 			<-gcStarted
 
-			go cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+			go cakeOrdinator.Create(logger, "", gardener.RootfsSpec{
 				RootFS:     &url.URL{},
 				Namespaced: false,
 				QuotaSize:  33,
@@ -231,12 +231,12 @@ var _ = Describe("The Cake Co-ordinator", func() {
 			return nil, nil
 		}
 
-		go cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+		go cakeOrdinator.Create(logger, "", gardener.RootfsSpec{
 			RootFS:     &url.URL{},
 			Namespaced: false,
 			QuotaSize:  33,
 		})
-		go cakeOrdinator.Create(logger, "", rootfs_spec.Spec{
+		go cakeOrdinator.Create(logger, "", gardener.RootfsSpec{
 			RootFS:     &url.URL{},
 			Namespaced: false,
 			QuotaSize:  33,

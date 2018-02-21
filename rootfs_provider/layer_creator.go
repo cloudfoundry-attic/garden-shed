@@ -6,7 +6,7 @@ import (
 	"code.cloudfoundry.org/garden"
 	"code.cloudfoundry.org/garden-shed/layercake"
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
-	"code.cloudfoundry.org/garden-shed/rootfs_spec"
+	"code.cloudfoundry.org/guardian/gardener"
 	"code.cloudfoundry.org/lager"
 )
 
@@ -30,7 +30,7 @@ func NewLayerCreator(
 	}
 }
 
-func (provider *ContainerLayerCreator) Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec rootfs_spec.Spec) (string, []string, error) {
+func (provider *ContainerLayerCreator) Create(log lager.Logger, id string, parentImage *repository_fetcher.Image, spec gardener.RootfsSpec) (string, []string, error) {
 	var err error
 	var imageID layercake.ID = layercake.DockerImageID(parentImage.ImageID)
 

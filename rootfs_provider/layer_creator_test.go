@@ -9,7 +9,7 @@ import (
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	"code.cloudfoundry.org/garden-shed/rootfs_provider"
 	"code.cloudfoundry.org/garden-shed/rootfs_provider/fake_namespacer"
-	"code.cloudfoundry.org/garden-shed/rootfs_spec"
+	"code.cloudfoundry.org/guardian/gardener"
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/docker/docker/image"
@@ -38,7 +38,6 @@ var _ = Describe("Layer Creator", func() {
 		fakeCake          *fake_cake.FakeCake
 		fakeNamespacer    *fake_namespacer.FakeNamespacer
 		fakeVolumeCreator *FakeVolumeCreator
-		name              string
 
 		provider *rootfs_provider.ContainerLayerCreator
 	)
@@ -47,7 +46,6 @@ var _ = Describe("Layer Creator", func() {
 		fakeCake = new(fake_cake.FakeCake)
 		fakeVolumeCreator = &FakeVolumeCreator{}
 		fakeNamespacer = &fake_namespacer.FakeNamespacer{}
-		name = "some-name"
 
 		provider = rootfs_provider.NewLayerCreator(
 			fakeCake,
@@ -68,7 +66,7 @@ var _ = Describe("Layer Creator", func() {
 						ImageID: "some-image-id",
 						Env:     []string{"env1=env1value", "env2=env2value"},
 					},
-					rootfs_spec.Spec{
+					gardener.RootfsSpec{
 						Namespaced: false,
 						QuotaSize:  0,
 					},
@@ -103,7 +101,7 @@ var _ = Describe("Layer Creator", func() {
 					&repository_fetcher.Image{
 						ImageID: "some-image-id",
 					},
-					rootfs_spec.Spec{
+					gardener.RootfsSpec{
 						Namespaced: false,
 						QuotaSize:  int64(10 * 1024 * 1024),
 					},
@@ -124,7 +122,7 @@ var _ = Describe("Layer Creator", func() {
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
 						},
-						rootfs_spec.Spec{
+						gardener.RootfsSpec{
 							Namespaced: false,
 							QuotaSize:  quota,
 							QuotaScope: garden.DiskLimitScopeExclusive,
@@ -152,7 +150,7 @@ var _ = Describe("Layer Creator", func() {
 							ImageID: "some-image-id",
 							Size:    imageSize,
 						},
-						rootfs_spec.Spec{
+						gardener.RootfsSpec{
 							Namespaced: false,
 							QuotaSize:  quota,
 							QuotaScope: garden.DiskLimitScopeTotal,
@@ -179,7 +177,7 @@ var _ = Describe("Layer Creator", func() {
 						&repository_fetcher.Image{
 							ImageID: "some-image-id",
 						},
-						rootfs_spec.Spec{
+						gardener.RootfsSpec{
 							Namespaced: false,
 							QuotaSize:  10 * 1024 * 1024,
 						},
@@ -195,7 +193,7 @@ var _ = Describe("Layer Creator", func() {
 							ImageID: "some-image-id",
 							Volumes: []string{"/foo", "/bar"},
 						},
-						rootfs_spec.Spec{
+						gardener.RootfsSpec{
 							Namespaced: false,
 							QuotaSize:  10 * 1024 * 1024,
 						},
@@ -231,7 +229,7 @@ var _ = Describe("Layer Creator", func() {
 							ImageID: "some-image-id",
 							Env:     []string{"env1=env1value", "env2=env2value"},
 						},
-						rootfs_spec.Spec{
+						gardener.RootfsSpec{
 							Namespaced: true,
 							QuotaSize:  0,
 						},
@@ -306,7 +304,7 @@ var _ = Describe("Layer Creator", func() {
 							ImageID: "some-image-id",
 							Env:     []string{"env1=env1value", "env2=env2value"},
 						},
-						rootfs_spec.Spec{
+						gardener.RootfsSpec{
 							Namespaced: true,
 							QuotaSize:  0,
 						},
@@ -339,7 +337,7 @@ var _ = Describe("Layer Creator", func() {
 					lagertest.NewTestLogger("test"),
 					"some-id",
 					&repository_fetcher.Image{ImageID: "some-image-id", Volumes: []string{"/foo", "/bar"}},
-					rootfs_spec.Spec{
+					gardener.RootfsSpec{
 						Namespaced: false,
 						QuotaSize:  0,
 					},
@@ -362,7 +360,7 @@ var _ = Describe("Layer Creator", func() {
 						lagertest.NewTestLogger("test"),
 						"some-id",
 						&repository_fetcher.Image{ImageID: "some-image-id", Volumes: []string{"/foo", "/bar"}},
-						rootfs_spec.Spec{
+						gardener.RootfsSpec{
 							Namespaced: false,
 							QuotaSize:  0,
 						},
@@ -384,7 +382,7 @@ var _ = Describe("Layer Creator", func() {
 					lagertest.NewTestLogger("test"),
 					"some-id",
 					&repository_fetcher.Image{ImageID: "some-image-id"},
-					rootfs_spec.Spec{
+					gardener.RootfsSpec{
 						Namespaced: false,
 						QuotaSize:  0,
 					},
@@ -405,7 +403,7 @@ var _ = Describe("Layer Creator", func() {
 					lagertest.NewTestLogger("test"),
 					"some-id",
 					&repository_fetcher.Image{ImageID: "some-image-id"},
-					rootfs_spec.Spec{
+					gardener.RootfsSpec{
 						Namespaced: false,
 						QuotaSize:  0,
 					},
