@@ -1,7 +1,10 @@
 package repository_fetcher
 
 import (
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/url"
 	"strings"
 
@@ -50,20 +53,26 @@ func (r *Remote) Fetch(log lager.Logger, u *url.URL, username, password string, 
 	}
 
 	if diskQuota > 0 && totalImageSize > diskQuota {
-		return nil, ErrQuotaExceeded
+		return nil, errors.New("quota exceeded")
 	}
 
 	var env []string
 	var vols []string
+	remainingQuota := diskQuota
+	if diskQuota <= 0 {
+		remainingQuota = -1
+	}
 	for _, layer := range manifest.Layers {
 		if layer.Image.Config != nil {
 			env = append(env, layer.Image.Config.Env...)
 			vols = append(vols, keys(layer.Image.Config.Volumes)...)
 		}
 
-		if err := r.fetchLayer(log, conn, layer); err != nil {
+		size, err := r.fetchLayer(log, conn, layer, remainingQuota)
+		if err != nil {
 			return nil, err
 		}
+		remainingQuota -= size
 	}
 
 	return &Image{
@@ -120,8 +129,8 @@ func (r *Remote) manifest(log lager.Logger, u *url.URL, username, password strin
 	return conn, manifest, err
 }
 
-func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distclient.Layer) error {
-	log = log.Session("fetch-layer", lager.Data{"blobsum": layer.BlobSum, "id": layer.StrongID, "parent": layer.ParentStrongID})
+func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distclient.Layer, quota int64) (int64, error) {
+	log = log.Session("fetch-layer", lager.Data{"size": layer.Image.Size, "blobsum": layer.BlobSum, "id": layer.StrongID, "parent": layer.ParentStrongID})
 
 	log.Info("start")
 	defer log.Info("fetched")
@@ -129,21 +138,23 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 	r.FetchLock.Acquire(layer.BlobSum.String())
 	defer r.FetchLock.Release(layer.BlobSum.String())
 
-	_, err := r.Cake.Get(layercake.DockerImageID(hex(layer.StrongID)))
-	if err == nil {
+	if _, err := r.Cake.Get(layercake.DockerImageID(hex(layer.StrongID))); err == nil {
 		log.Info("got-cache")
-		return nil
+		return 0, nil
 	}
 
+	// TODO blob isn't being closed
 	blob, err := conn.GetBlobReader(log, layer.BlobSum)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
+	blob = applyQuota(blob, quota)
+
 	log.Debug("verifying")
-	verifiedBlob, err := r.Verifier.Verify(blob, layer.BlobSum)
+	verifiedBlob, size, err := r.Verifier.Verify(blob, layer.BlobSum)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	log.Debug("verified")
@@ -156,10 +167,17 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 		Size:   layer.Image.Size,
 	}, verifiedBlob)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return size, nil
+}
+
+func applyQuota(r io.Reader, quota int64) io.Reader {
+	if quota < 0 {
+		return r
+	}
+	return NewQuotaedReader(ioutil.NopCloser(r), quota, "layer size exceeds image quota")
 }
 
 //go:generate counterfeiter . Dialer

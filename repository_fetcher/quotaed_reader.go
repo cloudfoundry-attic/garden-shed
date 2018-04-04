@@ -6,23 +6,36 @@ import (
 )
 
 type QuotaedReader struct {
-	R io.Reader
-	N int64
+	DelegateReader            io.ReadCloser
+	QuotaLeft                 int64
+	QuotaExceededErrorHandler func() error
 }
 
-var ErrQuotaExceeded = errors.New("quota exceeded")
+func NewQuotaedReader(delegateReader io.ReadCloser, quotaLeft int64, errorMsg string) *QuotaedReader {
+	return &QuotaedReader{
+		DelegateReader: delegateReader,
+		QuotaLeft:      quotaLeft,
+		QuotaExceededErrorHandler: func() error {
+			return errors.New(errorMsg)
+		},
+	}
+}
 
 func (q *QuotaedReader) Read(p []byte) (int, error) {
-	if int64(len(p)) > q.N {
-		p = p[0:q.N]
+	if int64(len(p)) > q.QuotaLeft {
+		p = p[0 : q.QuotaLeft+1]
 	}
 
-	n, err := q.R.Read(p)
-	q.N = q.N - int64(n)
+	n, err := q.DelegateReader.Read(p)
+	q.QuotaLeft = q.QuotaLeft - int64(n)
 
-	if q.N <= 0 {
-		return n, ErrQuotaExceeded
+	if q.QuotaLeft < 0 {
+		return n, q.QuotaExceededErrorHandler()
 	}
 
 	return n, err
+}
+
+func (q *QuotaedReader) Close() error {
+	return q.DelegateReader.Close()
 }

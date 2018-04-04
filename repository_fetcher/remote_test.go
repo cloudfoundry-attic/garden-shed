@@ -66,7 +66,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 								Env:     []string{"a", "b"},
 								Volumes: map[string]struct{}{"vol1": struct{}{}},
 							},
-							Size: 1,
+							Size: 15,
 						},
 					},
 					{
@@ -81,7 +81,28 @@ var _ = Describe("Fetching from a Remote repo", func() {
 								Env:     []string{"d", "e", "f"},
 								Volumes: map[string]struct{}{"vol2": struct{}{}},
 							},
-							Size: 2,
+							Size: 16,
+						},
+					},
+				},
+			},
+			"i-am-a-lie": &distclient.Manifest{
+				Layers: []distclient.Layer{
+					{
+						BlobSum:        "abc-def",
+						StrongID:       "sha256:abc-id",
+						ParentStrongID: "sha256:abc-parent-id",
+						Image: image.Image{
+							Config: &runconfig.Config{},
+							Size:   3,
+						},
+					},
+					{
+						BlobSum:  "klm-nop",
+						StrongID: "sha256:klm-id",
+						Image: image.Image{
+							Config: &runconfig.Config{},
+							Size:   4,
 						},
 					},
 				},
@@ -101,7 +122,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		}
 
 		blobs = map[digest.Digest]string{
-			"abc-def": "abc-def-contents",
+			"abc-def": "abc-def-content",
 			"ghj-klm": "ghj-klm-contents",
 			"klm-nop": "blah-blah",
 		}
@@ -130,8 +151,8 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		}
 
 		fakeVerifier = new(fakes.FakeVerifier)
-		fakeVerifier.VerifyStub = func(r io.Reader, d digest.Digest) (io.ReadCloser, error) {
-			return &verified{Reader: r}, nil
+		fakeVerifier.VerifyStub = func(r io.Reader, d digest.Digest) (io.ReadCloser, int64, error) {
+			return &verified{Reader: r}, 0, nil
 		}
 
 		remote = repository_fetcher.NewRemote(defaultDockerRegistryHost, fakeCake, fakeDialer, fakeVerifier)
@@ -222,12 +243,12 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 			b, err := ioutil.ReadAll(reader)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(string(b)).To(Equal("abc-def-contents"))
+			Expect(string(b)).To(Equal("abc-def-content"))
 		})
 
 		It("registers the layer with the correct size", func() {
 			image, _ := fakeCake.RegisterArgsForCall(0)
-			Expect(image.Size).To(BeEquivalentTo(1))
+			Expect(image.Size).To(BeEquivalentTo(15))
 		})
 	})
 
@@ -273,6 +294,41 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		Expect(img.Volumes).To(ConsistOf([]string{"vol1", "vol2"}))
 	})
 
+	It("should enforce quota agains actual layer size", func() {
+		fakeVerifier.VerifyStub = func(r io.Reader, d digest.Digest) (io.ReadCloser, int64, error) {
+			content, err := ioutil.ReadAll(r)
+			return ioutil.NopCloser(nil), int64(len(content)), err
+		}
+
+		_, err := remote.Fetch(logger, parseURL("docker:///foo#i-am-a-lie"), "", "", 20)
+		Expect(err).To(MatchError("layer size exceeds image quota"))
+		Expect(fakeVerifier.VerifyCallCount()).To(Equal(2))
+	})
+
+	Context("when quota is zero", func() {
+		It("should not enforce quota agains layer size", func() {
+			fakeVerifier.VerifyStub = func(r io.Reader, d digest.Digest) (io.ReadCloser, int64, error) {
+				content, err := ioutil.ReadAll(r)
+				return ioutil.NopCloser(nil), int64(len(content)), err
+			}
+
+			_, err := remote.Fetch(logger, parseURL("docker:///foo#i-am-a-lie"), "", "", 0)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
+	Context("when quota equals first layer size", func() {
+		It("should enforce quota agains layer size", func() {
+			fakeVerifier.VerifyStub = func(r io.Reader, d digest.Digest) (io.ReadCloser, int64, error) {
+				content, err := ioutil.ReadAll(r)
+				return ioutil.NopCloser(nil), int64(len(content)), err
+			}
+
+			_, err := remote.Fetch(logger, parseURL("docker:///foo#i-am-a-lie"), "", "", 15)
+			Expect(err).To(MatchError("layer size exceeds image quota"))
+		})
+	})
+
 	It("should verify the image against its digest", func() {
 		remote.Fetch(logger, parseURL("docker:///foo#some-tag"), "", "", 67)
 		_, reader := fakeCake.RegisterArgsForCall(0)
@@ -299,7 +355,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	Context("when the layer does not match its digest", func() {
 		JustBeforeEach(func() {
-			fakeVerifier.VerifyReturns(nil, errors.New("boom"))
+			fakeVerifier.VerifyReturns(nil, 0, errors.New("boom"))
 		})
 
 		It("returns an error", func() {
@@ -359,7 +415,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	Context("when credentials are provided", func() {
 		It("dials with the credentials", func() {
-			_, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), "username", "password", 3)
+			_, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), "username", "password", 32)
 			Expect(err).NotTo(HaveOccurred())
 			_, _, _, username, password := fakeDialer.DialArgsForCall(0)
 			Expect(username).To(Equal("username"))
@@ -371,23 +427,23 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	Context("when a disk quota is provided", func() {
 		Context("and the image is smaller than the quota", func() {
 			It("should succeed", func() {
-				_, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), "", "", 3)
+				_, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), "", "", 32)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
 		Context("and the image is bigger than the quota", func() {
 			It("should return an error", func() {
-				_, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), "", "", 2)
+				_, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), "", "", 5)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
 
 	It("returns the size of the image", func() {
-		image, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), "", "", 3)
+		image, err := remote.Fetch(logger, parseURL("docker:///banana#some-tag"), "", "", 50)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(image.Size).To(BeNumerically("==", 3))
+		Expect(image.Size).To(BeNumerically("==", 31))
 	})
 })
 

@@ -19,12 +19,12 @@ var shaThatDoesMatch = digest.Digest(fmt.Sprintf("sha256:%x", sha256.Sum256([]by
 var _ = Describe("Verifying a digest", func() {
 	Context("when the digest matches", func() {
 		It("does not return an error", func() {
-			_, err := repository_fetcher.Verify(bytes.NewReader([]byte("matches")), shaThatDoesMatch)
+			_, _, err := repository_fetcher.Verify(bytes.NewReader([]byte("matches")), shaThatDoesMatch)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("allows reading the original data", func() {
-			r, err := repository_fetcher.Verify(bytes.NewReader([]byte("matches")), shaThatDoesMatch)
+			r, _, err := repository_fetcher.Verify(bytes.NewReader([]byte("matches")), shaThatDoesMatch)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(ioutil.ReadAll(r)).To(Equal([]byte("matches")))
@@ -33,7 +33,7 @@ var _ = Describe("Verifying a digest", func() {
 
 	Context("when the digest does not match", func() {
 		It("returns an error", func() {
-			_, err := repository_fetcher.Verify(bytes.NewReader([]byte("does-not-match")), someShaThatDoesntMatch)
+			_, _, err := repository_fetcher.Verify(bytes.NewReader([]byte("does-not-match")), someShaThatDoesntMatch)
 			Expect(err).To(MatchError("digest verification failed"))
 		})
 	})
