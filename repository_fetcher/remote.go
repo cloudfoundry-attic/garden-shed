@@ -177,7 +177,7 @@ func applyQuota(r io.Reader, quota int64) io.Reader {
 	if quota < 0 {
 		return r
 	}
-	return NewQuotaedReader(ioutil.NopCloser(r), quota, "layer size exceeds image quota")
+	return NewQuotaedReader(ioutil.NopCloser(r), quota)
 }
 
 //go:generate counterfeiter . Dialer

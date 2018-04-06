@@ -76,6 +76,25 @@ var _ = Describe("Retryable", func() {
 				itLogsFailingAttempts(logger, 3, "test.failed-to-fetch")
 			})
 		})
+
+		Context("when fetching fails because the quota is exceeded", func() {
+			var fetchErr error
+
+			BeforeEach(func() {
+				fakeRemoteFetcher.FetchStub = func(log lager.Logger, u *url.URL, username, password string, diskQuota int64) (*repository_fetcher.Image, error) {
+					return nil, repository_fetcher.NewQuotaExceededErr()
+				}
+				_, fetchErr = retryable.Fetch(logger, repoURL, "", "", 0)
+			})
+
+			It("does not retry", func() {
+				Expect(fakeRemoteFetcher.FetchCallCount()).To(Equal(1))
+			})
+
+			It("returns an error", func() {
+				Expect(fetchErr).To(HaveOccurred())
+			})
+		})
 	})
 
 	Describe("FetchID failures", func() {

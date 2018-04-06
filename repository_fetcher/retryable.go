@@ -22,6 +22,10 @@ func (retryable Retryable) Fetch(log lager.Logger, repoName *url.URL, username, 
 			break
 		}
 
+		if _, ok := err.(QuotaExceededErr); ok {
+			return nil, err
+		}
+
 		log.Error("failed-to-fetch", err, lager.Data{
 			"attempt": attempt,
 			"of":      MAX_ATTEMPTS,
