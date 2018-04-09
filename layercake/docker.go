@@ -41,6 +41,10 @@ func (d *Docker) Register(image *image.Image, layer archive.ArchiveReader) error
 	return d.Graph.Register(&descriptor{image}, layer)
 }
 
+func (d *Docker) RegisterWithQuota(image *image.Image, layer archive.ArchiveReader, quota int64) error {
+	return d.Graph.RegisterWithQuota(&descriptor{image}, layer, quota)
+}
+
 func (d *Docker) Get(id ID) (*image.Image, error) {
 	return d.Graph.Get(id.GraphID())
 }

@@ -161,12 +161,15 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 	defer verifiedBlob.Close()
 
 	log.Debug("registering")
-	err = r.Cake.Register(&image.Image{
+	err = r.Cake.RegisterWithQuota(&image.Image{
 		ID:     hex(layer.StrongID),
 		Parent: hex(layer.ParentStrongID),
 		Size:   size,
-	}, verifiedBlob)
+	}, verifiedBlob, quota)
 	if err != nil {
+		if strings.Contains(err.Error(), "unexpected EOF") {
+			err = fmt.Errorf("%v. Possible cause: %v", err, quotaedreader.NewQuotaExceededErr())
+		}
 		return 0, err
 	}
 

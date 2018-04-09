@@ -44,6 +44,19 @@ type FakeCake struct {
 	registerReturnsOnCall map[int]struct {
 		result1 error
 	}
+	RegisterWithQuotaStub        func(img *image.Image, layer archive.ArchiveReader, quota int64) error
+	registerWithQuotaMutex       sync.RWMutex
+	registerWithQuotaArgsForCall []struct {
+		img   *image.Image
+		layer archive.ArchiveReader
+		quota int64
+	}
+	registerWithQuotaReturns struct {
+		result1 error
+	}
+	registerWithQuotaReturnsOnCall map[int]struct {
+		result1 error
+	}
 	GetStub        func(id layercake.ID) (*image.Image, error)
 	getMutex       sync.RWMutex
 	getArgsForCall []struct {
@@ -278,6 +291,56 @@ func (fake *FakeCake) RegisterReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.registerReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeCake) RegisterWithQuota(img *image.Image, layer archive.ArchiveReader, quota int64) error {
+	fake.registerWithQuotaMutex.Lock()
+	ret, specificReturn := fake.registerWithQuotaReturnsOnCall[len(fake.registerWithQuotaArgsForCall)]
+	fake.registerWithQuotaArgsForCall = append(fake.registerWithQuotaArgsForCall, struct {
+		img   *image.Image
+		layer archive.ArchiveReader
+		quota int64
+	}{img, layer, quota})
+	fake.recordInvocation("RegisterWithQuota", []interface{}{img, layer, quota})
+	fake.registerWithQuotaMutex.Unlock()
+	if fake.RegisterWithQuotaStub != nil {
+		return fake.RegisterWithQuotaStub(img, layer, quota)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.registerWithQuotaReturns.result1
+}
+
+func (fake *FakeCake) RegisterWithQuotaCallCount() int {
+	fake.registerWithQuotaMutex.RLock()
+	defer fake.registerWithQuotaMutex.RUnlock()
+	return len(fake.registerWithQuotaArgsForCall)
+}
+
+func (fake *FakeCake) RegisterWithQuotaArgsForCall(i int) (*image.Image, archive.ArchiveReader, int64) {
+	fake.registerWithQuotaMutex.RLock()
+	defer fake.registerWithQuotaMutex.RUnlock()
+	return fake.registerWithQuotaArgsForCall[i].img, fake.registerWithQuotaArgsForCall[i].layer, fake.registerWithQuotaArgsForCall[i].quota
+}
+
+func (fake *FakeCake) RegisterWithQuotaReturns(result1 error) {
+	fake.RegisterWithQuotaStub = nil
+	fake.registerWithQuotaReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeCake) RegisterWithQuotaReturnsOnCall(i int, result1 error) {
+	fake.RegisterWithQuotaStub = nil
+	if fake.registerWithQuotaReturnsOnCall == nil {
+		fake.registerWithQuotaReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.registerWithQuotaReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -675,6 +738,8 @@ func (fake *FakeCake) Invocations() map[string][][]interface{} {
 	defer fake.createMutex.RUnlock()
 	fake.registerMutex.RLock()
 	defer fake.registerMutex.RUnlock()
+	fake.registerWithQuotaMutex.RLock()
+	defer fake.registerWithQuotaMutex.RUnlock()
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
 	fake.unmountMutex.RLock()

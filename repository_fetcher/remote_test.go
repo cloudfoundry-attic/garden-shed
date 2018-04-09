@@ -236,11 +236,11 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		})
 
 		It("registers each of the layers in the graph", func() {
-			Expect(fakeCake.RegisterCallCount()).To(Equal(3))
+			Expect(fakeCake.RegisterWithQuotaCallCount()).To(Equal(3))
 		})
 
 		It("registers the layer contents under its Strong IDs", func() {
-			image, reader := fakeCake.RegisterArgsForCall(0)
+			image, reader, _ := fakeCake.RegisterWithQuotaArgsForCall(0)
 			Expect(image.ID).To(Equal("abc-id"))
 			Expect(image.Parent).To(Equal("abc-parent-id"))
 
@@ -250,7 +250,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		})
 
 		It("registers the layer with the correct size", func() {
-			image, _ := fakeCake.RegisterArgsForCall(0)
+			image, _, _ := fakeCake.RegisterWithQuotaArgsForCall(0)
 			Expect(image.Size).To(BeEquivalentTo(15))
 		})
 	})
@@ -263,7 +263,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		It("avoids registering it again", func() {
 			_, err := remote.Fetch(logger, parseURL("docker:///foo#some-tag"), "", "", 67)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeCake.RegisterCallCount()).To(Equal(2))
+			Expect(fakeCake.RegisterWithQuotaCallCount()).To(Equal(2))
 		})
 	})
 
@@ -334,7 +334,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	It("should verify the image against its digest", func() {
 		remote.Fetch(logger, parseURL("docker:///foo#some-tag"), "", "", 67)
-		_, reader := fakeCake.RegisterArgsForCall(0)
+		_, reader, _ := fakeCake.RegisterWithQuotaArgsForCall(0)
 
 		Expect(reader).To(BeAssignableToTypeOf(&verified{}))
 		_, digest1 := fakeVerifier.VerifyArgsForCall(0)
@@ -345,7 +345,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	It("should close the verified image reader after using it", func() {
 		var registeredBlob *verified
-		fakeCake.RegisterStub = func(img *image.Image, blob archive.ArchiveReader) error {
+		fakeCake.RegisterWithQuotaStub = func(img *image.Image, blob archive.ArchiveReader, quota int64) error {
 			Expect(blob).To(BeAssignableToTypeOf(&verified{}))
 			Expect(blob.(*verified).closed).To(BeFalse())
 			registeredBlob = blob.(*verified)
@@ -367,7 +367,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 		})
 
 		It("does not register an image in the graph", func() {
-			Expect(fakeCake.RegisterCallCount()).To(Equal(0))
+			Expect(fakeCake.RegisterWithQuotaCallCount()).To(Equal(0))
 		})
 	})
 
@@ -383,7 +383,7 @@ var _ = Describe("Fetching from a Remote repo", func() {
 					return nil, errors.New("not found")
 				}
 
-				fakeCake.RegisterStub = func(img *image.Image, _ archive.ArchiveReader) error {
+				fakeCake.RegisterWithQuotaStub = func(img *image.Image, _ archive.ArchiveReader, quota int64) error {
 					got.Store(layercake.DockerImageID(img.ID), true)
 					return nil
 				}

@@ -15,6 +15,7 @@ type Cake interface {
 	DriverName() string
 	Create(layerID, parentID ID, containerID string) error
 	Register(img *image.Image, layer archive.ArchiveReader) error
+	RegisterWithQuota(img *image.Image, layer archive.ArchiveReader, quota int64) error
 	Get(id ID) (*image.Image, error)
 	Unmount(id ID) error
 	Remove(id ID) error
