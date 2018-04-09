@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"strings"
 
@@ -153,6 +152,7 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 
 	log.Debug("verifying")
 	verifiedBlob, size, err := r.Verifier.Verify(blob, layer.BlobSum)
+	blob.Close()
 	if err != nil {
 		return 0, err
 	}
@@ -173,11 +173,11 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 	return size, nil
 }
 
-func applyQuota(r io.Reader, quota int64) io.Reader {
+func applyQuota(r io.ReadCloser, quota int64) io.ReadCloser {
 	if quota < 0 {
 		return r
 	}
-	return NewQuotaedReader(ioutil.NopCloser(r), quota)
+	return NewQuotaedReader(r, quota)
 }
 
 //go:generate counterfeiter . Dialer

@@ -132,8 +132,8 @@ var _ = Describe("Fetching from a Remote repo", func() {
 			return manifests[tag], nil
 		}
 
-		fakeConn.GetBlobReaderStub = func(_ lager.Logger, digest digest.Digest) (io.Reader, error) {
-			return bytes.NewReader([]byte(blobs[digest])), nil
+		fakeConn.GetBlobReaderStub = func(_ lager.Logger, digest digest.Digest) (io.ReadCloser, error) {
+			return ioutil.NopCloser(bytes.NewReader([]byte(blobs[digest]))), nil
 		}
 
 		fakeDialer = new(fakes.FakeDialer)

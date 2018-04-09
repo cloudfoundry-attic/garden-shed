@@ -5,13 +5,12 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"syscall"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 
 	"code.cloudfoundry.org/garden-shed/pkg/chown"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"golang.org/x/sys/unix"
 )
 
 var _ = Describe("chowning", func() {
@@ -45,10 +44,10 @@ var _ = Describe("chowning", func() {
 		})
 
 		It("changes the gid and uid", func() {
-			info, err := os.Stat(someFile)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(info.Sys().(*syscall.Stat_t).Uid).To(BeEquivalentTo(100))
-			Expect(info.Sys().(*syscall.Stat_t).Gid).To(BeEquivalentTo(100))
+			var stat unix.Stat_t
+			Expect(unix.Stat(someFile, &stat)).To(Succeed())
+			Expect(stat.Uid).To(BeEquivalentTo(100))
+			Expect(stat.Gid).To(BeEquivalentTo(100))
 		})
 	})
 
@@ -74,10 +73,10 @@ var _ = Describe("chowning", func() {
 		})
 
 		It("does not change the gid/uid of the target", func() {
-			info, err := os.Stat(target)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(info.Sys().(*syscall.Stat_t).Uid).NotTo(BeEquivalentTo(100))
-			Expect(info.Sys().(*syscall.Stat_t).Gid).NotTo(BeEquivalentTo(100))
+			var stat unix.Stat_t
+			Expect(unix.Stat(target, &stat)).To(Succeed())
+			Expect(stat.Uid).NotTo(BeEquivalentTo(100))
+			Expect(stat.Gid).NotTo(BeEquivalentTo(100))
 		})
 
 		It("avoids accidentally clobbering the mode of the target (symlinks dont have modes, but we should avoid clobbering the target)", func() {

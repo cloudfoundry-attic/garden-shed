@@ -24,7 +24,7 @@ import (
 //go:generate counterfeiter -o fake_distclient/fake_conn.go . Conn
 type Conn interface {
 	GetManifest(logger lager.Logger, tag string) (*Manifest, error)
-	GetBlobReader(logger lager.Logger, d digest.Digest) (io.Reader, error)
+	GetBlobReader(logger lager.Logger, d digest.Digest) (io.ReadCloser, error)
 }
 
 type conn struct {
@@ -88,7 +88,7 @@ func (r *conn) GetManifest(logger lager.Logger, tag string) (*Manifest, error) {
 	return &Manifest{Layers: layers}, nil
 }
 
-func (r *conn) GetBlobReader(logger lager.Logger, digest digest.Digest) (io.Reader, error) {
+func (r *conn) GetBlobReader(logger lager.Logger, digest digest.Digest) (io.ReadCloser, error) {
 	blobStore := r.client.Blobs(context.TODO())
 	return blobStore.Open(context.TODO(), digest)
 }

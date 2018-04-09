@@ -25,18 +25,18 @@ type FakeConn struct {
 		result1 *distclient.Manifest
 		result2 error
 	}
-	GetBlobReaderStub        func(logger lager.Logger, d digest.Digest) (io.Reader, error)
+	GetBlobReaderStub        func(logger lager.Logger, d digest.Digest) (io.ReadCloser, error)
 	getBlobReaderMutex       sync.RWMutex
 	getBlobReaderArgsForCall []struct {
 		logger lager.Logger
 		d      digest.Digest
 	}
 	getBlobReaderReturns struct {
-		result1 io.Reader
+		result1 io.ReadCloser
 		result2 error
 	}
 	getBlobReaderReturnsOnCall map[int]struct {
-		result1 io.Reader
+		result1 io.ReadCloser
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -95,7 +95,7 @@ func (fake *FakeConn) GetManifestReturnsOnCall(i int, result1 *distclient.Manife
 	}{result1, result2}
 }
 
-func (fake *FakeConn) GetBlobReader(logger lager.Logger, d digest.Digest) (io.Reader, error) {
+func (fake *FakeConn) GetBlobReader(logger lager.Logger, d digest.Digest) (io.ReadCloser, error) {
 	fake.getBlobReaderMutex.Lock()
 	ret, specificReturn := fake.getBlobReaderReturnsOnCall[len(fake.getBlobReaderArgsForCall)]
 	fake.getBlobReaderArgsForCall = append(fake.getBlobReaderArgsForCall, struct {
@@ -125,24 +125,24 @@ func (fake *FakeConn) GetBlobReaderArgsForCall(i int) (lager.Logger, digest.Dige
 	return fake.getBlobReaderArgsForCall[i].logger, fake.getBlobReaderArgsForCall[i].d
 }
 
-func (fake *FakeConn) GetBlobReaderReturns(result1 io.Reader, result2 error) {
+func (fake *FakeConn) GetBlobReaderReturns(result1 io.ReadCloser, result2 error) {
 	fake.GetBlobReaderStub = nil
 	fake.getBlobReaderReturns = struct {
-		result1 io.Reader
+		result1 io.ReadCloser
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeConn) GetBlobReaderReturnsOnCall(i int, result1 io.Reader, result2 error) {
+func (fake *FakeConn) GetBlobReaderReturnsOnCall(i int, result1 io.ReadCloser, result2 error) {
 	fake.GetBlobReaderStub = nil
 	if fake.getBlobReaderReturnsOnCall == nil {
 		fake.getBlobReaderReturnsOnCall = make(map[int]struct {
-			result1 io.Reader
+			result1 io.ReadCloser
 			result2 error
 		})
 	}
 	fake.getBlobReaderReturnsOnCall[i] = struct {
-		result1 io.Reader
+		result1 io.ReadCloser
 		result2 error
 	}{result1, result2}
 }
