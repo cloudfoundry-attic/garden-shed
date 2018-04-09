@@ -228,6 +228,9 @@ var _ = Describe("Fetching from a Remote repo", func() {
 
 	Context("when the cake does not contain any of the layers", func() {
 		JustBeforeEach(func() {
+			fakeVerifier.VerifyStub = func(r io.Reader, d digest.Digest) (io.ReadCloser, int64, error) {
+				return &verified{Reader: r}, 15, nil
+			}
 			_, err := remote.Fetch(logger, parseURL("docker:///foo#some-tag"), "", "", 67)
 			Expect(err).NotTo(HaveOccurred())
 		})
@@ -371,25 +374,17 @@ var _ = Describe("Fetching from a Remote repo", func() {
 	Describe("concurrently fetching", func() {
 		It("serializes calls to cake.get and getblobreader", func() {
 			for i := 1; i < 100; i++ {
-				got := make(map[layercake.ID]bool)
-				mu := new(sync.RWMutex)
+				got := new(sync.Map)
 				fakeCake.GetStub = func(id layercake.ID) (*image.Image, error) {
-					mu.RLock()
-					had := got[id]
-					mu.RUnlock()
-
-					if had {
-						return nil, nil
+					if _, ok := got.Load(id); ok {
+						return new(image.Image), nil
 					}
 
 					return nil, errors.New("not found")
 				}
 
 				fakeCake.RegisterStub = func(img *image.Image, _ archive.ArchiveReader) error {
-					mu.Lock()
-					got[layercake.DockerImageID(img.ID)] = true
-					mu.Unlock()
-
+					got.Store(layercake.DockerImageID(img.ID), true)
 					return nil
 				}
 

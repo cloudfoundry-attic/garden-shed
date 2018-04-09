@@ -138,9 +138,9 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 	r.FetchLock.Acquire(layer.BlobSum.String())
 	defer r.FetchLock.Release(layer.BlobSum.String())
 
-	if _, err := r.Cake.Get(layercake.DockerImageID(hex(layer.StrongID))); err == nil {
+	if image, err := r.Cake.Get(layercake.DockerImageID(hex(layer.StrongID))); err == nil {
 		log.Info("got-cache")
-		return 0, nil
+		return image.Size, nil
 	}
 
 	// TODO blob isn't being closed
@@ -164,7 +164,7 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 	err = r.Cake.Register(&image.Image{
 		ID:     hex(layer.StrongID),
 		Parent: hex(layer.ParentStrongID),
-		Size:   layer.Image.Size,
+		Size:   size,
 	}, verifiedBlob)
 	if err != nil {
 		return 0, err
