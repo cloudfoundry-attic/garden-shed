@@ -13,6 +13,7 @@ import (
 
 	"code.cloudfoundry.org/garden-shed/distclient"
 	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/quotaedreader"
 	"code.cloudfoundry.org/lager"
 )
 
@@ -142,7 +143,6 @@ func (r *Remote) fetchLayer(log lager.Logger, conn distclient.Conn, layer distcl
 		return image.Size, nil
 	}
 
-	// TODO blob isn't being closed
 	blob, err := conn.GetBlobReader(log, layer.BlobSum)
 	if err != nil {
 		return 0, err
@@ -177,7 +177,7 @@ func applyQuota(r io.ReadCloser, quota int64) io.ReadCloser {
 	if quota < 0 {
 		return r
 	}
-	return NewQuotaedReader(r, quota)
+	return quotaedreader.New(r, quota)
 }
 
 //go:generate counterfeiter . Dialer

@@ -1,4 +1,4 @@
-package repository_fetcher
+package quotaedreader
 
 import "io"
 
@@ -17,7 +17,7 @@ func NewQuotaExceededErr() QuotaExceededErr {
 	return QuotaExceededErr{}
 }
 
-func NewQuotaedReader(delegateReader io.ReadCloser, quotaLeft int64) *QuotaedReader {
+func New(delegateReader io.ReadCloser, quotaLeft int64) *QuotaedReader {
 	return &QuotaedReader{
 		DelegateReader: delegateReader,
 		QuotaLeft:      quotaLeft,

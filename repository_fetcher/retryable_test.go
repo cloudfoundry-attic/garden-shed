@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/quotaedreader"
 	"code.cloudfoundry.org/garden-shed/repository_fetcher"
 	fakes "code.cloudfoundry.org/garden-shed/repository_fetcher/repository_fetcherfakes"
 	"code.cloudfoundry.org/lager"
@@ -82,7 +83,7 @@ var _ = Describe("Retryable", func() {
 
 			BeforeEach(func() {
 				fakeRemoteFetcher.FetchStub = func(log lager.Logger, u *url.URL, username, password string, diskQuota int64) (*repository_fetcher.Image, error) {
-					return nil, repository_fetcher.NewQuotaExceededErr()
+					return nil, quotaedreader.NewQuotaExceededErr()
 				}
 				_, fetchErr = retryable.Fetch(logger, repoURL, "", "", 0)
 			})

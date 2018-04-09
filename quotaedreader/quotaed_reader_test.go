@@ -1,4 +1,4 @@
-package repository_fetcher_test
+package quotaedreader_test
 
 import (
 	"fmt"

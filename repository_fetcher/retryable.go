@@ -4,6 +4,7 @@ import (
 	"net/url"
 
 	"code.cloudfoundry.org/garden-shed/layercake"
+	"code.cloudfoundry.org/garden-shed/quotaedreader"
 	"code.cloudfoundry.org/lager"
 )
 
@@ -22,7 +23,7 @@ func (retryable Retryable) Fetch(log lager.Logger, repoName *url.URL, username, 
 			break
 		}
 
-		if _, ok := err.(QuotaExceededErr); ok {
+		if _, ok := err.(quotaedreader.QuotaExceededErr); ok {
 			return nil, err
 		}
 
