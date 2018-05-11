@@ -4,10 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"code.cloudfoundry.org/clock"
+	"code.cloudfoundry.org/clock/fakeclock"
 	"code.cloudfoundry.org/garden-shed/pkg/retrier"
-	"github.com/pivotal-golang/clock"
-	"github.com/pivotal-golang/clock/fakeclock"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
