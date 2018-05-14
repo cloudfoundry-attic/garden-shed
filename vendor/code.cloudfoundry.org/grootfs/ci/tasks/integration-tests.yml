@@ -1,0 +1,22 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: cfgarden/grootfs-ci
+    tag: latest
+
+inputs:
+  - name: grootfs-git-repo
+    path: src/code.cloudfoundry.org/grootfs
+
+params:
+  DOCKER_REGISTRY_USERNAME:
+  DOCKER_REGISTRY_PASSWORD:
+  GROOTFS_TEST_UID: 0
+  GROOTFS_TEST_GID: 0
+
+run:
+  path: src/code.cloudfoundry.org/grootfs/ci/scripts/integration-tests.sh
+  user: root

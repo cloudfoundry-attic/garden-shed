@@ -1,0 +1,13 @@
+# Artifacts
+/grootfs
+/grootfs.exe
+/drax
+/tardis
+playground/grootfs
+playground/drax
+tags
+
+# OSX
+.DS_Store
+
+grootfs.iml

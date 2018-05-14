@@ -1,0 +1,60 @@
+# We deliberately ignore github.com/docker/docker because shed is using an old,
+# not on github edition of docker with manual changes. As such we do some
+# manual depedancy management of it by copying it back in after `dep ensure`.
+# github.com/Sirupsen/logrus is the old name for github.com/sirupsen/logrus
+# (note the capital "S"). Old docker/docker depends on the old logrus which
+# no longer exists on github. ... I know. Engineers on the Garden team refer to
+# this as "Sirupsengate" (or "sirupsengate", you pick just don't change your
+# mind later).
+ignored = ["github.com/docker/docker*", "github.com/Sirupsen/logrus"]
+
+# --- garden owned libraries ---
+[[constraint]]
+name = "code.cloudfoundry.org/garden"
+branch = "master"
+
+[[constraint]]
+name = "code.cloudfoundry.org/grootfs"
+branch = "master"
+
+[[constraint]]
+name = "code.cloudfoundry.org/guardian"
+branch = "master"
+
+[[constraint]]
+name = "code.cloudfoundry.org/idmapper"
+branch = "master"
+
+# --- other libraries ---
+[[constraint]]
+name = "code.cloudfoundry.org/clock"
+revision = "e9dc86bbf0e5bbe6bf7ff5a6f71e048959b61f71"
+
+[[constraint]]
+name = "code.cloudfoundry.org/commandrunner"
+revision = "501fd662150bcea5a42a9b5c1c283209720788c3"
+
+[[constraint]]
+name = "code.cloudfoundry.org/lager"
+revision = "62951a8009ab331bb21dc418074fa54e66eb9b6a"
+
+[[constraint]]
+name = "github.com/cloudfoundry/dropsonde"
+revision = "9b2cd8f8f9e99dca1f764ca4511d6011b4f44d0c"
+
+[[constraint]]
+name = "github.com/cloudfoundry/sonde-go"
+revision = "ae27095c3a1b9977a0ef1928b0147d5689f2e921"
+
+# TODO: figure out which version of this to use
+[[constraint]]
+name = "github.com/containers/image"
+revision = "db00e23581a0ce6a526083b063c01e5261f8255c"
+
+[[constraint]]
+name = "github.com/docker/distribution"
+revision = "856638e299eddf01964fa918ac1552d8aa2e22b3"
+
+[[projects]]
+name = "github.com/docker/libtrust"
+revision = "9cbd2a1374f46905c68a4eb3694a130610adc62a"
