@@ -39,22 +39,21 @@ name = "code.cloudfoundry.org/lager"
 revision = "62951a8009ab331bb21dc418074fa54e66eb9b6a"
 
 [[constraint]]
-name = "github.com/cloudfoundry/dropsonde"
-revision = "9b2cd8f8f9e99dca1f764ca4511d6011b4f44d0c"
-
-[[constraint]]
-name = "github.com/cloudfoundry/sonde-go"
-revision = "ae27095c3a1b9977a0ef1928b0147d5689f2e921"
-
-# TODO: figure out which version of this to use
-[[constraint]]
-name = "github.com/containers/image"
-revision = "db00e23581a0ce6a526083b063c01e5261f8255c"
-
-[[constraint]]
 name = "github.com/docker/distribution"
 revision = "856638e299eddf01964fa918ac1552d8aa2e22b3"
 
-[[projects]]
-name = "github.com/docker/libtrust"
-revision = "9cbd2a1374f46905c68a4eb3694a130610adc62a"
+[[constraint]]
+name = "github.com/eapache/go-resiliency"
+revision = "b86b1ec0dd4209a588dc1285cdd471e73525c0b3"
+
+[[constraint]]
+name = "github.com/opencontainers/runtime-spec"
+revision = "02137cd4e50b37a01665e1731fcd4ac2d2178230"
+
+[[constraint]]
+name = "golang.org/x/net"
+revision = "195180cfebf7362bd243a52477697895128c8777"
+
+[[constraint]]
+name = "golang.org/x/sys"
+revision = "9ccfe848b9db8435a24c424abbc07a921adf1df5"

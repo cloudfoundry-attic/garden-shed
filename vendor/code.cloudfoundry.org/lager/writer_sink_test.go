@@ -1,7 +1,6 @@
 package lager_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"runtime"
 	"strings"
@@ -35,21 +34,6 @@ var _ = Describe("WriterSink", func() {
 
 		It("writes to the given writer", func() {
 			Expect(writer.Copy()).To(MatchJSON(`{"message":"hello world","log_level":1,"timestamp":"","source":"","data":null}`))
-		})
-	})
-
-	Context("when a unserializable object is passed into data", func() {
-		BeforeEach(func() {
-			sink.Log(lager.LogFormat{LogLevel: lager.INFO, Message: "hello world", Data: map[string]interface{}{"some_key": func() {}}})
-		})
-
-		It("logs the serialization error", func() {
-			message := map[string]interface{}{}
-			json.Unmarshal(writer.Copy(), &message)
-			Expect(message["message"]).To(Equal("hello world"))
-			Expect(message["log_level"]).To(Equal(float64(1)))
-			Expect(message["data"].(map[string]interface{})["lager serialisation error"]).To(Equal("json: unsupported type: func()"))
-			Expect(message["data"].(map[string]interface{})["data_dump"]).ToNot(BeEmpty())
 		})
 	})
 

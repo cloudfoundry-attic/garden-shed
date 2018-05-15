@@ -251,10 +251,6 @@ var _ = Describe("Logger", func() {
 			It("data contains error message", func() {
 				Expect(testSink.Logs()[0].Data["error"]).To(Equal(err.Error()))
 			})
-
-			It("retains the original error values", func() {
-				Expect(testSink.Errors).To(Equal([]error{err}))
-			})
 		})
 
 		Context("with no log data", func() {
@@ -266,10 +262,6 @@ var _ = Describe("Logger", func() {
 
 			It("data contains error message", func() {
 				Expect(testSink.Logs()[0].Data["error"]).To(Equal(err.Error()))
-			})
-
-			It("retains the original error values", func() {
-				Expect(testSink.Errors).To(Equal([]error{err}))
 			})
 		})
 
@@ -313,10 +305,6 @@ var _ = Describe("Logger", func() {
 			It("panics with the provided error", func() {
 				Expect(fatalErr).To(Equal(err))
 			})
-
-			It("retains the original error values", func() {
-				Expect(testSink.Errors).To(Equal([]error{err}))
-			})
 		})
 
 		Context("with no log data", func() {
@@ -340,10 +328,6 @@ var _ = Describe("Logger", func() {
 
 			It("panics with the provided error", func() {
 				Expect(fatalErr).To(Equal(err))
-			})
-
-			It("retains the original error values", func() {
-				Expect(testSink.Errors).To(Equal([]error{err}))
 			})
 		})
 
@@ -370,6 +354,5 @@ var _ = Describe("Logger", func() {
 				Expect(fatalErr).To(BeNil())
 			})
 		})
-
 	})
 })

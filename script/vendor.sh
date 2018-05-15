@@ -6,12 +6,27 @@ SHED_DIR="$( dirname "$DIR" )"
 
 TMP_WORK_DIR="$( mktemp -d )"
 
-cp -r "${SHED_DIR}/vendor/github.com/Sirupsen/logrus" "${TMP_WORK_DIR}/logrus"
-cp -r "${SHED_DIR}/vendor/github.com/docker/docker" "${TMP_WORK_DIR}/docker"
+function backup_manual_vends() {
+  src="$1"
+  dst="$2"
 
-dep ensure
+  cp -r "${src}/vendor/github.com/Sirupsen/logrus" "${dst}/logrus"
+  cp -r "${src}/vendor/github.com/docker/docker" "${dst}/docker"
+}
 
-cp -r "${TMP_WORK_DIR}/docker" "${SHED_DIR}/vendor/github.com/docker/docker"
-mkdir -p "${SHED_DIR}/vendor/github.com/Sirupsen"
-cp -r "${TMP_WORK_DIR}/logrus" "${SHED_DIR}/vendor/github.com/Sirupsen/logrus"
+function restore_manual_vends() {
+  src="$1"
+  dst="$2"
+
+  mkdir -p "${src}/vendor/github.com/docker"
+  mkdir -p "${src}/vendor/github.com/Sirupsen"
+
+  cp -r "${dst}/docker" "${src}/vendor/github.com/docker/docker"
+  cp -r "${dst}/logrus" "${src}/vendor/github.com/Sirupsen/logrus"
+}
+
+backup_manual_vends "$SHED_DIR" "$TMP_WORK_DIR"
+trap "restore_manual_vends ${SHED_DIR} ${TMP_WORK_DIR}" EXIT
+
+dep ensure -v
 

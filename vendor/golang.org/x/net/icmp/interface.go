@@ -5,7 +5,6 @@
 package icmp
 
 import (
-	"encoding/binary"
 	"net"
 	"strings"
 
@@ -14,6 +13,9 @@ import (
 
 const (
 	classInterfaceInfo = 2
+
+	afiIPv4 = 1
+	afiIPv6 = 2
 )
 
 const (
@@ -87,7 +89,7 @@ func (ifi *InterfaceInfo) Marshal(proto int) ([]byte, error) {
 }
 
 func (ifi *InterfaceInfo) marshal(proto int, b []byte, attrs, l int) error {
-	binary.BigEndian.PutUint16(b[:2], uint16(l))
+	b[0], b[1] = byte(l>>8), byte(l)
 	b[2], b[3] = classInterfaceInfo, byte(ifi.Type)
 	for b = b[4:]; len(b) > 0 && attrs != 0; {
 		switch {
@@ -109,7 +111,7 @@ func (ifi *InterfaceInfo) marshal(proto int, b []byte, attrs, l int) error {
 }
 
 func (ifi *InterfaceInfo) marshalIfIndex(proto int, b []byte) []byte {
-	binary.BigEndian.PutUint32(b[:4], uint32(ifi.Interface.Index))
+	b[0], b[1], b[2], b[3] = byte(ifi.Interface.Index>>24), byte(ifi.Interface.Index>>16), byte(ifi.Interface.Index>>8), byte(ifi.Interface.Index)
 	return b[4:]
 }
 
@@ -117,18 +119,18 @@ func (ifi *InterfaceInfo) parseIfIndex(b []byte) ([]byte, error) {
 	if len(b) < 4 {
 		return nil, errMessageTooShort
 	}
-	ifi.Interface.Index = int(binary.BigEndian.Uint32(b[:4]))
+	ifi.Interface.Index = int(b[0])<<24 | int(b[1])<<16 | int(b[2])<<8 | int(b[3])
 	return b[4:], nil
 }
 
 func (ifi *InterfaceInfo) marshalIPAddr(proto int, b []byte) []byte {
 	switch proto {
 	case iana.ProtocolICMP:
-		binary.BigEndian.PutUint16(b[:2], uint16(iana.AddrFamilyIPv4))
+		b[0], b[1] = byte(afiIPv4>>8), byte(afiIPv4)
 		copy(b[4:4+net.IPv4len], ifi.Addr.IP.To4())
 		b = b[4+net.IPv4len:]
 	case iana.ProtocolIPv6ICMP:
-		binary.BigEndian.PutUint16(b[:2], uint16(iana.AddrFamilyIPv6))
+		b[0], b[1] = byte(afiIPv6>>8), byte(afiIPv6)
 		copy(b[4:4+net.IPv6len], ifi.Addr.IP.To16())
 		b = b[4+net.IPv6len:]
 	}
@@ -139,17 +141,17 @@ func (ifi *InterfaceInfo) parseIPAddr(b []byte) ([]byte, error) {
 	if len(b) < 4 {
 		return nil, errMessageTooShort
 	}
-	afi := int(binary.BigEndian.Uint16(b[:2]))
+	afi := int(b[0])<<8 | int(b[1])
 	b = b[4:]
 	switch afi {
-	case iana.AddrFamilyIPv4:
+	case afiIPv4:
 		if len(b) < net.IPv4len {
 			return nil, errMessageTooShort
 		}
 		ifi.Addr.IP = make(net.IP, net.IPv4len)
 		copy(ifi.Addr.IP, b[:net.IPv4len])
 		b = b[net.IPv4len:]
-	case iana.AddrFamilyIPv6:
+	case afiIPv6:
 		if len(b) < net.IPv6len {
 			return nil, errMessageTooShort
 		}
@@ -182,7 +184,7 @@ func (ifi *InterfaceInfo) parseName(b []byte) ([]byte, error) {
 }
 
 func (ifi *InterfaceInfo) marshalMTU(proto int, b []byte) []byte {
-	binary.BigEndian.PutUint32(b[:4], uint32(ifi.Interface.MTU))
+	b[0], b[1], b[2], b[3] = byte(ifi.Interface.MTU>>24), byte(ifi.Interface.MTU>>16), byte(ifi.Interface.MTU>>8), byte(ifi.Interface.MTU)
 	return b[4:]
 }
 
@@ -190,7 +192,7 @@ func (ifi *InterfaceInfo) parseMTU(b []byte) ([]byte, error) {
 	if len(b) < 4 {
 		return nil, errMessageTooShort
 	}
-	ifi.Interface.MTU = int(binary.BigEndian.Uint32(b[:4]))
+	ifi.Interface.MTU = int(b[0])<<24 | int(b[1])<<16 | int(b[2])<<8 | int(b[3])
 	return b[4:], nil
 }
 
@@ -228,95 +230,6 @@ func parseInterfaceInfo(b []byte) (Extension, error) {
 	}
 	if ifi.Interface != nil && ifi.Interface.Name != "" && ifi.Addr != nil && ifi.Addr.IP.To16() != nil && ifi.Addr.IP.To4() == nil {
 		ifi.Addr.Zone = ifi.Interface.Name
-	}
-	return ifi, nil
-}
-
-const (
-	classInterfaceIdent    = 3
-	typeInterfaceByName    = 1
-	typeInterfaceByIndex   = 2
-	typeInterfaceByAddress = 3
-)
-
-// An InterfaceIdent represents interface identification.
-type InterfaceIdent struct {
-	Class int    // extension object class number
-	Type  int    // extension object sub-type
-	Name  string // interface name
-	Index int    // interface index
-	AFI   int    // address family identifier; see address family numbers in IANA registry
-	Addr  []byte // address
-}
-
-// Len implements the Len method of Extension interface.
-func (ifi *InterfaceIdent) Len(_ int) int {
-	switch ifi.Type {
-	case typeInterfaceByName:
-		l := len(ifi.Name)
-		if l > 255 {
-			l = 255
-		}
-		return 4 + (l+3)&^3
-	case typeInterfaceByIndex:
-		return 4 + 8
-	case typeInterfaceByAddress:
-		return 4 + 4 + (len(ifi.Addr)+3)&^3
-	default:
-		return 4
-	}
-}
-
-// Marshal implements the Marshal method of Extension interface.
-func (ifi *InterfaceIdent) Marshal(proto int) ([]byte, error) {
-	b := make([]byte, ifi.Len(proto))
-	if err := ifi.marshal(proto, b); err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
-func (ifi *InterfaceIdent) marshal(proto int, b []byte) error {
-	l := ifi.Len(proto)
-	binary.BigEndian.PutUint16(b[:2], uint16(l))
-	b[2], b[3] = classInterfaceIdent, byte(ifi.Type)
-	switch ifi.Type {
-	case typeInterfaceByName:
-		copy(b[4:], ifi.Name)
-	case typeInterfaceByIndex:
-		binary.BigEndian.PutUint64(b[4:4+8], uint64(ifi.Index))
-	case typeInterfaceByAddress:
-		binary.BigEndian.PutUint16(b[4:4+2], uint16(ifi.AFI))
-		b[4+2] = byte(len(ifi.Addr))
-		copy(b[4+4:], ifi.Addr)
-	}
-	return nil
-}
-
-func parseInterfaceIdent(b []byte) (Extension, error) {
-	ifi := &InterfaceIdent{
-		Class: int(b[2]),
-		Type:  int(b[3]),
-	}
-	switch ifi.Type {
-	case typeInterfaceByName:
-		ifi.Name = strings.Trim(string(b[4:]), string(0))
-	case typeInterfaceByIndex:
-		if len(b[4:]) < 8 {
-			return nil, errInvalidExtension
-		}
-		ifi.Index = int(binary.BigEndian.Uint64(b[4 : 4+8]))
-	case typeInterfaceByAddress:
-		if len(b[4:]) < 4 {
-			return nil, errInvalidExtension
-		}
-		ifi.AFI = int(binary.BigEndian.Uint16(b[4 : 4+2]))
-		l := int(b[4+2])
-		if len(b[4+4:]) < l {
-			return nil, errInvalidExtension
-		}
-		ifi.Addr = make([]byte, l)
-		copy(ifi.Addr, b[4+4:])
 	}
 	return ifi, nil
 }

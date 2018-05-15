@@ -54,10 +54,9 @@
   name = "code.cloudfoundry.org/lager"
   packages = [
     ".",
-    "lagerctx",
     "lagertest"
   ]
-  revision = "0bfa98e49e7a976af91e918d47978f07c00b081f"
+  revision = "62951a8009ab331bb21dc418074fa54e66eb9b6a"
 
 [[projects]]
   name = "github.com/cloudfoundry/dropsonde"
@@ -110,8 +109,7 @@
 [[projects]]
   name = "github.com/eapache/go-resiliency"
   packages = ["retrier"]
-  revision = "ea41b0fad31007accc7f806884dcdf3da98b79ce"
-  version = "v1.1.0"
+  revision = "b86b1ec0dd4209a588dc1285cdd471e73525c0b3"
 
 [[projects]]
   name = "github.com/gogo/protobuf"
@@ -210,8 +208,7 @@
 [[projects]]
   name = "github.com/opencontainers/runtime-spec"
   packages = ["specs-go"]
-  revision = "4e3b9264a330d094b0386c3703c5f379119711e8"
-  version = "v1.0.1"
+  revision = "02137cd4e50b37a01665e1731fcd4ac2d2178230"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -220,7 +217,6 @@
   version = "v0.8.0"
 
 [[projects]]
-  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -228,20 +224,18 @@
     "html/atom",
     "html/charset"
   ]
-  revision = "2491c5de3490fced2f6cff376127c667efeed857"
+  revision = "195180cfebf7362bd243a52477697895128c8777"
 
 [[projects]]
-  branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "d0faeb539838e250bd0a9db4182d48d4a1915181"
+  revision = "9ccfe848b9db8435a24c424abbc07a921adf1df5"
 
 [[projects]]
   name = "golang.org/x/text"
   packages = [
     "encoding",
     "encoding/charmap",
-    "encoding/htmlindex",
     "encoding/internal",
     "encoding/internal/identifier",
     "encoding/japanese",
@@ -250,9 +244,7 @@
     "encoding/traditionalchinese",
     "encoding/unicode",
     "internal/gen",
-    "internal/tag",
     "internal/utf8internal",
-    "language",
     "runes",
     "transform",
     "unicode/cldr"
@@ -269,6 +261,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c444d8a6662741726a813894df56451901d8a862e4fbd99b5a5ea81acf3cb408"
+  inputs-digest = "1db6df3a2d8eff255e44c6603a54791600453e83ad9a392cd41881d76e999768"
   solver-name = "gps-cdcl"
   solver-version = 1

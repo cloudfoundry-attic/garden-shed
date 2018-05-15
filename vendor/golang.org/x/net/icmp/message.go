@@ -1,4 +1,4 @@
-// Copyright 2012 The Go Authors. All rights reserved.
+// Copyright 2012 The Go Authors.  All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -11,11 +11,9 @@
 // ICMP extensions for MPLS are defined in RFC 4950.
 // ICMP extensions for interface and next-hop identification are
 // defined in RFC 5837.
-// PROBE: A utility for probing interfaces is defined in RFC 8335.
 package icmp // import "golang.org/x/net/icmp"
 
 import (
-	"encoding/binary"
 	"errors"
 	"net"
 	"syscall"
@@ -24,8 +22,6 @@ import (
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 )
-
-// BUG(mikio): This package is not implemented on NaCl and Plan 9.
 
 var (
 	errMessageTooShort  = errors.New("message too short")
@@ -63,7 +59,7 @@ type Message struct {
 	Body     MessageBody // body
 }
 
-// Marshal returns the binary encoding of the ICMP message m.
+// Marshal returns the binary enconding of the ICMP message m.
 //
 // For an ICMPv4 message, the returned message always contains the
 // calculated checksum field.
@@ -98,7 +94,7 @@ func (m *Message) Marshal(psh []byte) ([]byte, error) {
 			return b, nil
 		}
 		off, l := 2*net.IPv6len, len(b)-len(psh)
-		binary.BigEndian.PutUint32(b[off:off+4], uint32(l))
+		b[off], b[off+1], b[off+2], b[off+3] = byte(l>>24), byte(l>>16), byte(l>>8), byte(l)
 	}
 	s := checksum(b)
 	// Place checksum back in header; using ^= avoids the
@@ -108,25 +104,21 @@ func (m *Message) Marshal(psh []byte) ([]byte, error) {
 	return b[len(psh):], nil
 }
 
-var parseFns = map[Type]func(int, Type, []byte) (MessageBody, error){
+var parseFns = map[Type]func(int, []byte) (MessageBody, error){
 	ipv4.ICMPTypeDestinationUnreachable: parseDstUnreach,
 	ipv4.ICMPTypeTimeExceeded:           parseTimeExceeded,
 	ipv4.ICMPTypeParameterProblem:       parseParamProb,
 
-	ipv4.ICMPTypeEcho:                parseEcho,
-	ipv4.ICMPTypeEchoReply:           parseEcho,
-	ipv4.ICMPTypeExtendedEchoRequest: parseExtendedEchoRequest,
-	ipv4.ICMPTypeExtendedEchoReply:   parseExtendedEchoReply,
+	ipv4.ICMPTypeEcho:      parseEcho,
+	ipv4.ICMPTypeEchoReply: parseEcho,
 
 	ipv6.ICMPTypeDestinationUnreachable: parseDstUnreach,
 	ipv6.ICMPTypePacketTooBig:           parsePacketTooBig,
 	ipv6.ICMPTypeTimeExceeded:           parseTimeExceeded,
 	ipv6.ICMPTypeParameterProblem:       parseParamProb,
 
-	ipv6.ICMPTypeEchoRequest:         parseEcho,
-	ipv6.ICMPTypeEchoReply:           parseEcho,
-	ipv6.ICMPTypeExtendedEchoRequest: parseExtendedEchoRequest,
-	ipv6.ICMPTypeExtendedEchoReply:   parseExtendedEchoReply,
+	ipv6.ICMPTypeEchoRequest: parseEcho,
+	ipv6.ICMPTypeEchoReply:   parseEcho,
 }
 
 // ParseMessage parses b as an ICMP message.
@@ -136,7 +128,7 @@ func ParseMessage(proto int, b []byte) (*Message, error) {
 		return nil, errMessageTooShort
 	}
 	var err error
-	m := &Message{Code: int(b[1]), Checksum: int(binary.BigEndian.Uint16(b[2:4]))}
+	m := &Message{Code: int(b[1]), Checksum: int(b[2])<<8 | int(b[3])}
 	switch proto {
 	case iana.ProtocolICMP:
 		m.Type = ipv4.ICMPType(b[0])
@@ -148,7 +140,7 @@ func ParseMessage(proto int, b []byte) (*Message, error) {
 	if fn, ok := parseFns[m.Type]; !ok {
 		m.Body, err = parseDefaultMessageBody(proto, b[4:])
 	} else {
-		m.Body, err = fn(proto, m.Type, b[4:])
+		m.Body, err = fn(proto, b[4:])
 	}
 	if err != nil {
 		return nil, err
