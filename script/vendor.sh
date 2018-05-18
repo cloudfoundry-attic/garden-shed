@@ -10,8 +10,8 @@ function backup_manual_vends() {
   src="$1"
   dst="$2"
 
-  cp -r "${src}/vendor/github.com/Sirupsen/logrus" "${dst}/logrus"
-  cp -r "${src}/vendor/github.com/docker/docker" "${dst}/docker"
+  cp -r "${src}/vendor/github.com/Sirupsen/logrus" "${dst}"
+  cp -r "${src}/vendor/github.com/docker/docker" "${dst}"
 }
 
 function restore_manual_vends() {
@@ -21,8 +21,8 @@ function restore_manual_vends() {
   mkdir -p "${src}/vendor/github.com/docker"
   mkdir -p "${src}/vendor/github.com/Sirupsen"
 
-  cp -r "${dst}/docker" "${src}/vendor/github.com/docker/docker"
-  cp -r "${dst}/logrus" "${src}/vendor/github.com/Sirupsen/logrus"
+  cp -r "${dst}/docker" "${src}/vendor/github.com/docker"
+  cp -r "${dst}/logrus" "${src}/vendor/github.com/Sirupsen"
 }
 
 backup_manual_vends "$SHED_DIR" "$TMP_WORK_DIR"
