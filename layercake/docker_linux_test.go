@@ -278,8 +278,6 @@ var _ = Describe("Docker", func() {
 				backingStoreRoot, err = ioutil.TempDir("", "backingstore")
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(syscall.Mount("tmpfs", root, "tmpfs", 0, "")).To(Succeed())
-
 				driver, err = graphdriver.GetDriver("aufs", root, nil)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -322,7 +320,6 @@ var _ = Describe("Docker", func() {
 			AfterEach(func() {
 				Expect(cake.Remove(id)).To(Succeed())
 				Expect(driver.Cleanup()).To(Succeed())
-				Expect(syscall.Unmount(root, 0)).To(Succeed())
 				Expect(os.RemoveAll(backingStoreRoot)).To(Succeed())
 			})
 
