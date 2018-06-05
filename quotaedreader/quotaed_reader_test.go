@@ -1,23 +1,20 @@
 package quotaedreader_test
 
 import (
-	"fmt"
-
+	"code.cloudfoundry.org/garden-shed/quotaedreader"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"io"
 	"io/ioutil"
 	"strings"
-
-	"code.cloudfoundry.org/grootfs/fetcher/layer_fetcher"
 )
 
 var _ = Describe("QuotaedReader", func() {
 	var (
 		delegate io.Reader
 		quota    int64
-		qr       *layer_fetcher.QuotaedReader
+		qr       *quotaedreader.QuotaedReader
 	)
 
 	BeforeEach(func() {
@@ -25,13 +22,7 @@ var _ = Describe("QuotaedReader", func() {
 	})
 
 	JustBeforeEach(func() {
-		qr = &layer_fetcher.QuotaedReader{
-			DelegateReader: ioutil.NopCloser(delegate),
-			QuotaLeft:      quota,
-			QuotaExceededErrorHandler: func() error {
-				return fmt.Errorf("err-quota-exceeded")
-			},
-		}
+		qr = quotaedreader.New(ioutil.NopCloser(delegate), quota)
 	})
 
 	Describe("Read", func() {
@@ -67,7 +58,7 @@ var _ = Describe("QuotaedReader", func() {
 
 			It("returns an error", func() {
 				_, err := ioutil.ReadAll(qr)
-				Expect(err).To(MatchError("err-quota-exceeded"))
+				Expect(err).To(MatchError("layer size exceeds image quota"))
 			})
 
 			It("reads only as many bytes as allowed by the quota plus one", func() {
@@ -84,7 +75,7 @@ var _ = Describe("QuotaedReader", func() {
 
 			It("returns an error", func() {
 				_, err := ioutil.ReadAll(qr)
-				Expect(err).To(MatchError("err-quota-exceeded"))
+				Expect(err).To(MatchError("layer size exceeds image quota"))
 			})
 		})
 
@@ -96,7 +87,7 @@ var _ = Describe("QuotaedReader", func() {
 
 			It("returns an error", func() {
 				_, err := ioutil.ReadAll(qr)
-				Expect(err).To(MatchError("err-quota-exceeded"))
+				Expect(err).To(MatchError("layer size exceeds image quota"))
 			})
 		})
 	})
