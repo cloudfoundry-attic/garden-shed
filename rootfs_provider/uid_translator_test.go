@@ -14,6 +14,8 @@ var _ = Describe("UidTranslator", func() {
 	var chowned []chownargs
 
 	BeforeEach(func() {
+		chowned = []chownargs{}
+
 		uidMap := fakeMap{
 			From: 12,
 			To:   24,
