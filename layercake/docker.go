@@ -129,7 +129,7 @@ func (d DockerImageID) GraphID() string {
 }
 
 func (c LocalImageID) GraphID() string {
-	return shaID(fmt.Sprintf("%s-%d", c.Path, c.ModifiedTime))
+	return shaID(fmt.Sprintf("%s-%d", c.Path, c.ModifiedTime.Nanosecond()))
 }
 
 func (n NamespacedLayerID) GraphID() string {
